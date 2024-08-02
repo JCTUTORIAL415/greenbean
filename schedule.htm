@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一周行程表</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #007bff;
+        }
+        table {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            border-collapse: collapse;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #007bff;
+            color: #ffffff;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        @media (max-width: 600px) {
+            table {
+                border: 0;
+            }
+            thead {
+                display: none;
+            }
+            tr {
+                display: block;
+                margin-bottom: 10px;
+                border-bottom: 1px solid #ddd;
+            }
+            td {
+                display: block;
+                text-align: right;
+                font-size: 14px;
+                border-bottom: 1px dotted #ddd;
+                position: relative;
+                padding-left: 50%;
+            }
+            td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 0;
+                width: 45%;
+                padding-left: 10px;
+                white-space: nowrap;
+                font-weight: bold;
+                color: #007bff;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>一周行程表</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>時間</th>
+                <th>周一</th>
+                <th>周二</th>
+                <th>周三</th>
+                <th>周四</th>
+                <th>周五</th>
+                <th>周六</th>
+                <th>周日</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>07:00 - 09:00</td>
+                <td>健身</td>
+                <td>健身</td>
+                <td>健身</td>
+                <td>健身</td>
+                <td>健身</td>
+                <td>健身</td>
+                <td>健身</td>
+            </tr>
+            <tr>
+                <td>09:30 - 10:30</td>
+                <td>早餐加回家</td>
+                <td>早餐加回家</td>
+                <td>早餐加回家</td>
+                <td>早餐加回家</td>
+                <td>早餐加回家</td>
+                <td>早餐加回家</td>
+                <td>早餐加回家</td>
+            </tr>
+            <tr>
+                <td>10:30 - 12:00</td>
+                <td>背日文單＋複習舊書各2回</td>
+                <td>背日文單＋複習舊書各2回</td>
+                <td>背日文單＋複習舊書各2回</td>
+                <td>背日文單＋複習舊書各2回</td>
+                <td>背日文單＋複習舊書各2回</td>
+                <td>背日文單＋複習舊書各2回</td>
+                <td>背日文單＋複習舊書各2回</td>
+            </tr>
+            <tr>
+                <td>12:00 - 13:00</td>
+                <td>午飯</td>
+                <td>午飯</td>
+                <td>午飯</td>
+                <td>午飯</td>
+                <td>午飯</td>
+                <td>午飯</td>
+                <td>午飯</td>
+            </tr>
+            <tr>
+                <td>13:00 - 14:00</td>
+                <td>多益聽力</td>
+                <td>多益閱讀</td>
+                <td>檢討</td>
+                <td>多益聽力</td>
+                <td>多益閱讀</td>
+                <td>檢討</td>
+                <td>橘色大家的日本語 一回</td>
+            </tr>
+            <tr>
+                <td>14:30 - 15:30</td>
+                <td>多益單字加複習</td>
+                <td>多益單字加複習</td>
+                <td>多益單字加複習</td>
+                <td>多益單字加複習</td>
+                <td>橘色大家的日本語 一回</td>
+                <td>橘色大家的日本語 一回</td>
+            </td>
+            </tr>
+            <tr>
+                <td>15:50 - 18:00</td>
+                <td>程式語言</td>
+                <td>程式語言</td>
+                <td>程式語言</td>
+                <td>程式語言</td>
+                <td>程式語言</td>
+                <td>程式語言</td>
+                <td>程式語言</td>
+            </tr>
+            <tr>
+                <td>18:00 - 19:00</td>
+                <td>晚飯</td>
+                <td>晚飯</td>
+                <td>晚飯</td>
+                <td>晚飯</td>
+                <td>晚飯</td>
+                <td>晚飯</td>
+                <td>晚飯</td>
+            </tr>
+            <tr>
+                <td>19:30 - 20:00</td>
+                <td>複習日文單</td>
+                <td>複習日文單</td>
+                <td>複習日文單</td>
+                <td>複習日文單</td>
+                <td>複習日文單</td>
+                <td>複習日文單</td>
+                <td>複習日文單</td>
+            </tr>
+            <tr>
+                <td>20:00 - 22:00</td>
+                <td>自由安排</td>
+                <td>自由安排</td>
+                <td>自由安排</td>
+                <td>自由安排</td>
+                <td>自由安排</td>
+                <td>自由安排</td>
+                <td>自由安排</td>
+            </tr>
+            
+        </tbody>
+    </table>
+</body>
+</html>
