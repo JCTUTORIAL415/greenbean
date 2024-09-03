@@ -1,0 +1,56 @@
+	<!DOCTYPE html>
+	<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+			
+			<meta name="viewport" content="width=device-width,initial-scale=1.0">
+			<title>Document</title>
+			<link rel="stylesheet" href="./封面.css">
+			<script src="./Document_files/chrisplugin.js.下載"></script>
+			<style id="monica-reading-highlight-style">
+			.monica-reading-highlight {
+			animation: fadeInOut 1.5s ease-in-out;
+			}
+
+			@keyframes fadeInOut {
+			0%, 100% { background-color: transparent; }
+			30%, 70% { background-color: rgba(2, 118, 255, 0.20); }
+			}
+		</style></head>
+		<body monica-locale="zh_TW" monica-version="6.0.2" monica-id="ofpnmcalabcbjgholdjcjblkibolbppb">
+			<div class="navigationbar">
+				<div class="navigationbarleft">
+					<img src="../img/logo.png" class="logo" style="width: 100px;height: 80px; ">
+					<div class="maintitle" style="font-family: 王漢宗; font-size: smaller; margin-bottom: 4px; margin-right: 4px;">藥物回傳軟體</div>
+				</div>
+			</div>
+
+			<div class="main center width-275px">
+				<div class="text big bold textcenter">使用者登入</div>
+				<hr>
+				<div class="inputdiv">
+					<div class="textlabel">帳號</div>
+					<div class="input endicon underline">
+						<input type="text" id="username">
+						<div class="icon"><img src="./Document_files/user.svg" class="iconinputicon" draggable="false"></div>
+					</div>
+				</div>
+				<div class="inputdiv">
+					<div class="textlabel">密碼</div>
+					<div class="input endicon underline">
+						<input type="password" id="password">
+						<div class="icon"><img src="./Document_files/eyeclose.svg" class="iconinputicon cursor_pointer" id="passwordicon" draggable="false"></div>
+					</div>
+				</div>
+				<div class="text error bold textcenter inputdiv" id="error"></div>
+				<div class="textcenter inputdiv">
+					<input type="button" class="button secondary inputbutton" id="signup" value="註冊">
+					<input type="button" class="button outline inputbutton" id="submit" value="登入">
+				</div>
+			</div>
+
+			<div id="lightbox" class="lightboxmask" style="display: block;"></div>
+
+			<script src="./Document_files/initialize.js.下載"></script>
+			<script src="./Document_files/index.js.下載"></script>
+		
+	</body>
+	</html>
