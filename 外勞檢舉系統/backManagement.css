@@ -1,0 +1,360 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.material-symbols-rounded {
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 40;
+}
+
+body {
+    background: #f5f7fa;
+    color: #333;
+    line-height: 1.6;
+}
+
+.dashboard {
+    display: flex;
+    flex-wrap: wrap;
+    min-height: 100vh;
+}
+
+/* 側邊欄樣式 */
+.sidebar {
+    width: 250px;
+    background: linear-gradient(180deg, #4776E6, #8E54E9);
+    color: white;
+    padding: 2rem 1rem;
+    flex-shrink: 0;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 1rem;
+    margin-bottom: 2rem;
+}
+
+.logo .material-symbols-rounded {
+    font-size: 2rem;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    transition: background-color 0.3s;
+}
+
+.nav-item:hover, .nav-item.active {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* 主要內容區域 */
+.main-content {
+    flex: 1;
+    padding: 2rem;
+    overflow-y: auto;
+    width: 100%;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+/* 地區篩選器樣式 */
+select {
+    padding: 0.5rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+/* 表格樣式 */
+.table-container {
+    width: 100%;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #edf2f7;
+}
+
+th {
+    background: #f8fafc;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+tr:hover {
+    background: #f8fafc;
+}
+
+/* 狀態標籤 */
+.status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-new {
+    background: #ebf8ff;
+    color: #2b6cb0;
+}
+
+.status-processing {
+    background: #fefcbf;
+    color: #975a16;
+}
+
+.status-transferred {
+    background: #e6fffa;
+    color: #2c7a7b;
+}
+
+.status-completed {
+    background: #f0fff4;
+    color: #2f855a;
+}
+
+/* 按鈕樣式 */
+.btn {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, #4776E6, #8E54E9);
+    color: white;
+}
+
+.btn-primary:hover {
+    opacity: 0.9;
+}
+
+.btn-secondary {
+    background: linear-gradient(45deg, #4776E6, #8E54E9);
+    color: white;
+}
+
+.btn-secondary:hover {
+    opacity: 0.9;
+}
+
+/* 響應式設置 */
+@media (max-width: 768px) {
+    .dashboard {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        display: none;
+    }
+
+    .sidebar-toggle {
+        display: block;
+    }
+
+    .main-content {
+        padding: 1rem;
+    }
+
+    .btn {
+        font-size: 0.875rem;
+    }
+
+    .case-photo {
+        max-width: 120px;
+        max-height: 120px;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    table {
+        min-width: 800px;
+    }
+}
+
+@media (max-width: 480px) {
+    .case-photo {
+        max-width: 100px;
+        max-height: 100px;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    table {
+        min-width: 600px;
+    }
+}
+
+#submit-button-container {
+    margin-top: 13px;
+}
+/* 彈窗背景 */
+.input-modal {
+    display: none; /* 預設隱藏 */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* 半透明背景 */
+    z-index: 1000;
+    display: flex; /* 使用 Flexbox */
+    justify-content: center; /* 水平置中 */
+    align-items: center; /* 垂直置中 */
+}
+
+/* 彈窗內容 */
+.input-modal-content {
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    width: 90%; /* 響應式寬度 */
+    max-width: 400px; /* 最大寬度 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    position: relative;
+    text-align: center;
+    animation: fadeIn 0.3s ease-in-out; /* 彈出效果 */
+ 
+
+}
+
+/* 關閉按鈕 */
+.input-modal-content .close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #999;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.input-modal-content .close:hover {
+    color: #333;
+}
+
+/* 表單樣式 */
+.input-modal-content input {
+    width: 80%; /* 響應式寬度 */
+    padding: 10px;
+    margin: 15px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.input-modal-content button {
+    background-color: #4CAF50; /* 綠色按鈕 */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.input-modal-content button:hover {
+    background-color: #45a049;
+}
+
+/* 動畫 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+
+/* 按鈕樣式 */
+#formSubmit{
+    width: 100%;
+    padding: 12px;
+    font-size: 1em;
+    color: #fff;
+    background-color: #007BFF; /* 按鈕背景顏色 */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#formSubmit:hover {
+    background-color: #0056b3; /* 按鈕懸停時的顏色 */
+}
+
+/* 按鈕區域的樣式 */
+#submit-button-container button {
+    width: auto;
+    display: inline-block;
+}
+
+/* "查看詳情"按鈕的樣式保持獨立 */
+.btn-secondary {
+    background-color: #6c757d; /* "查看詳情"按鈕的背景顏色 */
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268; /* "查看詳情"按鈕懸停顏色 */
+}
+
+/* "送出"按鈕和表單內容的樣式 */
+.input-modal-content button {
+    width: 100%;
+    margin-top: 10px;
+}
+
+/* 按鈕禁用後的樣式 */
+#submit-button.btn-assigned {
+    background-color: #14b86c; /* 灰色 */
+    color: #2eb045;
+    cursor: not-allowed;
+}

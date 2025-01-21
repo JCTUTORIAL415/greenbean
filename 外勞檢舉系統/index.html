@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>爆勞情報網</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <link rel="stylesheet" href="index.css">
+      <!-- iOS 桌面图标名称 -->
+      <meta name="apple-mobile-web-app-title" content="爆勞情報網">
+
+      <!-- Safari (iOS) 配置 -->
+      <meta name="apple-mobile-web-app-capable" content="yes">
+      <meta name="apple-mobile-web-app-status-bar-style" content="black">
+      <meta name="apple-mobile-web-app-title" content="爆勞情報網">
+      <!-- 各尺寸图标 -->
+      <link rel="apple-touch-icon" sizes="57x57" href="icon-57.png">
+      <link rel="apple-touch-icon" sizes="72x72" href="icon-72.png">
+      <link rel="apple-touch-icon" sizes="114x114" href="icon-114.png">
+      <link rel="apple-touch-icon" sizes="120x120" href="icon-120.png">
+      <link rel="apple-touch-icon" sizes="144x144" href="icon-144.png">
+      <link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
+      <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+      <link rel="apple-touch-icon" sizes="180x180" href="icon-360.png">
+  
+      <!-- 安卓 (PWA) 配置 -->
+      <link rel="manifest" href="manifest.json">
+      <meta name="theme-color" content="#ffffff">
+
+      <meta name="keywords" content="匿名檢舉, 外勞檢舉系統, 勞動檢舉, 外勞舉報, 勞工檢舉, 舉報平台, 勞動權益, 勞工申訴, 勞工權益保護, 檢舉通報, 舉報違規, 勞動保障,逃逸外勞,逃逸移工,移工,移工舉報,逃逸移工舉報">
+    <meta name="description" content="匿名檢舉外勞系統，提供安全保密的檢舉管道，保障勞動權益，舉報違規更簡單。">
+    <meta name="author" content="檢舉系統開發團隊">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index, follow">
+
+</head>
+<body>
+    <div class="container">
+        <div class="header animate__animated animate__fadeIn">
+            <span class="material-symbols-rounded icon">admin_panel_settings</span>
+            <h1>非法移工匿名檢舉系統</h1>
+            <p>保護您的隱私，為社會盡一份心力</p>
+        </div>
+
+        <div class="form-container animate__animated animate__fadeInUp" id="container1">
+            <form id="reportForm">
+                <div class="form-group">
+                    <label>
+                        <span class="material-symbols-rounded">event_available</span>
+                        發生時間
+                    </label>
+                    <input id="datetime" type="datetime-local" name="datetime" required  >
+                    <button id="setNow" class="submit-btn" style="margin-top: 10px;">
+                        <span class="material-symbols-rounded" id="changeColor">access_time</span>
+                        點擊取得當前時間
+                    </button>
+                    
+                </div>
+    
+                <div class="form-group">
+                    <label>
+                        <span class="material-symbols-rounded">location_searching</span>
+                        發生地點
+                    </label>
+                    <input type="text" id="location" placeholder="請詳細描述地點或點擊目前坐標" name="location" required>
+                    <button type="button" id="getLocation" class="submit-btn" style="margin-top: 10px;">
+                        <span class="material-symbols-rounded" id="changeColor">place</span>
+                            獲取當前座標
+                    </button>
+                        <p id="coords" style="margin-top: 10px; font-size: 0.9rem; color: #666;"></p>
+                 </div>
+    
+                <div id="map" style="height: 300px; border-radius: 10px; margin-top: 1rem; margin-bottom:30px;display: none;"></div>
+           
+                <div class="form-group">
+                    <label>
+                        <span class="material-symbols-rounded">diversity_3</span>
+                        涉及人數
+                    </label>
+                    <input type="number" min="1" placeholder="請輸入人數" name="peopleCount" required>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <span class="material-symbols-rounded">report</span>
+                        事件描述
+                    </label>
+                    <textarea rows="5" placeholder="請詳細描述事件發生經過..." name="description" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <span class="material-symbols-rounded">photo_camera</span>
+                        相關照片（至少上傳一張否則不會上傳）
+                    </label>
+                    <div class="file-upload" id="fileUpload" >
+                        <span class="material-symbols-rounded">backup</span>
+                        <p>點擊或拖曳檔案至此處上傳</p>
+                        <input type="file" accept="image/*" multiple id="fileInput" capture="camera" name="fileInput" style="display:none" required>
+                    </div>
+                    <div class="preview-container" id="previewContainer"></div>
+                </div>
+            
+
+                <button type="submit" class="submit-btn" >
+                    <span class="material-symbols-rounded">verified</span>
+                    提交檢舉
+                </button>
+            </form>
+
+            <div class="notes" id="notes">
+                <h3>
+                    <span class="material-symbols-rounded">security_update_warning</span>
+                    注意事項
+                </h3>
+                <ul>
+                    <li>本系統採匿名設計，無須登入，不會收集任何個人資料</li>
+                    <li>請確保提供的訊息準確且客觀</li>
+                    <li>上傳照片請確保清晰可辨識</li>
+                    <li>如遇緊急狀況，請直接聯繫相關單位處理</li>
+                </ul>
+            </div>
+
+            <div class="purpose-container animate__animated animate__fadeIn">
+                <h2>本站創立宗旨</h2>
+                <p>在現今社會，非法移工問題急需我們共同關注。然而，許多人因擔心檢舉後會遭受報復，或害怕身份暴露，從而選擇保持沉默，不敢挺身而出。</p>
+                <p>為了改變這一現狀，我們創立了這個匿名檢舉平台，旨在提供每位公民一個安全、無後顧之憂的發聲空間。無論您身處何處，都能夠無畏地揭露不法行為，讓社會的正義得到伸張。</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="thankYouMessage" style="display: none;">
+        <span class="material-symbols-rounded icon">check_circle</span>
+        <p>感謝您的提交，本站將為您伸出正義的法槌！</p>
+        <p>二十秒後將返回檢舉頁面...</p>
+    </div>
+    
+
+    <script src="index.js"></script>
+
+    <script>
+
+document.getElementById('reportForm').addEventListener('submit', function (e) {
+    e.preventDefault();  // 防止表單的默認提交行為
+
+    // 把表單資料組成FormData對象
+    let formData = new FormData(this);
+
+    // 檢查是否選擇了文件
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput.files.length > 0) {
+        Array.from(fileInput.files).forEach(file => {
+            formData.append('fileInput', file); // 將選擇的檔案添加到FormData
+        });
+    }
+
+    // 提交表單資料到後端
+    fetch('http://127.0.0.1:5000/submit_report', {
+        method: 'POST',
+        body: formData,
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('伺服器回應錯誤');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            alert("檢舉成功！");
+            window.location.href = 'index.html';  // 提交成功後跳轉
+        } else {
+            alert(`檢舉失敗: ${data.error}`);
+        }
+    })
+    .catch(error => {
+        console.error('錯誤:', error);
+        alert(`發生錯誤，請稍後再試。錯誤詳細信息：${error.message}`);
+    });
+});
+
+    </script>
+
+    <!-- 加入 Google Maps API -->
+    <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDaN5_Va2EReS1HsZMG_gAyLYfzgQMV5Pg&callback=initMap"></script>
+</body>
+</html>
