@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>插秧排程</title>
+  <!-- Tailwind CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
+  <!-- Hammer.js 用於觸控滑動 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+  <style>
+    /* ===== 通用樣式 ===== */
+    .calendar-day {
+      min-height: 120px;
+      transition: all 0.3s;
+    }
+    .calendar-day:hover {
+      background-color: #f0f9ff;
+    }
+    .schedule-item {
+      font-size: 12px;
+      padding: 2px 4px;
+      margin: 2px 0;
+      border-radius: 4px;
+      background-color: #93c5fd;
+      color: #1e40af;
+    }
+    .over-limit {
+      background-color: #fca5a5;
+      color: #991b1b;
+    }
+    /* ===== Sidebar ===== */
+    .sidebar {
+      width: 250px;
+      height: 100vh;
+      background-color: #34D399;
+      color: white;
+      position: fixed;
+      left: 0;
+      top: 0;
+      transition: transform 0.3s ease-in-out;
+      z-index: 50;
+    }
+    .sidebar a {
+      display: block;
+      padding: 12px 20px;
+      color: white;
+      text-decoration: none;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+    .sidebar a:hover {
+      background-color: #059669;
+    }
+    .sidebar .active {
+      background-color: #059669;
+    }
+    /* ===== Calendar Container ===== */
+    .calendar-container {
+      flex-grow: 1;
+      padding: 20px;
+      background-color: #f9fafb;
+      min-height: 100vh;
+      margin-left: 250px; /* 保留側邊欄空間 */
+      transition: margin-left 0.3s ease-in-out;
+      width: calc(100% - 250px); /* 確保桌機版日曆寬度 */
+    }
+    /* ===== Mobile 版調整 ===== */
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .calendar-container {
+        margin-left: 0; /* 手機版全螢幕 */
+        width: 100%;
+      }
+      .calendar-day {
+        font-size: 14px;
+      }
+      /* 桌機日曆隱藏，手機版用大卡片顯示 */
+      .desktop-calendar {
+        display: none;
+      }
+      /* 手機版日期選擇保留 */
+      .mobile-date-picker {
+        display: block;
+      }
+      #monthTitle {
+        display: none;
+      }
+    }
+    /* ===== 隱藏桌機版的手機大卡片區塊 ===== */
+    @media (min-width: 769px) {
+      #mobileCardContainer {
+        display: none;
+      }
+    }
+    /* ===== Sidebar Overlay (手機版展開時) ===== */
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 40;
+      display: none;
+    }
+    .sidebar-overlay.show {
+      display: block;
+    }
+    /* ===== Input Group ===== */
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 15px;
+    }
+    .input-group label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      font-size: 16px;
+    }
+    .input-group input,
+    .input-group select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: 0.3s;
+    }
+    /* ===== 手機大卡片 (Swipe) ===== */
+    #mobileCardContainer {
+      display: block; /* 預設在手機版顯示 */
+    }
+    #mobileCard {
+      min-height: 300px;
+      background: linear-gradient(135deg, #93c5fd, #c7d2fe);
+      border-radius: 16px;
+      box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      transition: transform 0.3s;
+      overflow: hidden;
+    }
+    #mobileCard:hover {
+      transform: scale(1.02);
+    }
+
+    @media (min-width: 769px) {
+  #mobileCardContainer {
+    display: none;
+  }
+}
+
+  </style>
+</head>
+<body class="bg-gray-50">
+  <div class="flex">
+    <!-- 手機側邊欄 Toggle 按鈕 (帶有 class "sidebar-toggle") -->
+    <button onclick="toggleSidebar()" class="sidebar-toggle fixed top-4 left-4 bg-green-500 text-white p-2 rounded lg:hidden z-1000">☰</button>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <div class="text-center py-6 font-bold text-2xl">秧苗場管理</div>
+      <a href="calender.html" class="active">插秧排程</a>
+      <a href="workerManage.html">插秧工人管理</a>
+      <a href="TransplantingList.html">插秧單</a>
+      <a href="Shipment.html">出貨單</a>
+      <a href="harvest.html">割稻管理</a>
+      <a href="customer.html">客戶管理</a>
+      <a href="#">登出</a>
+    </div>
+    <!-- 手機側邊欄 Toggle 按鈕 (重複以確保 z-index，同樣帶 class "sidebar-toggle") -->
+    <button onclick="toggleSidebar()" class="sidebar-toggle w-12 fixed top-4 left-4 bg-green-500 text-white p-2 rounded lg:hidden z-50">☰</button>
+    <!-- 背景遮罩 -->
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- 右側主要內容 -->
+    <div class="calendar-container">
+      <!-- 月份選擇與新增排程按鈕 (僅桌機顯示) -->
+      <div class="flex justify-between items-center mb-6">
+        <div class="flex items-center space-x-4">
+          <button onclick="changeMonth(-1)" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 hidden lg:block">◀ 上個月</button>
+          <h2 id="monthTitle" class="text-2xl font-bold">2025年 2月</h2>
+          <button onclick="changeMonth(1)" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 hidden lg:block">下個月 ▶</button>
+        </div>
+        <div class="flex space-x-4">
+          <button onclick="showAddSchedule()" class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600" id="addSchedule">新增排程</button>
+        </div>
+      </div>
+
+      <!-- 每日上限輸入 (桌機版顯示) -->
+      <div class="mb-6 hidden lg:block">
+        <label for="dailyLimit" class="block text-sm font-medium mb-1">每日插秧上限 (甲):</label>
+        <input type="number" id="dailyLimit" class="w-full p-2 border rounded" value="10" onchange="updateDailyLimit()" />
+      </div>
+
+      <!-- 手機日期選擇 (保留) -->
+      <div class="mb-6 lg:hidden mobile-date-picker">
+        <label for="mobileDate" class="block text-sm font-medium mb-1">選擇日期:</label>
+        <input type="date" id="mobileDate" class="w-full p-2 border rounded" onchange="onMobileDateChange()" />
+      </div>
+
+      <!-- 桌機版日曆 -->
+      <div class="bg-white rounded-lg shadow overflow-hidden desktop-calendar">
+        <!-- 星期標題 -->
+        <div class="grid grid-cols-7 bg-gray-100">
+          <div class="py-2 text-center font-bold text-red-600">日</div>
+          <div class="py-2 text-center font-bold">一</div>
+          <div class="py-2 text-center font-bold">二</div>
+          <div class="py-2 text-center font-bold">三</div>
+          <div class="py-2 text-center font-bold">四</div>
+          <div class="py-2 text-center font-bold">五</div>
+          <div class="py-2 text-center font-bold text-red-600">六</div>
+        </div>
+        <!-- 日曆內容 -->
+        <div id="calendar" class="grid grid-cols-7 border-t">
+          <!-- 動態產生日期格子 -->
+        </div>
+      </div>
+
+      <!-- 手機版大卡片 (取代原 mobileSchedule) -->
+      <div id="mobileCardContainer" class="lg:hidden mt-6">
+        <!-- 大卡片內容由 JS 產生 -->
+        <!-- 每日上限輸入 (手機版) -->
+        <div class="mb-4">
+          <label for="mobileDailyLimit" class="block text-sm font-medium mb-1">每日插秧上限 (甲):</label>
+          <input type="number" id="mobileDailyLimit" class="w-full p-2 border rounded" value="10" onchange="updateDailyLimitMobile()" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增排程 Modal -->
+  <div id="addScheduleModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+    <div class="bg-white p-6 rounded-lg w-96">
+      <h3 class="text-xl font-bold mb-4">新增插秧排程</h3>
+      <form class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">日期</label>
+          <input type="date" class="w-full p-2 border rounded" id="scheduleDate">
+        </div>
+        <div class="input-group">
+          <label for="farmer_name">農民名稱：</label>
+          <select id="farmer_name" name="farmer_name">
+            <option value="">請選擇田地</option>
+            <option value="地點A">李農</option>
+            <option value="地點B">陳農</option>
+            <option value="未知">大農</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="farm">選擇地塊：</label>
+          <select id="farm" name="farm">
+            <option value="">請選擇田地</option>
+            <option value="地點A">地點A</option>
+            <option value="地點B">地點B</option>
+            <option value="未知">未知（需手動輸入）</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">備註</label>
+          <textarea class="w-full p-2 border rounded" id="notes"></textarea>
+        </div>
+        <div class="flex space-x-4">
+          <button type="button" onclick="hideAddSchedule()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 w-1/2">取消</button>
+          <button type="button" onclick="addSchedule()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-1/2">確定</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 每日排程 Modal -->
+  <div id="dailyScheduleModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+    <div class="bg-white p-6 rounded-lg w-96">
+      <h3 id="dailyScheduleTitle" class="text-xl font-bold mb-4"></h3>
+      <div id="dailyScheduleContent" class="space-y-2"></div>
+      <div class="flex space-x-2 mt-4">
+        <button onclick="hideDailySchedule()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 flex-1">關閉</button>
+        <button onclick="printDailySchedule()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 flex-1">列印</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /********************
+     * 公用函數
+     ********************/
+    // 格式化日期為 YYYY-MM-DD
+    function formatDate(date) {
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    /********************
+     * 桌機日曆功能 (Desktop)
+     ********************/
+    let currentMonth = new Date(2025, 0); // 從 2025 年 1 月開始
+    const monthNames = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"];
+    let dailyLimit = 10;  // 每日插秧上限
+
+    // 假資料（桌機與手機共用）
+    const schedules = [
+      { date: '2025-02-05', farmer: '王小明', area: 5, notes: '備註1' },
+      { date: '2025-02-05', farmer: '王小明', area: 5, notes: '備註1' },
+      { date: '2025-02-05', farmer: '王小明', area: 5, notes: '備註1' },
+      { date: '2025-02-05', farmer: '王小明', area: 5, notes: '備註1' },
+      { date: '2025-02-05', farmer: '王小明', area: 5, notes: '備註1' },
+      { date: '2025-02-10', farmer: '張大華', area: 8, notes: '備註2' },
+      { date: '2025-02-10', farmer: '張大華', area: 8, notes: '備註2' },
+      { date: '2025-02-10', farmer: '張大華', area: 8, notes: '備註2' },
+      { date: '2025-02-10', farmer: '張大華', area: 8, notes: '備註2' },
+      { date: '2025-02-10', farmer: '張大華', area: 8, notes: '備註2' },
+      { date: '2025-02-15', farmer: '李小花', area: 12, notes: '備註3' },
+      { date: '2025-02-20', farmer: '劉國華', area: 7, notes: '備註4' }
+    ];
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('show');
+
+      // 若側邊欄展開時，隱藏手機側邊欄 toggle 按鈕；否則顯示
+      const toggleButtons = document.querySelectorAll('.sidebar-toggle');
+      if (sidebar.classList.contains('open')) {
+        toggleButtons.forEach(btn => {
+          btn.style.display = 'none';
+        });
+      } else {
+        toggleButtons.forEach(btn => {
+          btn.style.display = 'block';
+        });
+      }
+    }
+
+    function changeMonth(offset) {
+      currentMonth.setMonth(currentMonth.getMonth() + offset);
+      renderCalendar();
+    }
+
+    function renderCalendar() {
+      const calendar = document.getElementById('calendar');
+      const monthTitle = document.getElementById('monthTitle');
+      const year = currentMonth.getFullYear();
+      const month = currentMonth.getMonth();
+      monthTitle.textContent = `${year}年 ${monthNames[month]}`;
+
+      // 取得該月第一天與最後一天
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const daysInMonth = lastDay.getDate();
+      const firstDayOfWeek = firstDay.getDay();
+
+      // 清空日曆
+      calendar.innerHTML = '';
+
+      // 補齊前面空格
+      for (let i = 0; i < firstDayOfWeek; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.classList.add('calendar-day', 'border-b', 'border-r', 'p-2', 'bg-gray-50');
+        calendar.appendChild(emptyCell);
+      }
+
+      // 填充日期
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dayCell = document.createElement('div');
+        dayCell.classList.add('calendar-day', 'border-b', 'border-r', 'p-2');
+        dayCell.innerHTML = `<div class="text-center font-medium">${day}</div>`;
+
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const scheduledItems = schedules.filter(schedule => schedule.date === dateStr);
+
+        let totalArea = 0;
+        const maxVisible = 4;
+        scheduledItems.forEach((schedule, index) => {
+          if (index < maxVisible) {
+            const scheduleDiv = document.createElement('div');
+            scheduleDiv.classList.add('schedule-item');
+            scheduleDiv.textContent = `${schedule.farmer} (${schedule.area}甲)`;
+            dayCell.appendChild(scheduleDiv);
+          }
+          totalArea += schedule.area;
+        });
+
+        if (scheduledItems.length > maxVisible) {
+          const moreDiv = document.createElement('div');
+          moreDiv.classList.add('schedule-item', 'bg-gray-300', 'text-gray-700', 'cursor-pointer');
+          moreDiv.textContent = `更多...`;
+          moreDiv.onclick = () => showDailySchedule(dateStr);
+          dayCell.appendChild(moreDiv);
+        }
+
+        if (totalArea > dailyLimit) {
+          dayCell.classList.add('over-limit');
+          const warningDiv = document.createElement('div');
+          warningDiv.classList.add('schedule-item', 'over-limit');
+          // 顯示每日上限提示訊息
+          warningDiv.textContent = `每天最多只能插 ${dailyLimit} 甲`;
+          dayCell.appendChild(warningDiv);
+        }
+
+        dayCell.addEventListener('click', () => showDailySchedule(dateStr));
+        calendar.appendChild(dayCell);
+      }
+    }
+
+    function showDailySchedule(dateStr) {
+      const scheduledItems = schedules.filter(schedule => schedule.date === dateStr);
+      const dailyScheduleTitle = document.getElementById('dailyScheduleTitle');
+      const dailyScheduleContent = document.getElementById('dailyScheduleContent');
+
+      dailyScheduleTitle.textContent = `日期: ${dateStr}`;
+      dailyScheduleContent.innerHTML = '';
+
+      if (scheduledItems.length === 0) {
+        dailyScheduleContent.innerHTML = '<p>當日無排程</p>';
+      } else {
+        scheduledItems.forEach(schedule => {
+          const scheduleDiv = document.createElement('div');
+          scheduleDiv.classList.add('schedule-item');
+          scheduleDiv.textContent = `${schedule.farmer} (${schedule.area}甲) - ${schedule.notes}`;
+          dailyScheduleContent.appendChild(scheduleDiv);
+        });
+      }
+      document.getElementById('dailyScheduleModal').classList.remove('hidden');
+    }
+
+    function hideDailySchedule() {
+      document.getElementById('dailyScheduleModal').classList.add('hidden');
+    }
+
+    function showAddSchedule() {
+      document.getElementById('addScheduleModal').classList.remove('hidden');
+    }
+
+    function hideAddSchedule() {
+      document.getElementById('addScheduleModal').classList.add('hidden');
+    }
+
+    function addSchedule() {
+      const date = document.getElementById('scheduleDate').value;
+      const farmer = document.getElementById('farmer_name').value;
+      const area = parseFloat(document.getElementById('area') ? document.getElementById('area').value : 0);
+      const notes = document.getElementById('notes').value;
+
+      if (!date || !farmer || !area) {
+        alert('請填寫所有欄位');
+        return;
+      }
+
+      // 檢查當日是否超過每日上限
+      const day = new Date(date).getDate();
+      const daySchedules = schedules.filter(schedule => new Date(schedule.date).getDate() === day);
+      const totalArea = daySchedules.reduce((total, schedule) => total + schedule.area, 0);
+
+      if (totalArea + area > dailyLimit) {
+        alert(`超過每日插秧上限，每天最多只能插 ${dailyLimit} 甲`);
+        return;
+      }
+
+      schedules.push({ date, farmer, area, notes });
+      renderCalendar();
+      hideAddSchedule();
+    }
+
+    function updateDailyLimit() {
+      dailyLimit = parseFloat(document.getElementById('dailyLimit').value);
+      renderCalendar();
+      // 同步更新手機版每日上限
+      document.getElementById('mobileDailyLimit').value = dailyLimit;
+      renderMobileCard(mobileCurrentDate);
+    }
+    
+    // 手機版每日上限欄位更新
+    function updateDailyLimitMobile() {
+      dailyLimit = parseFloat(document.getElementById('mobileDailyLimit').value);
+      renderCalendar();
+      renderMobileCard(mobileCurrentDate);
+    }
+
+    /********************
+     * 手機大卡片功能 (Mobile Card View with Swipe)
+     ********************/
+    let mobileCurrentDate = new Date();
+    function renderMobileCard(date) {
+      const container = document.getElementById('mobileCardContainer');
+      const dateStr = formatDate(date);
+      let html = `<div id="mobileCard" class="min-h-[300px] bg-gradient-to-r from-blue-200 to-blue-400 rounded-2xl p-6 flex flex-col justify-center items-center transition-transform duration-300">
+                    <h2 class="text-3xl font-bold mb-4">${dateStr}</h2>`;
+      const daySchedules = schedules.filter(s => s.date === dateStr);
+      let totalArea = 0;
+      if (daySchedules.length === 0) {
+        html += `<p class="text-xl text-gray-700">當日無排程</p>`;
+      } else {
+        daySchedules.forEach(s => {
+          html += `<div class="bg-white rounded-lg p-4 mb-4 w-full shadow">
+                    <p class="text-2xl font-semibold">${s.farmer}</p>
+                    <p class="mt-2 text-lg">面積：${s.area} 甲</p>
+                    <p class="mt-2 text-lg">備註：${s.notes}</p>
+                  </div>`;
+          totalArea += s.area;
+        });
+      }
+      // 若超過每日上限，則顯示提示訊息
+      if (totalArea > dailyLimit) {
+        html += `<div class="bg-red-100 text-red-700 rounded p-2 mt-2">每天最多只能插 ${dailyLimit} 甲</div>`;
+      }
+      html += `</div>`;
+      container.innerHTML = html;
+      // 同步更新手機日期選擇框
+      document.getElementById('mobileDate').value = dateStr;
+    }
+
+    // 手機日期選擇改變時
+    function onMobileDateChange() {
+      const newDate = new Date(document.getElementById('mobileDate').value);
+      if (!isNaN(newDate)) {
+        mobileCurrentDate = newDate;
+        renderMobileCard(mobileCurrentDate);
+      }
+    }
+
+    // 初次渲染手機大卡片
+    renderMobileCard(mobileCurrentDate);
+
+    // 監聽鍵盤事件 (僅在手機模式下模擬左右切換)
+    document.addEventListener('keydown', function(e) {
+      if (window.innerWidth < 768) {
+        if (e.key === 'ArrowRight') {
+          mobileCurrentDate.setDate(mobileCurrentDate.getDate() + 1);
+          renderMobileCard(mobileCurrentDate);
+        } else if (e.key === 'ArrowLeft') {
+          mobileCurrentDate.setDate(mobileCurrentDate.getDate() - 1);
+          renderMobileCard(mobileCurrentDate);
+        }
+      }
+    });
+
+    // 使用 Hammer.js 讓手機大卡片支援觸控滑動
+    const mobileCardElem = document.getElementById('mobileCardContainer');
+    const hammerMobile = new Hammer(mobileCardElem);
+    hammerMobile.on('swipeleft', function() {
+      mobileCurrentDate.setDate(mobileCurrentDate.getDate() + 1);
+      renderMobileCard(mobileCurrentDate);
+    });
+    hammerMobile.on('swiperight', function() {
+      mobileCurrentDate.setDate(mobileCurrentDate.getDate() - 1);
+      renderMobileCard(mobileCurrentDate);
+    });
+
+    /********************
+     * 列印功能
+     ********************/
+    function printDailySchedule() {
+      const title = document.getElementById("dailyScheduleTitle").textContent;
+      const scheduleItems = document.getElementById("dailyScheduleContent").querySelectorAll(".schedule-item");
+
+      if (scheduleItems.length === 0) {
+        alert("當日沒有行程，無法列印！");
+        return;
+      }
+
+      let tableRows = "";
+      scheduleItems.forEach(item => {
+        const parts = item.textContent.split(" - ");
+        if (parts.length >= 2) {
+          const [farmer, area] = parts;
+          tableRows += `
+            <tr>
+              <td style="border: 1px solid #ccc; padding: 10px;">${title}</td>
+              <td style="border: 1px solid #ccc; padding: 10px;">${farmer}</td>
+              <td style="border: 1px solid #ccc; padding: 10px; text-align: center;">${area}</td>
+            </tr>
+          `;
+        }
+      });
+
+      const originalBody = document.body.innerHTML;
+      document.body.innerHTML = `
+        <div style="text-align: center; padding: 20px;">
+          <h1 style="font-size: 22px; margin-bottom: 20px;">${title} - 插秧行程表</h1>
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr>
+                <th style="background: #34D399; color: white; padding: 10px; border: 1px solid #ccc;">日期</th>
+                <th style="background: #34D399; color: white; padding: 10px; border: 1px solid #ccc;">農民姓名</th>
+                <th style="background: #34D399; color: white; padding: 10px; border: 1px solid #ccc;">插秧面積（甲）</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      window.print();
+      location.reload();
+      document.body.innerHTML = originalBody;
+      attachEventListeners();
+    }
+
+    function attachEventListeners() {
+      document.getElementById("dailyScheduleModal").classList.remove("hidden");
+      document.querySelectorAll(".calendar-day").forEach(day => {
+        day.addEventListener("click", function () {
+          showDailySchedule(this.getAttribute("data-date"));
+        });
+      });
+    }
+
+    // 初始化桌機日曆
+    renderCalendar();
+  </script>
+</body>
+</html>

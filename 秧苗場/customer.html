@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>客戶管理</title>
+    <style>
+        /* 全局樣式 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+        }
+
+        /* 側邊欄 */
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            background-color: #34D399;
+            color: white;
+            position: fixed;
+            left: 0;
+            top: 0;
+            display: flex;
+            flex-direction: column;
+            font-size: 16px;
+        }
+        .sidebar a {
+            padding: 12px 20px;
+            color: white;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+        .sidebar a:hover,
+        .sidebar .active {
+            background-color: #059669;
+        }
+        #title-text {
+            text-align: center;
+            margin-bottom: 22px;
+            font-weight: bold;
+            padding-top: 23px;
+        }
+
+        /* 內容區域 */
+        .content {
+            margin-left: 250px;
+            padding: 20px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #2f4f4f;
+        }
+
+        h2 {
+            font-size: 22px;
+            margin-bottom: 15px;
+            color: #2f4f4f;
+        }
+
+        /* 表格樣式 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #34D399;
+            color: white;
+        }
+
+        /* 新增客戶按鈕 */
+        .show-form-button {
+            background-color: #10B981;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .show-form-button:hover {
+            background-color: #059669;
+        }
+
+        /* 客戶表單樣式 */
+        .form-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            margin: 20px auto;
+            display: none;
+        }
+        .form-container input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+        }
+        .form-container button {
+            width: 100%;
+            padding: 12px;
+            background-color: #34D399;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .form-container button:hover {
+            background-color: #059669;
+        }
+
+        /* 編輯與刪除按鈕樣式 */
+        .action-button {
+            background-color: #3B82F6;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 8px;
+        }
+        .action-button.edit {
+            background-color: #FBBF24;
+        }
+        .action-button.delete {
+            background-color: #EF4444;
+        }
+        .action-button:hover {
+            opacity: 0.85;
+        }
+    </style>
+</head>
+<body>
+    <!-- 側邊欄 -->
+    <div class="sidebar">
+        <div class="text-center py-6 font-bold text-2xl" id="title-text">秧苗場管理</div>
+        <a href="calender.html">插秧排程</a>
+        <a href="workerManage.html">插秧工人管理</a>
+        <a href="TransplantingList.html">插秧單</a>
+        <a href="Shipment.html">出貨單</a>
+        <a href="harvest.html">割稻管理</a>
+        <a href="customer.html" class="active">客戶管理</a>
+        <a href="#">登出</a>
+    </div>
+
+    <!-- 內容區域 -->
+    <div class="content">
+        <h1>客戶管理</h1>
+
+        <!-- 新增客戶按鈕 -->
+        <button class="show-form-button" onclick="toggleForm()">新增客戶</button>
+
+        <!-- 新增客戶表單 -->
+        <div class="form-container" id="customerForm">
+            <h2>新增客戶</h2>
+            <input type="text" id="customerName" placeholder="客戶姓名" />
+            <input type="text" id="customerPhone" placeholder="電話" />
+            <input type="text" id="customerAddress" placeholder="地址" />
+            <button onclick="addCustomer()">新增客戶</button>
+        </div>
+
+        <!-- 客戶列表 -->
+        <h2>客戶列表</h2>
+        <table id="customerTable">
+            <thead>
+                <tr>
+                    <th>姓名</th>
+                    <th>電話</th>
+                    <th>地址</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 客戶資料會動態加載進來 -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // 客戶資料陣列
+        let customers = [];
+
+        // 切換表單顯示狀態
+        function toggleForm() {
+            const formContainer = document.getElementById("customerForm");
+            formContainer.style.display = formContainer.style.display === "none" || formContainer.style.display === "" ? "block" : "none";
+        }
+
+        // 新增客戶函式
+        function addCustomer() {
+            const name = document.getElementById("customerName").value;
+            const phone = document.getElementById("customerPhone").value;
+            const address = document.getElementById("customerAddress").value;
+
+            if (!name || !phone || !address) {
+                alert("所有欄位都必須填寫！");
+                return;
+            }
+
+            const newCustomer = {
+                name: name,
+                phone: phone,
+                address: address
+            };
+
+            customers.push(newCustomer);
+            renderCustomerTable();
+            clearForm();
+            toggleForm();
+        }
+
+        // 渲染客戶列表
+        function renderCustomerTable() {
+            const tableBody = document.getElementById("customerTable").getElementsByTagName("tbody")[0];
+            tableBody.innerHTML = ""; // 清空表格
+
+            customers.forEach((customer, index) => {
+                const row = tableBody.insertRow();
+                row.innerHTML = `
+                    <td>${customer.name}</td>
+                    <td>${customer.phone}</td>
+                    <td>${customer.address}</td>
+                    <td>
+                        <button class="action-button edit" onclick="editCustomer(${index})">編輯</button>
+                        <button class="action-button delete" onclick="confirmDelete(${index})">刪除</button>
+                    </td>
+                `;
+            });
+        }
+
+        // 清空新增表單
+        function clearForm() {
+            document.getElementById("customerName").value = "";
+            document.getElementById("customerPhone").value = "";
+            document.getElementById("customerAddress").value = "";
+        }
+
+        // 編輯客戶
+        function editCustomer(index) {
+            const customer = customers[index];
+            document.getElementById("customerName").value = customer.name;
+            document.getElementById("customerPhone").value = customer.phone;
+            document.getElementById("customerAddress").value = customer.address;
+
+            toggleForm();
+            document.querySelector(".form-container button").textContent = "更新客戶";
+            document.querySelector(".form-container button").onclick = function() {
+                updateCustomer(index);
+            };
+        }
+
+        // 更新客戶資料
+        function updateCustomer(index) {
+            const name = document.getElementById("customerName").value;
+            const phone = document.getElementById("customerPhone").value;
+            const address = document.getElementById("customerAddress").value;
+
+            customers[index] = {
+                name: name,
+                phone: phone,
+                address: address
+            };
+
+            renderCustomerTable();
+            clearForm();
+            document.querySelector(".form-container button").textContent = "新增客戶";
+            document.querySelector(".form-container button").onclick = addCustomer;
+            toggleForm();
+        }
+
+        // 確認刪除客戶
+        function confirmDelete(index) {
+            if (confirm("確定要刪除此客戶嗎？此操作無法恢復！")) {
+                deleteCustomer(index);
+            }
+        }
+
+        // 刪除客戶
+        function deleteCustomer(index) {
+            customers.splice(index, 1);
+            renderCustomerTable();
+        }
+    </script>
+</body>
+</html>
