@@ -10,13 +10,13 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
   <style>
 
-input,
-select,
-textarea,
-button {
-  -webkit-appearance: none !important;
-  appearance: none !important;
+  input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  display: none;
 }
+
 
     /* ===== 通用樣式 ===== */
     .calendar-day {
