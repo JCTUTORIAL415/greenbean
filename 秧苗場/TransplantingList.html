@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工人管理後台 - 插秧單</title>
+    <style>
+        /* [Previous CSS remains the same] */
+        .highlight {
+            background-color: #FFFF00;
+        }
+          /* 全局樣式 */
+          * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            background: #f4f4f4;
+        }
+
+        /* 側邊欄 */
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            background-color: #34D399;
+            color: white;
+            position: fixed;
+            left: 0;
+            top: 0;
+            display: flex;
+            flex-direction: column;
+            font-size: 24px;
+        }
+
+        .sidebar a {
+            padding: 12px 20px;
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        .sidebar a:hover,
+        .sidebar .active {
+            background-color: #059669;
+        }
+
+        #title-text {
+            text-align: center;
+            margin-bottom: 22px;
+            font-weight: bold;
+            padding-top: 23px;
+        }
+
+        /* 主要內容區域 */
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            width: calc(100% - 250px);
+        }
+
+        /* 搜尋區域 */
+        .search-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .search-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        /* 表格樣式 */
+        .records-table {
+            width: 100%;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-collapse: collapse;
+        }
+
+        .records-table th,
+        .records-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .records-table th {
+            background-color: #f8f8f8;
+            font-weight: bold;
+        }
+
+        /* 按鈕樣式 */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+            margin-top: 3px;
+        }
+
+        .btn-search {
+            background-color: #34D399;
+            color: white;
+        }
+
+        .btn-print {
+            background-color: #6B7280;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        /* 輸入框樣式 */
+        .input-field {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        /* 付款狀態樣式 */
+        .status-paid {
+            color: #34D399;
+            font-weight: bold;
+        }
+
+        .status-unpaid {
+            color: #EF4444;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- [Previous sidebar HTML remains the same] -->
+     <!-- 側邊欄 -->
+     <div class="sidebar">
+        <div class="text-center py-6 font-bold text-2xl" id="title-text">秧苗場管理</div>
+        <a href="calender.html">插秧排程</a>
+        <a href="workerManage.html">插秧工人管理</a>
+        <a href="TransplantingList.html" class="active">插秧單</a>
+        <a href="Shipment.html">出貨單</a>
+        <a href="harvest.html">割稻管理</a>
+        <a href="customer.html">客戶管理</a>
+        <a href="profile.html">秧苗場個人檔案設定</a>
+        <a href="#">登出</a>
+    </div>
+
+
+    <div class="main-content">
+        <div class="search-section">
+            <div class="search-controls">
+                <input type="text" id="farmerSearch" class="input-field" placeholder="搜尋農民姓名..." style="width: 200px;">
+                <input type="text" id="contractorSearch" class="input-field" placeholder="搜尋代耕者姓名..." style="width: 200px;">
+                <select id="paymentFilter" class="input-field" style="width: 200px;">
+                    <option value="all">全部狀態</option>
+                    <option value="paid">已付款</option>
+                    <option value="unpaid">未付款</option>
+                </select>
+                <button class="btn btn-search" onclick="searchRecords()">搜尋</button>
+            </div>
+        </div>
+
+        <table class="records-table" id="recordsTable">
+            <thead>
+                <tr>
+                    <th>日期</th>
+                    <th>地點</th>
+                    <th>農民</th>
+                    <th>手機</th>
+                    <th>電話</th>
+                    <th>顆數</th>
+                    <th>費用</th>
+                    <th>代耕者</th>
+                    <th>付款狀態</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- Records will be dynamically inserted here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+    // Sample data with more records
+    const transplantRecords = [
+        {
+            date: '2024/02/07', 
+            location: '台中市大雅區', 
+            farmer: '張農夫', 
+            mobile: '0912345678', 
+            phone: '04-12345678', 
+            seedCount: 1000, 
+            cost: 15000, 
+            contractor: '王小明', 
+            isPaid: false
+        },
+        {
+            date: '2024/02/08', 
+            location: '彰化縣田中鎮', 
+            farmer: '李農民', 
+            mobile: '0987654321', 
+            phone: '04-87654321', 
+            seedCount: 1500, 
+            cost: 22500, 
+            contractor: '陳大力', 
+            isPaid: true
+        },
+        {
+            date: '2024/02/09', 
+            location: '雲林縣斗六市', 
+            farmer: '吳耕地', 
+            mobile: '0923456789', 
+            phone: '05-23456789', 
+            seedCount: 800, 
+            cost: 12000, 
+            contractor: '林小東', 
+            isPaid: false
+        }
+    ];
+
+    // Function to render records
+    function renderRecords(records) {
+        const tableBody = document.getElementById('tableBody');
+        tableBody.innerHTML = '';
+
+        records.forEach((record, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${record.date}</td>
+                <td>${record.location}</td>
+                <td>${record.farmer}</td>
+                <td>${record.mobile}</td>
+                <td>${record.phone}</td>
+                <td>${record.seedCount}</td>
+                <td>NT$ ${record.cost.toLocaleString()}</td>
+                <td>${record.contractor}</td>
+                <td>
+                    <span class="status-${record.isPaid ? 'paid' : 'unpaid'}">
+                        ${record.isPaid ? '已付款' : '未付款'}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn btn-print" onclick="printReceipt(this)">列印收據</button>
+                    <button class="btn btn-search ml-2" onclick="togglePayment(this)">
+                        ${record.isPaid ? '取消收款' : '確認收款'}
+                    </button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    // Search and filter function
+    function searchRecords() {
+        const farmerSearch = document.getElementById('farmerSearch').value.toLowerCase();
+        const contractorSearch = document.getElementById('contractorSearch').value.toLowerCase();
+        const paymentFilter = document.getElementById('paymentFilter').value;
+
+        const filteredRecords = transplantRecords.filter(record => {
+            const farmerMatch = record.farmer.toLowerCase().includes(farmerSearch);
+            const contractorMatch = record.contractor.toLowerCase().includes(contractorSearch);
+            const paymentMatch = paymentFilter === 'all' || 
+                (paymentFilter === 'paid' && record.isPaid) || 
+                (paymentFilter === 'unpaid' && !record.isPaid);
+
+            return farmerMatch && contractorMatch && paymentMatch;
+        });
+
+        renderRecords(filteredRecords);
+    }
+
+    // Toggle payment status
+    function togglePayment(button) {
+        const row = button.closest('tr');
+        const statusSpan = row.querySelector('span[class^="status-"]');
+        const cells = row.cells;
+        const farmer = cells[2].textContent;
+
+        if (statusSpan.textContent === '未付款') {
+            statusSpan.textContent = '已付款';
+            statusSpan.className = 'status-paid';
+            button.textContent = '取消收款';
+            alert(`已確認 ${farmer} 的收款`);
+        } else {
+            statusSpan.textContent = '未付款';
+            statusSpan.className = 'status-unpaid';
+            button.textContent = '確認收款';
+            alert(`已取消 ${farmer} 的收款狀態`);
+        }
+    }
+
+    // Print receipt function
+    function printReceipt(button) {
+        const row = button.closest('tr');
+        const cells = row.cells;
+        
+        const printContent = `
+            <div style="padding: 20px; font-family: Arial, sans-serif;">
+                <h2 style="text-align: center;">插秧作業收據</h2>
+                <div style="margin: 20px 0;">
+                    <p>日期：${cells[0].textContent}</p>
+                    <p>地點：${cells[1].textContent}</p>
+                    <p>農民：${cells[2].textContent}</p>
+                    <p>手機：${cells[3].textContent}</p>
+                    <p>電話：${cells[4].textContent}</p>
+                    <p>顆數：${cells[5].textContent}</p>
+                    <p>費用：${cells[6].textContent}</p>
+                    <p>代耕者：${cells[7].textContent}</p>
+                    <p>付款狀態：${cells[8].textContent}</p>
+                </div>
+                <div style="margin-top: 40px;">
+                    <p>農民簽收：________________</p>
+                    <p>代耕者簽收：________________</p>
+                </div>
+            </div>
+        `;
+
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+        printWindow.print();
+    }
+
+    // Initial render
+    renderRecords(transplantRecords);
+    </script>
+</body>
+</html>
