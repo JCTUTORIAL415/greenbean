@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>秧苗場個人檔案設定 - 響應式表單</title>
+  <!-- Tailwind CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
+  <style>
+
+html, body, div, span, applet, object, iframe,
+    h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+    a, abbr, acronym, address, big, cite, code,
+    del, dfn, em, img, ins, kbd, q, s, samp,
+    small, strike, strong, sub, sup, tt, var,
+    b, u, i, center,
+    dl, dt, dd, ol, ul, li,
+    fieldset, form, label, legend,
+    table, caption, tbody, tfoot, thead, tr, th, td,
+    article, aside, canvas, details, embed, 
+    figure, figcaption, footer, header, hgroup, 
+    menu, nav, output, ruby, section, summary,
+    time, mark, audio, video {
+      margin: 0;
+      padding: 0;
+      border: 0;
+      font-size: 100%;
+      font: inherit;
+      vertical-align: baseline;
+    }
+    /* HTML5 display-role reset for older browsers */
+    article, aside, details, figcaption, figure, 
+    footer, header, hgroup, menu, nav, section {
+      display: block;
+    }
+    body {
+      line-height: 1;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+    ol, ul {
+      list-style: none;
+    }
+    blockquote, q {
+      quotes: none;
+    }
+    blockquote:before, blockquote:after,
+    q:before, q:after {
+      content: '';
+      content: none;
+    }
+    table {
+      border-collapse: collapse;
+      border-spacing: 0;
+    }
+    /* ===== 側邊欄樣式 ===== */
+    .sidebar {
+      width: 250px;
+      height: 100vh;
+      background-color: #34D399;
+      color: white;
+      position: fixed;
+      left: 0;
+      top: 0;
+      transition: transform 0.3s ease-in-out;
+      z-index: 50;
+    }
+    .sidebar a {
+      display: block;
+      padding: 1rem 1.25rem;
+      color: white;
+      text-decoration: none;
+      font-size: 1rem;
+      transition: background-color 0.3s;
+    }
+    .sidebar a:hover,
+    .sidebar a.active {
+      background-color: #059669;
+    }
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 40;
+      display: none;
+    }
+    .sidebar-overlay.show {
+      display: block;
+    }
+    button{
+      height: 45px;
+    }
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .sidebar-toggle{
+        margin-top: 2px;
+        width: 40px;
+      }
+    }
+
+    /* ===== 表單容器樣式 ===== */
+    .form-container {
+      background-color: #ffffff;
+      border-radius: 0.5rem; /* 8px */
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+    }
+    .form-container h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: #333;
+    }
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: #4a5568;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.375rem;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: #34D399;
+      box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.3);
+    }
+    /* ===== 動態品種欄位 ===== */
+    .seedling-field {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .seedling-field input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.375rem;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .seedling-field input:focus {
+      outline: none;
+      border-color: #34D399;
+      box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.3);
+    }
+    .btn-delete {
+      background-color: #e53e3e;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 0.375rem;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .btn-delete:hover {
+      background-color: #c53030;
+    }
+    .btn-add {
+      background-color: #4299e1;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 0.375rem;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .btn-add:hover {
+      background-color: #3182ce;
+    }
+    /* ===== 儲存按鈕 ===== */
+    .btn {
+      padding: 0.75rem 1.5rem;
+      background-color: #34D399;
+      color: white;
+      border: none;
+      border-radius: 0.375rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .btn:hover {
+      background-color: #059669;
+    }
+  </style>
+</head>
+<body class="bg-gray-100">
+  <!-- 手機版側邊欄 Toggle 按鈕 -->
+  <button onclick="toggleSidebar()" class="sidebar-toggle fixed top-4 left-4 bg-green-500 text-white p-2 rounded lg:hidden z-50">☰</button>
+
+  <!-- 側邊欄 -->
+  <div class="sidebar" id="sidebar">
+    <div class="text-center py-6 font-bold text-2xl">秧苗場管理</div>
+    <nav>
+      <a href="calender.html">插秧排程</a>
+      <a href="workerManage.html">插秧工人管理</a>
+      <a href="TransplantingList.html">插秧單</a>
+      <a href="Shipment.html">出貨單</a>
+      <a href="harvest.html">割稻管理</a>
+      <a href="customer.html">客戶管理</a>
+      <a href="profile.html" class="active">秧苗場個人檔案設定</a>
+      <a href="#">登出</a>
+    </nav>
+  </div>
+  <!-- 側邊欄遮罩 (手機版) -->
+  <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- 主要內容 (右側) -->
+  <!-- md:ml-64 只係中大型裝置時加左側邊欄嘅留白，小屏幕就全寬 -->
+  <div class="md:ml-64 p-4 sm:p-6 md:p-10">
+    <div class="max-w-2xl mx-auto">
+      <div class="form-container">
+        <h1>秧苗場個人檔案設定</h1>
+        <form id="profileForm">
+          <!-- 苗場名字 -->
+          <div class="form-group">
+            <label for="nurseryName">苗場名字</label>
+            <input type="text" id="nurseryName" name="nurseryName" placeholder="請輸入苗場名字" />
+          </div>
+          <!-- 秧苗價格 -->
+          <div class="form-group">
+            <label for="seedlingPrice">秧苗價格</label>
+            <input type="number" id="seedlingPrice" name="seedlingPrice" placeholder="請輸入秧苗價格" />
+          </div>
+          <!-- 秧苗品種 -->
+          <div class="form-group">
+            <label>秧苗品種</label>
+            <div id="seedlingTypes">
+              <div class="seedling-field">
+                <input type="text" name="seedlingType[]" placeholder="請輸入品種名稱" />
+                <button type="button" onclick="removeSeedlingType(this)" class="btn-delete">刪除</button>
+              </div>
+            </div>
+            <button type="button" onclick="addSeedlingType()" class="btn-add mt-2">新增品種</button>
+          </div>
+          <!-- 儲存設定 -->
+          <div class="flex justify-end">
+            <button type="submit" class="btn">儲存設定</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 手機版側邊欄 toggle 功能
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('show');
+      const toggleButtons = document.querySelectorAll('.sidebar-toggle');
+      if (sidebar.classList.contains('open')) {
+        toggleButtons.forEach(btn => { btn.style.display = 'none'; });
+      } else {
+        toggleButtons.forEach(btn => { btn.style.display = 'block'; });
+      }
+    }
+
+    // 新增品種欄位
+    function addSeedlingType() {
+      const container = document.getElementById('seedlingTypes');
+      const div = document.createElement('div');
+      div.classList.add('seedling-field');
+      div.innerHTML = `
+        <input type="text" name="seedlingType[]" placeholder="請輸入品種名稱" />
+        <button type="button" onclick="removeSeedlingType(this)" class="btn-delete">刪除</button>
+      `;
+      container.appendChild(div);
+    }
+
+    // 刪除品種欄位，執行前先彈出確認 alert 防呆
+    function removeSeedlingType(button) {
+      if (confirm("確定要刪除該品種嗎？")) {
+        button.parentElement.remove();
+      }
+    }
+  </script>
+</body>
+</html>
