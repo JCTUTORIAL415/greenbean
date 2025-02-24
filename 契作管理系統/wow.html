@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>股票交易平台 - K線圖版</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+        }
+        .navbar {
+            background-color: #1a73e8;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .container {
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+        }
+        .stock-info {
+            flex: 2;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .trade-form {
+            flex: 1;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f5f7fa;
+        }
+        .trade-form input, .trade-form select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .trade-form input[type="submit"] {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .trade-form input[type="submit"]:hover {
+            background-color: #1557b0;
+        }
+        .chart-container {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>股票交易平台</h1>
+    </div>
+    <div class="container">
+        <div class="stock-info">
+            <h2>股票資訊 - 台積電 (2330)</h2>
+            <div class="chart-container">
+                <canvas id="stockChart"></canvas>
+            </div>
+            <table>
+                <tr>
+                    <th>股票代碼</th>
+                    <th>名稱</th>
+                    <th>價格</th>
+                    <th>漲跌</th>
+                </tr>
+                <tr>
+                    <td>2330</td>
+                    <td>台積電</td>
+                    <td>650.00</td>
+                    <td style="color: green;">+5.00</td>
+                </tr>
+                <tr>
+                    <td>2317</td>
+                    <td>鴻海</td>
+                    <td>108.50</td>
+                    <td style="color: red;">-1.50</td>
+                </tr>
+            </table>
+        </div>
+        <div class="trade-form">
+            <h2>交易</h2>
+            <form>
+                <label for="stock-code">股票代碼:</label>
+                <input type="text" id="stock-code" name="stock-code" placeholder="輸入股票代碼">
+                
+                <label for="quantity">數量:</label>
+                <input type="number" id="quantity" name="quantity" min="1" placeholder="輸入股數">
+                
+                <label for="action">操作:</label>
+                <select id="action" name="action">
+                    <option value="buy">買入</option>
+                    <option value="sell">賣出</option>
+                </select>
+                
+                <input type="submit" value="提交交易">
+            </form>
+        </div>
+    </div>
+
+    <!-- 引入 Chart.js、chartjs-chart-financial 和 date-fns -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@4.0.0/dist/chartjs-chart-financial.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script>
+        // K線圖數據 (模擬台積電一天的數據)
+        const candlestickData = [
+            { t: new Date('2025-02-23 09:00'), o: 645, h: 648, l: 642, c: 647 },
+            { t: new Date('2025-02-23 10:00'), o: 647, h: 650, l: 645, c: 648 },
+            { t: new Date('2025-02-23 11:00'), o: 648, h: 652, l: 647, c: 650 },
+            { t: new Date('2025-02-23 12:00'), o: 650, h: 653, l: 649, c: 651 },
+            { t: new Date('2025-02-23 13:00'), o: 651, h: 654, l: 650, c: 652 },
+            { t: new Date('2025-02-23 14:00'), o: 652, h: 655, l: 649, c: 650 }
+        ];
+
+        const ctx = document.getElementById('stockChart').getContext('2d');
+        const stockChart = new Chart(ctx, {
+            type: 'candlestick',
+            data: {
+                datasets: [{
+                    label: '台積電 (2330) K線圖',
+                    data: candlestickData,
+                    borderColor: '#1a73e8',
+                    color: {
+                        up: '#28a745',   // 上漲時的顏色 (綠)
+                        down: '#dc3545', // 下跌時的顏色 (紅)
+                        unchanged: '#1a73e8' // 持平時的顏色 (藍)
+                    }
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'hour',
+                            displayFormats: {
+                                hour: 'HH:mm'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: '時間'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: '價格 (NTD)'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
