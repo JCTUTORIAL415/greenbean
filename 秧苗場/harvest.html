@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>收割單管理</title>
+  <!-- Tailwind CSS -->
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css"
+    rel="stylesheet"
+  />
+  <style>
+    /* 全域基本設定 */
+    * { box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f4f4;
+    }
+    h2, h3 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    /* === 側邊欄 === */
+    .sidebar {
+      width: 250px;
+      height: 100vh;
+      background-color: #34d399;
+      color: white;
+      position: fixed;
+      left: 0;
+      top: 0;
+      transition: transform 0.3s ease-in-out;
+      z-index: 50;
+    }
+    .sidebar a {
+      display: block;
+      padding: 1rem 1.25rem;
+      color: white;
+      text-decoration: none;
+      font-size: 1rem;
+      transition: background-color 0.3s;
+    }
+    .sidebar a:hover { background-color: #059669; }
+    .sidebar .active { background-color: #059669; }
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 40;
+      display: none;
+    }
+    .sidebar-overlay.show { display: block; }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+    }
+    /* === 主要內容區 === */
+    .content {
+      margin-left: 250px;
+      padding: 20px;
+      transition: margin-left 0.3s;
+    }
+    @media (max-width: 768px) {
+      .content { margin-left: 0; width: 100%; }
+    }
+    .form-container, .harvest-list {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    /* 調整「新增收割單」及「收割單列表」標題 */
+    .form-container h2, .harvest-list h2 {
+      text-align: left !important;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+    .form-group { margin-bottom: 15px; }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    /* === 表格 === */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+    }
+    th { text-align: center; background: #f9f9f9; }
+    td { text-align: left; }
+    /* === 按鈕 === */
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-right: 10px;
+      transition: background-color 0.3s;
+    }
+    .btn-primary {
+      background-color: #34d399;
+      color: white;
+    }
+    .btn-primary:hover { background-color: #059669; }
+    .btn-secondary {
+      background-color: #6b7280;
+      color: white;
+    }
+    .btn-secondary:hover { background-color: #4b5563; }
+    .status-unpaid { color: red; font-weight: bold; }
+    /* === 收據區 (小張排版) === */
+    .print-receipt {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background: white;
+      border: 1px solid #000;
+    }
+    /* 預留區域只顯示總計摘要 */
+    .print-receipt p { margin: 5px 0; }
+    @media (max-width: 768px) {
+      .print-receipt {
+        width: 100%;
+        margin: 10px auto;
+        padding: 10px;
+      }
+    }
+    @media print {
+      body {
+        background: white;
+        margin: 0;
+        padding: 0;
+      }
+      .content {
+        width: 210mm;
+        margin: 0 auto;
+        padding: 20mm;
+      }
+      h2, h3 { text-align: center; }
+      .print-receipt, .harvest-list, .debts-list { page-break-inside: avoid; }
+      table {
+        width: 100%;
+        font-size: 14px;
+        border-collapse: collapse;
+      }
+      th, td {
+        padding: 8px;
+        border: 1px solid black;
+      }
+      thead { display: table-header-group; }
+      .no-print { display: none; }
+      .receipt-options { page-break-before: always; }
+    }
+    @media (max-width: 768px) {
+      .btn { padding: 6px 12px; font-size: 0.875rem; }
+      .sidebar-toggle { padding: 6px 8px; font-size: 1rem; }
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <!-- 手機側邊欄 Toggle 按鈕 -->
+  <button onclick="toggleSidebar()" class="sidebar-toggle fixed top-4 left-4 bg-green-500 text-white p-2 rounded lg:hidden z-1000">☰</button>
+  <!-- 側邊欄 -->
+  <div class="sidebar" id="sidebar">
+    <div class="text-center py-6 font-bold text-2xl">秧苗場管理</div>
+    <a href="calender.html">插秧排程</a>
+    <a href="workerManage.html">插秧工人管理</a>
+    <a href="TransplantingList.html">插秧單</a>
+    <a href="Shipment.html">出貨單</a>
+    <a href="harvest.html" class="active">割稻管理</a>
+    <a href="customer.html">客戶管理</a>
+    <a href="profile.html">秧苗場個人檔案設定</a>
+    <a href="#">登出</a>
+  </div>
+  <!-- 側邊欄遮罩 -->
+  <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+  
+  <!-- 主要內容 -->
+  <div class="content">
+    <!-- 新增收割單表單 -->
+    <div class="form-container no-print">
+      <h2>新增收割單</h2>
+      <form id="harvestForm">
+        <div class="form-group">
+          <label for="customer">客戶姓名</label>
+          <input type="text" id="customer" required />
+        </div>
+        <div class="form-group">
+          <label for="area">面積</label>
+          <input type="number" id="area" required />
+        </div>
+        <div class="form-group">
+          <label for="unit">單位</label>
+          <select id="unit" required>
+            <option value="分">分</option>
+            <option value="甲">甲</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="fee">收割費用</label>
+          <input type="number" id="fee" required />
+        </div>
+        <div class="form-group">
+          <label for="worker">代耕工人姓名</label>
+          <input type="text" id="worker" required />
+        </div>
+        <button type="submit" class="btn btn-primary">新增收割單</button>
+      </form>
+    </div>
+
+    <!-- 收割單列表 -->
+    <div class="harvest-list no-print">
+      <h2>收割單列表</h2>
+      <div class="receipt-options">
+        <h3>收據選項</h3>
+        <label>
+          <input type="checkbox" id="includeTransplanting" checked />
+          包含未付插秧費用
+        </label>
+        <button id="printSelected" class="btn btn-primary">列印選取收據</button>
+        <button id="previewReceipt" class="btn btn-secondary">預覽收據</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th><input type="checkbox" id="selectAll" /></th>
+            <th>客戶姓名</th>
+            <th>面積</th>
+            <th>單位</th>
+            <th>收割費用</th>
+            <th>代耕工人</th>
+            <th>插秧單狀態</th>
+            <th>未付插秧費用</th>
+          </tr>
+        </thead>
+        <tbody id="harvestListBody">
+          <!-- 假資料會自動載入 -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 收據預覽/列印區域 -->
+    <div id="receiptArea" class="print-receipt" style="display: none;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h2 style="margin-bottom: 10px;">收割單收據</h2>
+        <!-- 預留名字欄位，預設為「麥寮秧苗場」 -->
+        <p style="margin: 0; font-size: 1.1rem;">麥寮秧苗場</p>
+        <p>日期：<span id="receiptDate"></span></p>
+      </div>
+      <!-- 只顯示總計摘要，不顯示詳細項目 -->
+      <div id="receiptContent"></div>
+      <div style="margin-top: 30px;">
+        <h3>費用總計</h3>
+        <table>
+          <tr>
+            <td>收割費用總計：</td>
+            <td id="harvestTotal">0 元</td>
+          </tr>
+          <tr id="transplantingTotalRow" style="display: none;">
+            <td>插秧費用總計：</td>
+            <td id="transplantingTotal">0 元</td>
+          </tr>
+          <tr>
+            <td><strong>應付總額：</strong></td>
+            <td><strong id="totalAmount">0 元</strong></td>
+          </tr>
+        </table>
+      </div>
+      <!-- 簽名區 -->
+      <div style="margin-top: 50px; display: flex; flex-direction: column; align-items: center;">
+        <h3>簽名</h3>
+        <div style="width: 100%; max-width: 500px; border: 1px solid #000; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); overflow: hidden;">
+          <canvas id="signatureCanvas" width="500" height="150" style="width: 100%; display: block; touch-action: none;"></canvas>
+        </div>
+        <button id="clearSignature" class="btn btn-secondary" style="margin-top: 10px;">清除簽名</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 側邊欄 Toggle
+    function toggleSidebar() {
+      const sidebar = document.getElementById("sidebar");
+      const overlay = document.getElementById("sidebar-overlay");
+      sidebar.classList.toggle("open");
+      overlay.classList.toggle("show");
+      const toggleButtons = document.querySelectorAll(".sidebar-toggle");
+      if (sidebar.classList.contains("open")) {
+        toggleButtons.forEach(btn => btn.style.display = "none");
+      } else {
+        toggleButtons.forEach(btn => btn.style.display = "block");
+      }
+    }
+
+    // 模擬資料庫中的插秧單資料（假資料）
+    const transplantingData = {
+      "王小明": { paid: false, amount: 5000, date: "2024-01-15" },
+      "李大華": { paid: false, amount: 3000, date: "2024-01-20" }
+    };
+
+    // 載入假資料到收割單列表
+    function loadDummyData() {
+      const dummyEntries = [
+        { customer: "王小明", area: 10, unit: "分", fee: 1000, worker: "張工" },
+        { customer: "王小明", area: 15, unit: "分", fee: 1500, worker: "張工" },
+        { customer: "李大華", area: 20, unit: "分", fee: 2000, worker: "陳工" }
+      ];
+      const tbody = document.getElementById("harvestListBody");
+      dummyEntries.forEach(entry => {
+        const row = tbody.insertRow();
+        row.innerHTML = `
+          <td><input type="checkbox" class="select-item"></td>
+          <td>${entry.customer}</td>
+          <td>${entry.area}</td>
+          <td>${entry.unit}</td>
+          <td>${entry.fee}</td>
+          <td>${entry.worker}</td>
+          <td>${(transplantingData[entry.customer] && !transplantingData[entry.customer].paid) ? '<span class="status-unpaid">未付款</span>' : "已付款"}</td>
+          <td>${(transplantingData[entry.customer] && !transplantingData[entry.customer].paid) ? `${transplantingData[entry.customer].amount} 元` : "-"}</td>
+        `;
+      });
+    }
+    loadDummyData();
+
+    // 處理表單提交（新增收割單）
+    document.getElementById("harvestForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const customer = document.getElementById("customer").value;
+      const area = document.getElementById("area").value;
+      const unit = document.getElementById("unit").value;
+      const fee = document.getElementById("fee").value;
+      const worker = document.getElementById("worker").value;
+      
+      const transplantingInfo = transplantingData[customer] || { paid: true, amount: 0 };
+      const unpaidAmount = transplantingInfo.paid ? 0 : transplantingInfo.amount;
+      
+      const tbody = document.getElementById("harvestListBody");
+      const row = tbody.insertRow();
+      row.innerHTML = `
+        <td><input type="checkbox" class="select-item"></td>
+        <td>${customer}</td>
+        <td>${area}</td>
+        <td>${unit}</td>
+        <td>${fee}</td>
+        <td>${worker}</td>
+        <td>${transplantingInfo.paid ? "已付款" : '<span class="status-unpaid">未付款</span>'}</td>
+        <td>${unpaidAmount > 0 ? `${unpaidAmount} 元` : "-"}</td>
+      `;
+      this.reset();
+    });
+
+    // 全選功能
+    document.getElementById("selectAll").addEventListener("change", function(e) {
+      const checkboxes = document.getElementsByClassName("select-item");
+      for (let checkbox of checkboxes) {
+        checkbox.checked = e.target.checked;
+      }
+    });
+
+    // 收據生成：只允許同一位農民，並整合數據（僅顯示總計摘要）
+    function generateReceipt(shouldPrint) {
+      const checkboxes = document.getElementsByClassName("select-item");
+      const selectedRows = [];
+      for (let checkbox of checkboxes) {
+        if (checkbox.checked) {
+          selectedRows.push(checkbox.parentElement.parentElement);
+        }
+      }
+      if (selectedRows.length === 0) {
+        alert("請選擇至少一筆收割單");
+        return;
+      }
+      // 取得第一筆資料的農民名稱，並檢查其他資料是否一致
+      const commonCustomer = selectedRows[0].cells[1].textContent.trim();
+      for (let row of selectedRows) {
+        if (row.cells[1].textContent.trim() !== commonCustomer) {
+          alert("請只選擇同一位農民的收割單");
+          return;
+        }
+      }
+      // 整合數據：累加面積與收割費用
+      let totalArea = 0;
+      let totalFee = 0;
+      const unit = selectedRows[0].cells[3].textContent.trim();
+      for (let row of selectedRows) {
+        totalArea += parseFloat(row.cells[2].textContent);
+        totalFee += parseFloat(row.cells[4].textContent);
+      }
+      let transplantingTotal = 0;
+      let transplantingText = "";
+      const transplantingInfo = transplantingData[commonCustomer];
+      if (document.getElementById("includeTransplanting").checked && transplantingInfo && !transplantingInfo.paid) {
+        transplantingTotal = transplantingInfo.amount;
+        transplantingText = `<p>插秧費用 (${transplantingInfo.date})：${transplantingTotal} 元</p>`;
+      }
+      // 更新收據摘要（只顯示總計與簡要摘要）
+      document.getElementById("receiptContent").innerHTML = `
+        <p>客戶：${commonCustomer}</p>
+        <p>總面積：${totalArea}${unit}</p>
+      `;
+      document.getElementById("harvestTotal").textContent = `${totalFee} 元`;
+      document.getElementById("transplantingTotalRow").style.display = transplantingTotal > 0 ? "table-row" : "none";
+      document.getElementById("transplantingTotal").textContent = `${transplantingTotal} 元`;
+      document.getElementById("totalAmount").textContent = `${totalFee + transplantingTotal} 元`;
+      document.getElementById("receiptDate").textContent = new Date().toLocaleDateString();
+      document.getElementById("receiptArea").style.display = "block";
+      if (shouldPrint) {
+        window.print();
+      }
+    }
+
+    document.getElementById("previewReceipt").addEventListener("click", function() {
+      generateReceipt(false);
+    });
+
+    document.getElementById("printSelected").addEventListener("click", function() {
+      generateReceipt(true);
+    });
+
+    // Canvas 簽名功能
+    const canvas = document.getElementById("signatureCanvas");
+    const ctx = canvas.getContext("2d");
+    let drawing = false;
+    function startPosition(e) {
+      drawing = true;
+      draw(e);
+    }
+    function finishedPosition() {
+      drawing = false;
+      ctx.beginPath();
+    }
+    function draw(e) {
+      if (!drawing) return;
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      let x, y;
+      if (e.touches) {
+        x = e.touches[0].clientX - rect.left;
+        y = e.touches[0].clientY - rect.top;
+      } else {
+        x = e.clientX - rect.left;
+        y = e.clientY - rect.top;
+      }
+      ctx.lineWidth = 2;
+      ctx.lineCap = "round";
+      ctx.strokeStyle = "#000";
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+    }
+    canvas.addEventListener("mousedown", startPosition);
+    canvas.addEventListener("mouseup", finishedPosition);
+    canvas.addEventListener("mousemove", draw);
+    canvas.addEventListener("touchstart", startPosition);
+    canvas.addEventListener("touchend", finishedPosition);
+    canvas.addEventListener("touchmove", draw);
+    document.getElementById("clearSignature").addEventListener("click", function() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
+  </script>
+</body>
+</html>

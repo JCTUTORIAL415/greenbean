@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>虛擬看房體驗</title>
+    <!-- 引入 A-Frame 框架 -->
+    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+  </head>
+  <body>
+    <a-scene>
+      <!-- 360° 全景背景，請替換成你自己的全景照片網址 -->
+      <a-sky src="your_panorama_image.jpg" rotation="0 -90 0"></a-sky>
+      
+      <!-- 一個簡單的互動 Hotspot，點擊可以觸發進一步的功能（可加事件監聽器） -->
+      <a-entity id="infoHotspot"
+                geometry="primitive: plane; height: 1; width: 2"
+                material="color: #FFF; opacity: 0.8"
+                position="0 1.6 -3"
+                text="value: 點這裡查看房間資訊; align: center">
+      </a-entity>
+      
+      <!-- 攝影機與控制 -->
+      <a-entity camera look-controls position="0 1.6 0"></a-entity>
+    </a-scene>
+  </body>
+</html>
