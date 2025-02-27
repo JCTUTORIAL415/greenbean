@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蔬果交易平台系統架構圖</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f4f8;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #1a5276;
+            font-size: 32px;
+            margin-bottom: 30px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .layer {
+            background-color: #fff;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .layer h2 {
+            color: #2c3e50;
+            font-size: 24px;
+            margin: 0 0 15px 0;
+            display: flex;
+            align-items: center;
+        }
+        .layer h2::before {
+            content: "🌟";
+            margin-right: 10px;
+        }
+        .layer ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .layer ul li {
+            margin-bottom: 12px;
+            position: relative;
+            padding-left: 30px;
+            line-height: 1.5;
+        }
+        .layer ul li::before {
+            content: "➤";
+            color: #27ae60;
+            position: absolute;
+            left: 0;
+            font-size: 18px;
+        }
+        .sub-list {
+            margin-left: 20px;
+            padding-left: 10px;
+            border-left: 2px dashed #bdc3c7;
+        }
+        .sub-list li::before {
+            content: "•";
+            color: #3498db;
+            font-size: 14px;
+        }
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            .layer {
+                padding: 15px;
+            }
+            .layer h2 {
+                font-size: 20px;
+            }
+            .layer ul li {
+                font-size: 14px;
+            }
+        }
+        @media (max-width: 480px) {
+            .sub-list {
+                margin-left: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>蔬果交易平台系統架構圖</h1>
+    <div class="container">
+        <!-- 用戶層 -->
+        <div class="layer">
+            <h2>用戶層</h2>
+            <ul>
+                <li>生產者（農民）
+                    <ul class="sub-list">
+                        <li>登入並上傳田間作業記錄（如施肥、灌溉、除草、病蟲害防治）</li>
+                        <li>發佈產品資訊（品種、產地、作業紀錄、產履驗證）</li>
+                        <li>參與預約交易或拍賣，發行「未來預約蔬果股票」</li>
+                    </ul>
+                </li>
+                <li>通路商/買家（批發商、餐飲業者等）
+                    <ul class="sub-list">
+                        <li>瀏覽最新拍賣與預約交易產品</li>
+                        <li>參與預約採購、即時競標或契作交易</li>
+                        <li>參考AI行情預測與歷史圖表進行決策</li>
+                    </ul>
+                </li>
+                <li>加工服務商
+                    <ul class="sub-list">
+                        <li>提供截切、包裝等後加工服務</li>
+                        <li>根據生產者需求提供客製化規格（如尺寸、包裝數量）</li>
+                    </ul>
+                </li>
+                <li>物流服務商
+                    <ul class="sub-list">
+                        <li>提供自有或合作物流預約服務</li>
+                        <li>確保交貨時效與蔬果品質</li>
+                    </ul>
+                </li>
+                <li>平台後臺管理者
+                    <ul class="sub-list">
+                        <li>管理平台運營、用戶權限與資料審核</li>
+                        <li>監控交易流程、處理爭議並進行數據分析</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+
+        <!-- 前端應用層 -->
+        <div class="layer">
+            <h2>前端應用層</h2>
+            <ul>
+                <li>網頁端應用（Web Portal）
+                    <ul class="sub-list">
+                        <li>簡潔直觀介面，適配多角色操作</li>
+                        <li>提供完整功能入口（如交易管理、數據分析）</li>
+                    </ul>
+                </li>
+                <li>智能通知系統
+                    <ul class="sub-list">
+                        <li>推送交易提醒（如競標開始、物流更新）</li>
+                        <li>支援郵件、短信等多渠道通知</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+
+        <!-- 核心業務層 -->
+        <div class="layer">
+            <h2>核心業務層</h2>
+            <ul>
+                <li>用戶管理模組
+                    <ul class="sub-list">
+                        <li>多角色登入：單一入口根據身份分流至生產者、買家等模組</li>
+                        <li>權限控制：限制資料存取，保護隱私與交易安全</li>
+                    </ul>
+                </li>
+                <li>產品管理模組
+                    <ul class="sub-list">
+                        <li>產品上架：輸入蔬果品種、產地、採收日期、數量與品質報告</li>
+                        <li>田間紀錄：上傳施肥、灌溉、防蟲等作業，支援圖片與影片</li>
+                        <li>歷史數據追蹤：記錄生產流程，提供氣候異常或病蟲害風險提醒</li>
+                    </ul>
+                </li>
+                <li>交易管理模組
+                    <ul class="sub-list">
+                        <li>預約交易：農民與買家協商規格、價格與交貨日期</li>
+                        <li>拍賣交易：支援即時競標與預約拍賣模式</li>
+                        <li>混合模式：部分產品拍賣、部分固定價格，AI自動推薦最佳方式</li>
+                    </ul>
+                </li>
+                <li>市場分析模組
+                    <ul class="sub-list">
+                        <li>AI大數據預測：分析10年氣候與市場數據，提供行情預估</li>
+                        <li>即時行情更新：串接市場、超市與餐飲數據，生成趨勢與熱度圖</li>
+                    </ul>
+                </li>
+                <li>加工與物流模組
+                    <ul class="sub-list">
+                        <li>加工服務訂單：選擇截切、包裝規格，整合多家服務商</li>
+                        <li>物流配送與預約：提供運費預估與實時狀態追蹤</li>
+                    </ul>
+                </li>
+                <li>信任與支付模組
+                    <ul class="sub-list">
+                        <li>信用評價系統：交易後互評，動態監控信用風險</li>
+                        <li>區塊鏈驗證（可選）：產品流程上鏈，提供消費者溯源查詢</li>
+                        <li>支付與結算：整合第三方支付，先擔保後結算</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+
+        <!-- 數據層 -->
+        <div class="layer">
+            <h2>數據層</h2>
+            <ul>
+                <li>交易數據庫：儲存交易歷史、結算記錄與用戶評價</li>
+                <li>生產數據庫：記錄田間作業、產品資訊與驗證資料</li>
+                <li>市場行情數據庫：整合歷史價格、氣候數據與即時行情</li>
+                <li>日誌與監控數據庫：記錄系統運行狀態與異常事件</li>
+            </ul>
+        </div>
+
+        <!-- 外部整合層 -->
+        <div class="layer">
+            <h2>外部整合層</h2>
+            <ul>
+                <li>第三方支付平台：支援多種支付方式，確保資金安全</li>
+                <li>物流合作夥伴API：整合多家物流商，提供配送選項</li>
+                <li>物聯網設備：連接感測器、無人機與智慧灌溉，自動更新田間狀態</li>
+                <li>農業研究機構數據接口：提供技術支持與市場報告</li>
+                <li>國際市場數據接口：支援跨境交易與國際化拓展</li>
+            </ul>
+        </div>
+
+        <!-- 基礎設施層 -->
+        <div class="layer">
+            <h2>基礎設施層</h2>
+            <ul>
+                <li>雲端伺服器：提供高效運算與大規模數據儲存</li>
+                <li>AI分析引擎：處理大數據，驅動行情預測與決策建議</li>
+                <li>區塊鏈基礎設施（可選）：確保資料不可篡改，提升信任</li>
+            </ul>
+        </div>
+
+        <!-- 架構優勢 -->
+        <div class="layer">
+            <h2>架構優勢</h2>
+            <ul>
+                <li>模組化設計：各模組獨立運行，便於維護與功能擴展</li>
+                <li>數據驅動：AI與大數據提升市場預測與交易效率</li>
+                <li>多角色支持：滿足生產者、買家與服務商需求，促進協作</li>
+                <li>可擴展性：支援國際化、智慧農業與生態圈建設</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
