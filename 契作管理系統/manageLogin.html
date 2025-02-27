@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>廠商登入 - 農業管理系統</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Google Fonts: Noto Sans TC -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: url('https://images.unsplash.com/photo-1500595046743-cd271d6942ee?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80') no-repeat center center fixed;
+      background-size: cover;
+      font-family: 'Noto Sans TC', sans-serif;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0;
+    }
+    .login-container {
+      max-width: 450px;
+      width: 100%;
+      padding: 40px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 15px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+    .login-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background: linear-gradient(to right, #28a745, #8bc34a);
+    }
+    .login-container h2 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 30px;
+      font-weight: 700;
+      font-size: 28px;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    .form-label {
+      font-weight: 500;
+      color: #34495e;
+    }
+    .form-control {
+      border: 1px solid #ced4da;
+      border-radius: 8px;
+      padding: 10px;
+      background: #f9f9f9;
+    }
+    .form-control:focus {
+      border-color: #28a745;
+      box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+    }
+    .btn-primary {
+      background: linear-gradient(45deg, #28a745, #5cb85c);
+      border: none;
+      border-radius: 10px;
+      padding: 12px 20px;
+      font-size: 16px;
+      font-weight: 500;
+      width: 100%;
+      transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(45deg, #218838, #4cae4c);
+      transform: translateY(-2px);
+    }
+    .input-group .btn-outline-secondary {
+      border-radius: 0 8px 8px 0;
+      background: #f1f3f5;
+      color: #28a745;
+      border-color: #ced4da;
+    }
+    .input-group .btn-outline-secondary:hover {
+      background: #e9ecef;
+    }
+    .alert {
+      margin-top: 15px;
+      display: none;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .register-link {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+      color: #555;
+    }
+    .register-link a {
+      color: #28a745;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .register-link a:hover {
+      text-decoration: underline;
+      color: #218838;
+    }
+    .leaf-icon {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 24px;
+      color: #28a745;
+      opacity: 0.3;
+    }
+    @media (max-width: 576px) {
+      .login-container {
+        margin: 20px;
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <span class="leaf-icon">🌿</span>
+    <h2>農業管理系統<br>管理員登入</h2>
+    <form id="vendorLoginForm">
+      <div class="mb-3">
+        <label for="loginEmail" class="form-label">帳號</label>
+        <input type="email" class="form-control" id="loginEmail" name="email" placeholder="請輸入您的 Email" required>
+      </div>
+      <div class="mb-3">
+        <label for="loginPassword" class="form-label">密碼</label>
+        <div class="input-group">
+          <input type="password" class="form-control" id="loginPassword" name="password" placeholder="請輸入密碼" required>
+          <button type="button" class="btn btn-outline-secondary toggle-password" data-target="loginPassword">顯示</button>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">登入</button>
+      <div id="loginAlert" class="alert alert-danger" role="alert"></div>
+    </form>
+  </div>
+
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // 密碼顯示/隱藏切換
+    document.querySelectorAll('.toggle-password').forEach(button => {
+      button.addEventListener('click', function() {
+        const targetId = this.getAttribute('data-target');
+        const input = document.getElementById(targetId);
+        if (input.type === 'password') {
+          input.type = 'text';
+          this.textContent = '隱藏';
+        } else {
+          input.type = 'password';
+          this.textContent = '顯示';
+        }
+      });
+    });
+
+    // 表單提交處理
+    document.getElementById('vendorLoginForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      const alertBox = document.getElementById('loginAlert');
+
+      // 清空之前的錯誤訊息
+      alertBox.style.display = 'none';
+      alertBox.textContent = '';
+
+      try {
+        // 模擬與後端 API 交互
+        const response = await fetch('/vendor/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          // 登入成功，儲存 token
+          localStorage.setItem('vendorToken', data.token);
+          // 重定向到廠商後台首頁
+          window.location.href = 'vendor_dashboard.html';
+        } else {
+          // 顯示錯誤訊息
+          alertBox.textContent = data.message || '登入失敗，請檢查您的帳號或密碼';
+          alertBox.style.display = 'block';
+        }
+      } catch (error) {
+        alertBox.textContent = '無法連接到伺服器，請稍後再試';
+        alertBox.style.display = 'block';
+        console.error('登入錯誤:', error);
+      }
+    });
+  </script>
+</body>
+</html>

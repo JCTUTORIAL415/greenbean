@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>農產品表單與搜尋</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f4f8;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #1a5276;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .search-bar {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .search-bar input {
+            padding: 10px;
+            width: 80%;
+            max-width: 400px;
+            border: 2px solid #bdc3c7;
+            border-radius: 5px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .search-bar input:focus {
+            border-color: #27ae60;
+        }
+        .table-container {
+            background-color: #fff;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-height: 600px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #27ae60 #e8ecef;
+        }
+        .table-container::-webkit-scrollbar {
+            width: 10px;
+        }
+        .table-container::-webkit-scrollbar-track {
+            background: #e8ecef;
+            border-radius: 5px;
+        }
+        .table-container::-webkit-scrollbar-thumb {
+            background: #27ae60;
+            border-radius: 5px;
+            border: 2px solid #e8ecef;
+        }
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #219653;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #2c3e50;
+            color: #fff;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #e8f4f8;
+        }
+        .product-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        .pagination {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .pagination button {
+            padding: 8px 15px;
+            margin: 0 5px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .pagination button:hover {
+            background-color: #27ae60;
+            color: #fff;
+        }
+        .pagination button:disabled {
+            background-color: #ddd;
+            cursor: not-allowed;
+        }
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            h1 { font-size: 24px; }
+            .search-bar input { width: 90%; }
+            th, td { padding: 8px; font-size: 14px; }
+        }
+        @media (max-width: 480px) {
+            table, th, td { display: block; width: 100%; }
+            th, td { box-sizing: border-box; border-bottom: none; }
+            th { background-color: #2c3e50; border-radius: 5px 5px 0 0; }
+            td { border-bottom: 1px solid #ddd; padding-left: 40%; position: relative; }
+            td::before { content: attr(data-label); position: absolute; left: 10px; font-weight: bold; color: #2c3e50; }
+        }
+    </style>
+</head>
+<body>
+    <h1>顏老闆掏金表單</h1>
+    <div class="container">
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="輸入農產品經營者名稱進行搜尋..." />
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>編號</th>
+                        <th>農產品經營者</th>
+                        <th>聯絡電話</th>
+                        <th>產品名稱</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+        <div class="pagination">
+            <button id="prevPage">上一頁</button>
+            <span id="pageInfo"></span>
+            <button id="nextPage">下一頁</button>
+        </div>
+    </div>
+
+    <!-- 引入您的 JS 檔案 -->
+    <script src="data.js"></script>
+    <script>
+        if (typeof data === 'undefined') {
+            console.error('錯誤：farm_data.js 未正確定義 "data" 變數，請檢查檔案內容。');
+            document.getElementById('tableBody').innerHTML = '<tr><td colspan="4">資料載入失敗，請檢查 farm_data.js</td></tr>';
+        } else {
+            console.log('資料載入成功，總筆數：', Object.keys(data).length);
+            const farmData = data;
+            const tbody = document.getElementById('tableBody');
+            const searchInput = document.getElementById('searchInput');
+            const prevPage = document.getElementById('prevPage');
+            const nextPage = document.getElementById('nextPage');
+            const pageInfo = document.getElementById('pageInfo');
+            
+            const itemsPerPage = 50;
+            let currentPage = 1;
+            let filteredData = Object.entries(farmData);
+
+            // 渲染表格
+            function renderTable(data, page) {
+                tbody.innerHTML = '';
+                const start = (page - 1) * itemsPerPage;
+                const end = start + itemsPerPage;
+                const pageData = data.slice(start, end);
+
+                pageData.forEach(([id, item]) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td data-label="編號">${id}</td>
+                        <td data-label="農產品經營者">${item["農產品經營者"]}</td>
+                        <td data-label="聯絡電話">${item["聯絡電話"]}</td>
+                        <td data-label="產品名稱">
+                            <ul class="product-list">
+                                ${item["產品名稱"].map(product => `<li>${product}</li>`).join('')}
+                            </ul>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+                const totalPages = Math.ceil(data.length / itemsPerPage);
+                pageInfo.textContent = `第 ${page} 頁 / 共 ${totalPages} 頁 (總計 ${data.length} 筆)`;
+                prevPage.disabled = page === 1;
+                nextPage.disabled = page === totalPages;
+            }
+
+            // 搜尋過濾 - 僅匹配農產品經營者名稱
+            searchInput.addEventListener('input', function(e) {
+                const value = e.target.value.trim().toLowerCase();
+                console.log('搜尋關鍵字：', value); // 調試：確認輸入值
+                if (value === '') {
+                    filteredData = Object.entries(farmData); // 空輸入時顯示所有資料
+                } else {
+                    filteredData = Object.entries(farmData).filter(([id, item]) => {
+                        const operatorName = item["農產品經營者"].toLowerCase();
+                        const isMatch = operatorName.includes(value);
+                        console.log(`檢查 ${operatorName} 是否包含 ${value}：${isMatch}`); // 調試：確認每筆匹配
+                        return isMatch;
+                    });
+                }
+                console.log('過濾後筆數：', filteredData.length); // 調試：確認過濾結果
+                currentPage = 1;
+                renderTable(filteredData, currentPage);
+            });
+
+            // 分頁控制
+            prevPage.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable(filteredData, currentPage);
+                }
+            });
+            nextPage.addEventListener('click', () => {
+                const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderTable(filteredData, currentPage);
+                }
+            });
+
+            // 初始渲染
+            renderTable(filteredData, currentPage);
+        }
+    </script>
+</body>
+</html>
