@@ -1,0 +1,1901 @@
+<!-- 會出圖表pdf excel處理  工人頁面處理 -->
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>後台管理系統 - 固定頁面與 Modal</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- XLSX (Excel 匯出) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <!-- jsPDF 與 autoTable (PDF 匯出) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&display=swap" rel="stylesheet">
+  <style>
+    body { background-color: #f4f6f9; font-family: 'Noto Sans TC', sans-serif; }
+    .sidebar {
+      height: 100vh;
+      background: #343a40;
+      color: #fff;
+      position: fixed;
+      width: 16.66%;
+      transition: transform 0.3s ease-in-out;
+      z-index: 1000;
+      top: 0;
+      left: 0;
+    }
+    .sidebar a {
+      color: #c2c7d0;
+      text-decoration: none;
+      padding: 10px 15px;
+      display: block;
+      border-radius: 4px;
+      margin: 5px;
+    }
+    .sidebar a.active, .sidebar a:hover {
+      color: #fff;
+      background: #495057;
+    }
+    .content { padding: 20px; margin-left: 16.66%; transition: margin-left 0.3s; }
+    .section { display: none; }
+    .section.active { display: block; }
+    #reports { min-height: calc(100vh - 100px); overflow-x: auto; }
+    .carousel-inner img { 
+      max-height: 400px; 
+      width: 100%; 
+      object-fit: contain; 
+    }
+    #systemSettings .card {
+      max-width: 500px;
+      margin: 0 auto;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border: none;
+      border-radius: 10px;
+    }
+    #systemSettings .form-label {
+      font-weight: 500;
+      color: #343a40;
+    }
+    #systemSettings .btn-primary {
+      background-color: #007bff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+    }
+    #systemSettings .btn-primary:hover {
+      background-color: #0056b3;
+    }
+    .sidebar-toggle {
+      display: none;
+      width: 40px;
+      height: 40px;
+      background-color: #343a40;
+      border: none;
+      border-radius: 4px;
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 2000;
+      cursor: pointer;
+    }
+    .sidebar-toggle::before {
+      content: '☰';
+      color: #fff;
+      font-size: 20px;
+      line-height: 40px;
+      display: block;
+      text-align: center;
+    }
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 999;
+    }
+    /* 基礎圖表樣式 */
+#reportChartInline {
+  width: 100%; /* 寬度始終適應容器 */
+  display: block; /* 確保 canvas 為塊級元素 */
+}
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 60px;
+        transform: translateX(0);
+      }
+      .sidebar a {
+        text-align: center;
+        padding: 10px;
+      }
+      .sidebar a span {
+        display: none;
+      }
+      .content {
+        margin-left: 60px;
+      }
+      #systemSettings .card {
+        max-width: 100%;
+        margin: 10px;
+      }
+      .card-header {
+        font-size: 1.4rem; /* 22.4px */
+    }}
+    @media (max-width: 576px) {
+      .sidebar {
+        width: 200px;
+        transform: translateX(-100%);
+      }
+      .sidebar.expanded {
+        transform: translateX(0);
+      }
+      .sidebar a span {
+        display: inline;
+      }
+      .content {
+        margin-left: 0;
+        padding-top: 60px;
+      }
+      .sidebar-toggle {
+        display: block;
+      }
+      .sidebar-backdrop.show {
+        display: block;
+      }
+      #reports {
+    padding: 15px;
+  }
+  .card.mb-4 {
+    margin-bottom: 20px !important;
+  }
+  .card-body {
+    padding: 10px;
+  }
+  .card-header {
+    font-size: 1.3rem; /* 20.8px */
+  }
+
+}
+
+
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <button class="sidebar-toggle" type="button" aria-label="Toggle sidebar"></button>
+      <div class="sidebar-backdrop"></div>
+      <nav class="sidebar">
+        <div class="pt-3">
+          <h4 class="text-center mb-4 d-md-block d-none">管理後台</h4>
+          <ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link active" href="#" data-section="landManagement"><span>農地管理</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="#" data-section="costRecords"><span>成本記錄</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="#" data-section="vendorManagement"><span>廠商管理</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="#" data-section="taskAssignment"><span>任務分配</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="#" data-section="systemSettings"><span>系統設定</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="#" data-section="reports"><span>報表統計</span></a></li>
+          </ul>
+        </div>
+      </nav>
+
+      <main class="col-md-10 ms-sm-auto content">
+        <!-- 農地管理 Section -->
+        <div id="landManagement" class="section active">
+          <h2>農地管理</h2>
+          <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#landModal">新增農地</button>
+          <table class="table table-striped" id="landTable">
+            <thead>
+              <tr>
+                <th>地號</th>
+                <th>面積 (分)</th>
+                <th>位置</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>12345</td><td>1000</td><td>台中市</td><td><button class="btn btn-info btn-sm viewLand" data-land-id="1">查看</button></td></tr>
+              <tr><td>67890</td><td>20</td><td>彰化縣</td><td><button class="btn btn-info btn-sm viewLand" data-land-id="2">查看</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 成本記錄 Section -->
+        <div id="costRecords" class="section">
+          <h2>成本記錄</h2>
+          <ul class="nav nav-tabs mb-3" id="costTab" role="tablist">
+            <li class="nav-item" role="presentation"><a class="nav-link active" data-bs-toggle="tab" href="#tillingTab" role="tab">翻土成本</a></li>
+            <li class="nav-item" role="presentation"><a class="nav-link" data-bs-toggle="tab" href="#vegditchTab" role="tab">蔬菜溝</a></li>
+            <li class="nav-item" role="presentation"><a class="nav-link" data-bs-toggle="tab" href="#seedlingTab" role="tab">苗木購買</a></li>
+            <li class="nav-item" role="presentation"><a class="nav-link" data-bs-toggle="tab" href="#fertilizerTab" role="tab">肥料購買</a></li>
+            <li class="nav-item" role="presentation"><a class="nav-link" data-bs-toggle="tab" href="#fertilizerWageTab" role="tab">下肥作業</a></li>
+            <li class="nav-item" role="presentation"><a class="nav-link" data-bs-toggle="tab" href="#pesticideTab" role="tab">藥劑使用</a></li>
+            <li class="nav-item" role="presentation"><a class="nav-link" data-bs-toggle="tab" href="#sprayTab" role="tab">噴藥方式</a></li>
+            <li class="nav-item" role="presentation"><a class="nav-link" data-bs-toggle="tab" href="#plantingWageTab" role="tab">種植工資</a></li>
+          </ul>
+          <div class="tab-content" id="costTabContent">
+            <div class="tab-pane fade show active" id="tillingTab" role="tabpanel">
+              <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#tillingModal">新增翻土成本</button>
+              <table class="table table-striped" id="tillingTable">
+                <thead><tr><th>農地</th><th>作業日期</th><th>設備</th><th>時數</th><th>耗油</th><th>租借</th><th>維修</th><th>總成本</th></tr></thead>
+                <tbody id="tillingTableBody">
+                  <tr><td>農地1</td><td>2025-01-01</td><td>拖拉機</td><td>5</td><td>10</td><td>0</td><td>0</td><td>50</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="tab-pane fade" id="vegditchTab" role="tabpanel">
+              <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#vegditchModal">新增蔬菜溝</button>
+              <table class="table table-striped" id="vegditchTable">
+                <thead><tr><th>農地</th><th>作業日期</th><th>細節</th><th>成本</th></tr></thead>
+                <tbody id="vegditchTableBody">
+                  <tr><td>農地1</td><td>2025-02-01</td><td>挖溝作業</td><td>30</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="tab-pane fade" id="seedlingTab" role="tabpanel">
+              <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#seedlingModal">新增苗木購買</button>
+              <table class="table table-striped" id="seedlingTable">
+                <thead><tr><th>農地</th><th>購買日期</th><th>苗種</th><th>數量</th><th>單價</th><th>總額</th></tr></thead>
+                <tbody id="seedlingTableBody">
+                  <tr><td>農地2</td><td>2025-03-01</td><td>楓樹苗</td><td>100</td><td>20</td><td>2000</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="tab-pane fade" id="fertilizerTab" role="tabpanel">
+              <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#fertilizerModal">新增肥料購買</button>
+              <table class="table table-striped" id="fertilizerTable">
+                <thead><tr><th>農地</th><th>購買日期</th><th>肥料種類</th><th>數量</th><th>單價</th><th>總額</th></tr></thead>
+                <tbody id="fertilizerTableBody">
+                  <tr><td>農地1</td><td>2025-04-01</td><td>尿素</td><td>50</td><td>15</td><td>750</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="tab-pane fade" id="fertilizerWageTab" role="tabpanel">
+              <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#fertilizerWageModal">新增下肥作業</button>
+              <table class="table table-striped" id="fertilizerWageTable">
+                <thead><tr><th>農地</th><th>作業日期</th><th>使用包數</th><th>工資</th></tr></thead>
+                <tbody id="fertilizerWageTableBody">
+                  <tr><td>農地2</td><td>2025-05-01</td><td>20</td><td>200</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="tab-pane fade" id="pesticideTab" role="tabpanel">
+              <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#pesticideModal">新增藥劑使用</button>
+              <table class="table table-striped" id="pesticideTable">
+                <thead><tr><th>農地</th><th>作業日期</th><th>藥劑類型</th><th>使用量</th><th>單價</th><th>總費用</th></tr></thead>
+                <tbody id="pesticideTableBody">
+                  <tr><td>農地1</td><td>2025-06-01</td><td>蟲藥</td><td>5</td><td>50</td><td>250</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="tab-pane fade" id="sprayTab" role="tabpanel">
+              <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#sprayModal">新增噴藥方式</button>
+              <table class="table table-striped" id="sprayTable">
+                <thead><tr><th>農地</th><th>作業日期</th><th>方式</th><th>執行人員</th><th>成本</th><th>備註</th></tr></thead>
+                <tbody id="sprayTableBody">
+                  <tr><td>農地2</td><td>2025-07-01</td><td>無人機</td><td>John</td><td>500</td><td>無</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="tab-pane fade" id="plantingWageTab" role="tabpanel">
+              <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#plantingWageModal">新增種植工資</button>
+              <table class="table table-striped" id="plantingWageTable">
+                <thead><tr><th>農地</th><th>作業日期</th><th>面積 (分)</th><th>總工資</th></tr></thead>
+                <tbody id="plantingWageTableBody">
+                  <tr><td>農地1</td><td>2025-03-15</td><td>500</td><td>250000</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 廠商管理 Section -->
+        <div id="vendorManagement" class="section">
+          <h2>廠商管理</h2>
+          <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#vendorModal">新增廠商</button>
+          <table class="table table-striped" id="vendorTable">
+            <thead><tr><th>姓名</th><th>電話</th><th>Email</th><th>帳號</th></tr></thead>
+            <tbody>
+              <tr><td>張三</td><td>0912345678</td><td>info@agro.com</td><td>zhangsan</td></tr>
+              <tr><td>李四</td><td>0987654321</td><td>contact@green.com</td><td>lisi</td></tr>
+            </tbody>
+          </table>
+          <h3 class="mt-4">任務審核與撥款</h3>
+          <table class="table table-striped" id="taskApprovalTable">
+            <thead><tr><th>任務ID</th><th>廠商</th><th>農地</th><th>作業類型</th><th>金額</th><th>狀態</th><th>操作</th></tr></thead>
+            <tbody id="taskApprovalBody"></tbody>
+          </table>
+        </div>
+
+        <!-- 任務分配 Section -->
+        <div id="taskAssignment" class="section">
+          <h2>任務分配</h2>
+          <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#assignTaskModal">分配新任務</button>
+          <table class="table table-striped" id="taskTable">
+            <thead><tr><th>任務ID</th><th>廠商</th><th>農地</th><th>作業類型</th><th>截止日期</th><th>狀態</th></tr></thead>
+            <tbody id="taskTableBody"></tbody>
+          </table>
+        </div>
+
+        <!-- 系統設定 Section -->
+        <div id="systemSettings" class="section">
+          <h2 class="text-center mb-4">系統設定</h2>
+          <div class="card p-4">
+            <form id="settingsFormInline">
+              <div class="mb-3">
+                <label for="plantingWageInline" class="form-label">種植工資 (每分地)</label>
+                <input type="number" step="any" class="form-control" id="plantingWageInline" name="plantingWage" value="500" required>
+              </div>
+              <div class="mb-3">
+                <label for="fertilizerWagePerBagInline" class="form-label">下肥工資 (每包)</label>
+                <input type="number" step="any" class="form-control" id="fertilizerWagePerBagInline" name="fertilizerWagePerBag" value="10" required>
+              </div>
+              <div class="d-grid">
+                <button type="submit" class="btn btn-primary">更新設定</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- 報表統計 Section -->
+        <div id="reports" class="section">
+          <h2>報表統計</h2>
+          <form id="filterFormInline" class="mb-3">
+            <div class="row g-3">
+              <div class="col-md-3">
+                <label for="farmlandInline" class="form-label">農地</label>
+                <select id="farmlandInline" class="form-select">
+                  <option value="">全部</option>
+                  <option value="農地1">農地1</option>
+                  <option value="農地2">農地2</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label for="workTypeInline" class="form-label">作業類型</label>
+                <select id="workTypeInline" class="form-select">
+                  <option value="">全部</option>
+                  <option value="翻土">翻土</option>
+                  <option value="蔬菜溝">蔬菜溝</option>
+                  <option value="苗木購買">苗木購買</option>
+                  <option value="肥料購買">肥料購買</option>
+                  <option value="下肥作業">下肥作業</option>
+                  <option value="藥劑使用">藥劑使用</option>
+                  <option value="噴藥方式">噴藥方式</option>
+                  <option value="種植工資">種植工資</option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label for="periodTypeInline" class="form-label">期間類型</label>
+                <select id="periodTypeInline" class="form-select">
+                  <option value="month">月份</option>
+                  <option value="quarter">季度</option>
+                  <option value="year">年度</option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label for="periodValueInline" class="form-label">期間值</label>
+                <input type="text" id="periodValueInline" class="form-control" placeholder="例如：2025-01 或 2025 或 Q1-2025">
+              </div>
+              <div class="col-md-2 align-self-end">
+                <button type="button" id="applyFilterInline" class="btn btn-primary">套用過濾</button>
+              </div>
+            </div>
+          </form>
+          <div class="d-flex justify-content-end mb-3">
+            <button id="exportCombinedPDFInline" class="btn btn-warning me-2">匯出綜合報表 (PDF)</button>
+            <button id="exportCombinedExcelInline" class="btn btn-warning">匯出綜合報表 (Excel)</button>
+          </div>
+          <div class="card mb-4">
+            <div class="card-header">成本趨勢圖</div>
+            <div class="card-body">
+              <canvas id="reportChartInline"></canvas>
+            </div>
+          </div>
+          <div class="card mb-4">
+            <div class="card-header">成本明細表</div>
+            <div class="card-body">
+              <table class="table table-striped" id="reportTableInline">
+                <thead><tr><th>農地</th><th>作業類型</th><th>日期</th><th>成本</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card mb-4">
+            <div class="card-header">各項成本統計</div>
+            <div class="card-body">
+              <div id="costReports"></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal 區塊 -->
+  <div class="modal fade" id="landModal" tabindex="-1" aria-labelledby="landModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="landModalLabel">新增農地</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+        </div>
+        <div class="modal-body">
+          <form id="landFormModal" enctype="multipart/form-data">
+            <div class="mb-3">
+              <label for="landNumberModal" class="form-label">地號</label>
+              <input type="text" class="form-control" id="landNumberModal" name="landNumber" required>
+            </div>
+            <div class="mb-3">
+              <label for="areaModal" class="form-label">面積</label>
+              <div class="input-group">
+                <input type="number" step="any" class="form-control" id="areaModal" name="area" required>
+                <select class="form-select" id="areaUnitModal" name="areaUnit" required>
+                  <option value="分">分</option>
+                  <option value="甲">甲</option>
+                </select>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="locationModal" class="form-label">位置描述</label>
+              <textarea class="form-control" id="locationModal" name="location" rows="2"></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="photosModal" class="form-label">附加照片</label>
+              <input type="file" class="form-control" id="photosModal" name="photos" multiple accept="image/*">
+              <div id="photoPreview" class="mt-2 d-flex flex-wrap gap-2"></div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary" id="submitLandForm">送出</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="viewLandModal" tabindex="-1" aria-labelledby="viewLandModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="viewLandModalLabel">農地詳情</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+        </div>
+        <div class="modal-body">
+          <div id="viewLandPhotos" class="carousel slide mb-3">
+            <div class="carousel-inner"></div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#viewLandPhotos" data-bs-slide="prev">
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#viewLandPhotos" data-bs-slide="next">
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Next</span>
+            </button>
+          </div>
+          <p><strong>地號:</strong> <span id="viewLandNumber"></span></p>
+          <p><strong>面積:</strong> <span id="viewLandArea"></span> 分</p>
+          <p><strong>位置:</strong> <span id="viewLandLocation"></span></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="tillingModal" tabindex="-1" aria-labelledby="tillingModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="tillingModalLabel">新增翻土成本</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+        </div>
+        <div class="modal-body">
+          <form id="tillingFormModal">
+            <div class="mb-3">
+              <label for="farmlandTillingModal" class="form-label">農地</label>
+              <select class="form-select" id="farmlandTillingModal" name="farmland" required>
+                <option value="">請選擇農地</option>
+                <option value="農地1">農地1</option>
+                <option value="農地2">農地2</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="tillingDateModal" class="form-label">作業日期</label>
+              <input type="date" class="form-control" id="tillingDateModal" name="date" required>
+            </div>
+            <div class="mb-3">
+              <label for="equipmentModal" class="form-label">使用設備</label>
+              <input type="text" class="form-control" id="equipmentModal" name="equipment">
+            </div>
+            <div class="mb-3">
+              <label for="workingHoursModal" class="form-label">作業時數</label>
+              <input type="number" step="any" class="form-control" id="workingHoursModal" name="workingHours" required>
+            </div>
+            <div class="mb-3">
+              <label for="oilConsumedModal" class="form-label">耗油量</label>
+              <input type="number" step="any" class="form-control" id="oilConsumedModal" name="oilConsumed" required>
+            </div>
+            <div class="mb-3">
+              <label for="rentCostModal" class="form-label">租借費用</label>
+              <input type="number" step="any" class="form-control" id="rentCostModal" name="rentCost">
+            </div>
+            <div class="mb-3">
+              <label for="maintenanceCostModal" class="form-label">維修費用</label>
+              <input type="number" step="any" class="form-control" id="maintenanceCostModal" name="maintenanceCost">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary" id="submitTillingFormModal">送出</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="vegditchModal" tabindex="-1" aria-labelledby="vegditchModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="vegditchModalLabel">新增蔬菜溝成本</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+        </div>
+        <div class="modal-body">
+          <form id="vegditchFormModal">
+            <div class="mb-3">
+              <label for="farmlandVegditchModal" class="form-label">農地</label>
+              <select class="form-select" id="farmlandVegditchModal" name="farmland" required>
+                <option value="">請選擇農地</option>
+                <option value="農地1">農地1</option>
+                <option value="農地2">農地2</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="vegDateModal" class="form-label">作業日期</label>
+              <input type="date" class="form-control" id="vegDateModal" name="date" required>
+            </div>
+            <div class="mb-3">
+              <label for="detailModal" class="form-label">作業細節</label>
+              <textarea class="form-control" id="detailModal" name="detail" rows="2"></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="costModal" class="form-label">成本</label>
+              <input type="number" step="any" class="form-control" id="costModal" name="cost">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary" id="submitVegditchFormModal">送出</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="seedlingModal" tabindex="-1" aria-labelledby="seedlingModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="seedlingModalLabel">新增苗木購買</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+        </div>
+        <div class="modal-body">
+          <form id="seedlingFormModal">
+            <div class="mb-3">
+              <label for="farmlandSeedlingModal" class="form-label">農地</label>
+              <select class="form-select" id="farmlandSeedlingModal" name="farmland" required>
+                <option value="">請選擇農地</option>
+                <option value="農地1">農地1</option>
+                <option value="農地2">農地2</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="seedlingDateModal" class="form-label">購買日期</label>
+              <input type="date" class="form-control" id="seedlingDateModal" name="date" required>
+            </div>
+            <div class="mb-3">
+              <label for="seedTypeModal" class="form-label">苗種</label>
+              <input type="text" class="form-control" id="seedTypeModal" name="seedType" required>
+            </div>
+            <div class="mb-3">
+              <label for="quantityModal" class="form-label">數量</label>
+              <input type="number" step="any" class="form-control" id="quantityModal" name="quantity" required>
+            </div>
+            <div class="mb-3">
+              <label for="unitPriceModal" class="form-label">單價</label>
+              <input type="number" step="any" class="form-control" id="unitPriceModal" name="unitPrice" required>
+            </div>
+            <div class="mb-3">
+              <label for="totalSeedling" class="form-label">總額</label>
+              <input type="number" step="any" class="form-control" id="totalSeedling" name="total" readonly>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary" id="submitSeedlingFormModal">送出</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="fertilizerModal" tabindex="-1" aria-labelledby="fertilizerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="fertilizerModalLabel">新增肥料購買</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+        </div>
+        <div class="modal-body">
+          <form id="fertilizerFormModal" enctype="multipart/form-data">
+            <div class="mb-3">
+              <label for="farmlandFertilizerModal" class="form-label">農地</label>
+              <select class="form-select" id="farmlandFertilizerModal" name="farmland" required>
+                <option value="">請選擇農地</option>
+                <option value="農地1">農地1</option>
+                <option value="農地2">農地2</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="purchaseDateModal" class="form-label">購買日期</label>
+              <input type="date" class="form-control" id="purchaseDateModal" name="purchaseDate" required>
+            </div>
+            <div class="mb-3">
+              <label for="fertilizerTypeModal" class="form-label">肥料種類</label>
+              <input type="text" class="form-control" id="fertilizerTypeModal" name="fertilizerType" required>
+            </div>
+            <div class="mb-3">
+              <label for="fQuantityModal" class="form-label">數量</label>
+              <input type="number" step="any" class="form-control" id="fQuantityModal" name="quantity" required>
+            </div>
+            <div class="mb-3">
+              <label for="fUnitPriceModal" class="form-label">單價</label>
+              <input type="number" step="any" class="form-control" id="fUnitPriceModal" name="unitPrice" required>
+            </div>
+            <div class="mb-3">
+              <label for="totalFertilizer" class="form-label">總額</label>
+              <input type="number" step="any" class="form-control" id="totalFertilizer" name="total" readonly>
+            </div>
+            <div class="mb-3">
+              <label for="vouchersModal" class="form-label">憑證</label>
+              <input type="file" class="form-control" id="vouchersModal" name="vouchers" multiple>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary" id="submitFertilizerFormModal">送出</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="fertilizerWageModal" tabindex="-1" aria-labelledby="fertilizerWageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="fertilizerWageModalLabel">新增下肥作業</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+        </div>
+        <div class="modal-body">
+          <form id="fertilizerWageFormModal">
+            <div class="mb-3">
+              <label for="farmlandFertilizerWageModal" class="form-label">農地</label>
+              <select class="form-select" id="farmlandFertilizerWageModal" name="farmland" required>
+                <option value="">請選擇農地</option>
+                <option value="農地1">農地1</option>
+                <option value="農地2">農地2</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="fwDateModal" class="form-label">作業日期</label>
+              <input type="date" class="form-control" id="fwDateModal" name="date" required>
+            </div>
+            <div class="mb-3">
+              <label for="numberOfBagsModal" class="form-label">使用包數</label>
+              <input type="number" class="form-control" id="numberOfBagsModal" name="numberOfBags" required>
+            </div>
+            <div class="mb-3">
+              <label for="fertilizerWageTotalModal" class="form-label">總工資</label>
+              <input type="number" step="any" class="form-control" id="fertilizerWageTotalModal" name="totalWage" readonly>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary" id="submitFertilizerWageFormModal">送出</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="pesticideModal" tabindex="-1" aria-labelledby="pesticideModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="pesticideModalLabel">新增藥劑使用</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+        </div>
+        <div class="modal-body">
+          <form id="pesticideFormModal">
+            <div class="mb-3">
+              <label for="farmlandPesticideModal" class="form-label">農地</label>
+              <select class="form-select" id="farmlandPesticideModal" name="farmland" required>
+                <option value="">請選擇農地</option>
+                <option value="農地1">農地1</option>
+                <option value="農地2">農地2</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="pesticideDateModal" class="form-label">作業日期</label>
+              <input type="date" class="form-control" id="pesticideDateModal" name="date" required>
+            </div>
+            <div class="mb-3">
+              <label for="pesticideTypeModal" class="form-label">藥劑類型</label>
+              <select class="form-select" id="pesticideTypeModal" name="pesticideType" required>
+                <option value="蟲藥">蟲藥</option>
+                <option value="菌藥">菌藥</option>
+                <option value="黑龜">黑龜</option>
+                <option value="草藥">草藥</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="usageAmountModal" class="form-label">使用量</label>
+              <input type="number" step="any" class="form-control" id="usageAmountModal" name="usageAmount" required>
+            </div>
+            <div class="mb-3">
+              <label for="pUnitPriceModal" class="form-label">單價</label>
+              <input type="number" step="any" class="form-control" id="pUnitPriceModal" name="unitPrice">
+            </div>
+            <div class="mb-3">
+              <label for="pTotalCostModal" class="form-label">總費用</label>
+              <input type="number" step="any" class="form-control" id="pTotalCostModal" name="totalCost" readonly>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary" id="submitPesticideFormModal">送出</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="sprayModal" tabindex="-1" aria-labelledby="sprayModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="sprayModalLabel">新增噴藥方式</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+        </div>
+        <div class="modal-body">
+          <form id="sprayFormModal">
+            <div class="mb-3">
+              <label for="farmlandSprayModal" class="form-label">農地</label>
+              <select class="form-select" id="farmlandSprayModal" name="farmland" required>
+                <option value="">請選擇農地</option>
+                <option value="農地1">農地1</option>
+                <option value="農地2">農地2</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="sprayDateModal" class="form-label">作業日期</label>
+              <input type="date" class="form-control" id="sprayDateModal" name="date" required>
+            </div>
+            <div class="mb-3">
+              <label for="methodsModal" class="form-label">噴藥方式</label>
+              <select class="form-select" id="methodsModal" name="methods" required>
+                <option value="大掃">大掃</option>
+                <option value="無人機">無人機</option>
+                <option value="背桶">背桶</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="personnelModal" class="form-label">執行人員</label>
+              <input type="text" class="form-control" id="personnelModal" name="personnel">
+            </div>
+            <div class="mb-3">
+              <label for="sprayCostModal" class="form-label">成本</label>
+              <input type="number" step="any" class="form-control" id="sprayCostModal" name="cost">
+            </div>
+            <div class="mb-3">
+              <label for="remarksModal" class="form-label">備註</label>
+              <textarea class="form-control" id="remarksModal" name="remarks" rows="2"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary" id="submitSprayFormModal">送出</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="plantingWageModal" tabindex="-1" aria-labelledby="plantingWageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="plantingWageModalLabel">新增種植工資</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+        </div>
+        <div class="modal-body">
+          <form id="plantingWageFormModal">
+            <div class="mb-3">
+              <label for="farmlandPlantingWageModal" class="form-label">農地</label>
+              <select class="form-select" id="farmlandPlantingWageModal" name="farmland" required>
+                <option value="">請選擇農地</option>
+                <option value="農地1">農地1</option>
+                <option value="農地2">農地2</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="plantingDateModal" class="form-label">作業日期</label>
+              <input type="date" class="form-control" id="plantingDateModal" name="date" required>
+            </div>
+            <div class="mb-3">
+              <label for="plantingAreaModal" class="form-label">面積</label>
+              <div class="input-group">
+                <input type="number" step="any" class="form-control" id="plantingAreaModal" name="area" required>
+                <select class="form-select" id="plantingAreaUnitModal" name="areaUnit" required>
+                  <option value="分">分</option>
+                  <option value="甲">甲</option>
+                </select>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="plantingWageTotalModal" class="form-label">總工資</label>
+              <input type="number" step="any" class="form-control" id="plantingWageTotalModal" name="totalWage" readonly>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary" id="submitPlantingWageFormModal">送出</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="vendorModal" tabindex="-1" aria-labelledby="vendorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="vendorModalLabel">新增廠商</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+        </div>
+        <div class="modal-body">
+          <form id="vendorFormModal">
+            <div class="mb-3">
+              <label for="vendorNameModal" class="form-label">姓名</label>
+              <input type="text" class="form-control" id="vendorNameModal" name="name" required>
+            </div>
+            <div class="mb-3">
+              <label for="vendorPhoneModal" class="form-label">電話</label>
+              <input type="tel" class="form-control" id="vendorPhoneModal" name="phone" required>
+            </div>
+            <div class="mb-3">
+              <label for="vendorEmailModal" class="form-label">Email</label>
+              <input type="email" class="form-control" id="vendorEmailModal" name="email" required>
+            </div>
+            <div class="mb-3">
+              <label for="vendorAccountModal" class="form-label">帳號</label>
+              <input type="text" class="form-control" id="vendorAccountModal" name="account" required>
+            </div>
+            <div class="mb-3">
+              <label for="vendorPasswordModal" class="form-label">密碼</label>
+              <div class="input-group">
+                <input type="password" class="form-control" id="vendorPasswordModal" name="password" required>
+                <button type="button" class="btn btn-outline-secondary toggle-password" data-target="vendorPasswordModal">顯示</button>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary" id="submitVendorFormModal">送出</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="assignTaskModal" tabindex="-1" aria-labelledby="assignTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="assignTaskModalLabel">分配新任務</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+        </div>
+        <div class="modal-body">
+          <form id="assignTaskForm">
+            <div class="mb-3">
+              <label for="taskVendor" class="form-label">選擇廠商</label>
+              <select class="form-select" id="taskVendor" name="vendor" required>
+                <option value="">請選擇廠商</option>
+                <option value="zhangsan">張三</option>
+                <option value="lisi">李四</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="taskFarmland" class="form-label">農地</label>
+              <select class="form-select" id="taskFarmland" name="farmland" required>
+                <option value="">請選擇農地</option>
+                <option value="農地1">農地1</option>
+                <option value="農地2">農地2</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="taskType" class="form-label">作業類型</label>
+              <select class="form-select" id="taskType" name="taskType" required>
+                <option value="">請選擇作業類型</option>
+                <option value="翻土">翻土</option>
+                <option value="蔬菜溝">蔬菜溝</option>
+                <option value="苗木購買">苗木購買</option>
+                <option value="肥料購買">肥料購買</option>
+                <option value="下肥作業">下肥作業</option>
+                <option value="藥劑使用">藥劑使用</option>
+                <option value="噴藥方式">噴藥方式</option>
+                <option value="種植工資">種植工資</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="taskDeadline" class="form-label">截止日期</label>
+              <input type="date" class="form-control" id="taskDeadline" name="deadline" required>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary" id="submitTaskForm">分配</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // 側邊欄切換
+    document.querySelectorAll('.sidebar a').forEach(link => {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+        this.classList.add('active');
+        const sectionId = this.getAttribute('data-section');
+        document.querySelectorAll('.section').forEach(section => {
+          section.classList.toggle('active', section.id === sectionId);
+        });
+        if (window.innerWidth <= 576) {
+          document.querySelector('.sidebar').classList.remove('expanded');
+          document.querySelector('.sidebar-backdrop').classList.remove('show');
+        }
+      });
+    });
+
+    document.querySelector('.sidebar-toggle').addEventListener('click', function() {
+      document.querySelector('.sidebar').classList.toggle('expanded');
+      document.querySelector('.sidebar-backdrop').classList.toggle('show');
+    });
+
+    document.querySelector('.sidebar-backdrop').addEventListener('click', function() {
+      document.querySelector('.sidebar').classList.remove('expanded');
+      this.classList.remove('show');
+    });
+
+    // 假資料
+    let tasks = [
+      { id: 1, vendor: 'zhangsan', farmland: '農地1', taskType: '翻土', deadline: '2025-03-01', status: '待完成', formData: null },
+      { id: 2, vendor: 'lisi', farmland: '農地2', taskType: '下肥作業', deadline: '2025-03-05', status: '待完成', formData: null }
+    ];
+
+    let costRecords = {
+  tilling: [
+    { farmland: '農地1', date: '2025-01-10', equipment: '拖拉機', workingHours: 4, oilConsumed: 8, rentCost: 0, maintenanceCost: 0, totalCost: 48 },
+    { farmland: '農地2', date: '2025-03-05', equipment: '耕耘機', workingHours: 6, oilConsumed: 12, rentCost: 50, maintenanceCost: 10, totalCost: 82 },
+    { farmland: '農地1', date: '2025-05-15', equipment: '拖拉機', workingHours: 5, oilConsumed: 10, rentCost: 0, maintenanceCost: 15, totalCost: 65 },
+    { farmland: '農地2', date: '2025-07-20', equipment: '耕耘機', workingHours: 7, oilConsumed: 14, rentCost: 60, maintenanceCost: 0, totalCost: 84 }
+  ],
+  vegditch: [
+    { farmland: '農地1', date: '2025-02-05', detail: '挖溝作業', cost: 35 },
+    { farmland: '農地2', date: '2025-04-10', detail: '整地挖溝', cost: 40 },
+    { farmland: '農地1', date: '2025-06-15', detail: '排水溝', cost: 30 },
+    { farmland: '農地2', date: '2025-08-01', detail: '修溝', cost: 45 }
+  ],
+  seedling: [
+    { farmland: '農地2', date: '2025-03-01', seedType: '楓樹苗', quantity: 70, unitPrice: 20, total: 1400 },
+    { farmland: '農地1', date: '2025-04-20', seedType: '松樹苗', quantity: 60, unitPrice: 25, total: 1500 },
+    { farmland: '農地2', date: '2025-06-10', seedType: '櫻花苗', quantity: 50, unitPrice: 30, total: 1500 },
+    { farmland: '農地1', date: '2025-07-25', seedType: '柏樹苗', quantity: 80, unitPrice: 22, total: 1760 }
+  ],
+  fertilizer: [
+    { farmland: '農地1', date: '2025-04-05', fertilizerType: '尿素', quantity: 40, unitPrice: 15, total: 600 },
+    { farmland: '農地2', date: '2025-05-15', fertilizerType: '有機肥', quantity: 35, unitPrice: 20, total: 700 },
+    { farmland: '農地1', date: '2025-06-20', fertilizerType: '複合肥', quantity: 50, unitPrice: 18, total: 900 },
+    { farmland: '農地2', date: '2025-08-10', fertilizerType: '磷肥', quantity: 45, unitPrice: 16, total: 720 }
+  ],
+  fertilizerWage: [
+    { farmland: '農地2', date: '2025-05-01', numberOfBags: 20, totalWage: 200 },
+    { farmland: '農地1', date: '2025-06-05', numberOfBags: 25, totalWage: 250 },
+    { farmland: '農地2', date: '2025-07-15', numberOfBags: 30, totalWage: 300 },
+    { farmland: '農地1', date: '2025-08-20', numberOfBags: 22, totalWage: 220 }
+  ],
+  pesticide: [
+    { farmland: '農地1', date: '2025-06-01', pesticideType: '蟲藥', usageAmount: 5, unitPrice: 50, totalCost: 250 },
+    { farmland: '農地2', date: '2025-06-25', pesticideType: '草藥', usageAmount: 6, unitPrice: 40, totalCost: 240 },
+    { farmland: '農地1', date: '2025-07-10', pesticideType: '菌藥', usageAmount: 7, unitPrice: 45, totalCost: 315 },
+    { farmland: '農地2', date: '2025-08-15', pesticideType: '蟲藥', usageAmount: 4, unitPrice: 55, totalCost: 220 }
+  ],
+  spray: [
+    { farmland: '農地2', date: '2025-07-01', method: '無人機', personnel: 'John', cost: 500, remarks: '無' },
+    { farmland: '農地1', date: '2025-07-05', method: '背桶', personnel: 'Mary', cost: 150, remarks: '晴天' },
+    { farmland: '農地2', date: '2025-07-20', method: '大掃', personnel: 'Peter', cost: 300, remarks: '快速完成' },
+    { farmland: '農地1', date: '2025-08-10', method: '無人機', personnel: 'John', cost: 450, remarks: '高效' }
+  ],
+  plantingWage: [
+    { farmland: '農地1', date: '2025-03-15', area: 400, totalWage: 2000 },
+    { farmland: '農地2', date: '2025-05-10', area: 350, totalWage: 1750 },
+    { farmland: '農地1', date: '2025-06-25', area: 450, totalWage: 2250 },
+    { farmland: '農地2', date: '2025-08-05', area: 380, totalWage: 1900 }
+  ]
+};
+
+    // 更新成本記錄表格
+    function updateCostRecords() {
+      Object.keys(costRecords).forEach(type => {
+        const tbody = document.getElementById(`${type}TableBody`);
+        tbody.innerHTML = '';
+        costRecords[type].forEach(record => {
+          const tr = document.createElement('tr');
+          if (type === 'tilling') {
+            tr.innerHTML = `<td>${record.farmland}</td><td>${record.date}</td><td>${record.equipment}</td><td>${record.workingHours}</td><td>${record.oilConsumed}</td><td>${record.rentCost}</td><td>${record.maintenanceCost}</td><td>${record.totalCost}</td>`;
+          } else if (type === 'vegditch') {
+            tr.innerHTML = `<td>${record.farmland}</td><td>${record.date}</td><td>${record.detail}</td><td>${record.cost}</td>`;
+          } else if (type === 'seedling') {
+            tr.innerHTML = `<td>${record.farmland}</td><td>${record.date}</td><td>${record.seedType}</td><td>${record.quantity}</td><td>${record.unitPrice}</td><td>${record.total}</td>`;
+          } else if (type === 'fertilizer') {
+            tr.innerHTML = `<td>${record.farmland}</td><td>${record.date}</td><td>${record.fertilizerType}</td><td>${record.quantity}</td><td>${record.unitPrice}</td><td>${record.total}</td>`;
+          } else if (type === 'fertilizerWage') {
+            tr.innerHTML = `<td>${record.farmland}</td><td>${record.date}</td><td>${record.numberOfBags}</td><td>${record.totalWage}</td>`;
+          } else if (type === 'pesticide') {
+            tr.innerHTML = `<td>${record.farmland}</td><td>${record.date}</td><td>${record.pesticideType}</td><td>${record.usageAmount}</td><td>${record.unitPrice}</td><td>${record.totalCost}</td>`;
+          } else if (type === 'spray') {
+            tr.innerHTML = `<td>${record.farmland}</td><td>${record.date}</td><td>${record.method}</td><td>${record.personnel}</td><td>${record.cost}</td><td>${record.remarks}</td>`;
+          } else if (type === 'plantingWage') {
+            tr.innerHTML = `<td>${record.farmland}</td><td>${record.date}</td><td>${record.area}</td><td>${record.totalWage}</td>`;
+          }
+          tbody.appendChild(tr);
+        });
+      });
+    }
+
+    // 更新任務表格
+    function updateTaskTable() {
+      const tbody = document.getElementById('taskTableBody');
+      tbody.innerHTML = '';
+      tasks.forEach(task => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${task.id}</td>
+          <td>${task.vendor}</td>
+          <td>${task.farmland}</td>
+          <td>${task.taskType}</td>
+          <td>${task.deadline}</td>
+          <td>${task.status}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // 更新任務審核與撥款表格
+    function updateTaskApprovalTable() {
+      const tbody = document.getElementById('taskApprovalBody');
+      tbody.innerHTML = '';
+      tasks.forEach(task => {
+        if (task.status !== '待完成') {
+          const tr = document.createElement('tr');
+          const amount = task.formData ? getTaskAmount(task.taskType, task.formData) : 0;
+          tr.innerHTML = `
+            <td>${task.id}</td>
+            <td>${task.vendor}</td>
+            <td>${task.farmland}</td>
+            <td>${task.taskType}</td>
+            <td>${amount}</td>
+            <td>${task.status}</td>
+            <td>
+              ${task.status === '待審核' ? `<button class="btn btn-success btn-sm approve-task" data-task-id="${task.id}">通過</button> <button class="btn btn-danger btn-sm reject-task" data-task-id="${task.id}">駁回</button>` : ''}
+              ${task.status === '待撥款' ? `<button class="btn btn-primary btn-sm pay-task" data-task-id="${task.id}">撥款</button>` : ''}
+            </td>
+          `;
+          tbody.appendChild(tr);
+        }
+      });
+
+      document.querySelectorAll('.approve-task').forEach(button => {
+        button.addEventListener('click', function() {
+          const taskId = this.getAttribute('data-task-id');
+          const task = tasks.find(t => t.id == taskId);
+          task.status = '待撥款';
+          updateTaskTable();
+          updateTaskApprovalTable();
+        });
+      });
+
+      document.querySelectorAll('.reject-task').forEach(button => {
+        button.addEventListener('click', function() {
+          const taskId = this.getAttribute('data-task-id');
+          const task = tasks.find(t => t.id == taskId);
+          task.status = '待完成';
+          task.formData = null;
+          updateTaskTable();
+          updateTaskApprovalTable();
+        });
+      });
+
+      document.querySelectorAll('.pay-task').forEach(button => {
+        button.addEventListener('click', function() {
+          const taskId = this.getAttribute('data-task-id');
+          const task = tasks.find(t => t.id == taskId);
+          task.status = '已撥款';
+          addToCostRecords(task.taskType, task.formData);
+          updateTaskTable();
+          updateTaskApprovalTable();
+          updateCostRecords();
+        });
+      });
+    }
+
+    // 計算任務金額
+    function getTaskAmount(taskType, formData) {
+      if (taskType === '翻土') {
+        const workingHours = parseFloat(formData.get('workingHours')) || 0;
+        const oilConsumed = parseFloat(formData.get('oilConsumed')) || 0;
+        const rentCost = parseFloat(formData.get('rentCost')) || 0;
+        const maintenanceCost = parseFloat(formData.get('maintenanceCost')) || 0;
+        return workingHours * 10 + oilConsumed * 1 + rentCost + maintenanceCost; // 假設每小時10元，油1元
+      } else if (taskType === '蔬菜溝') {
+        return parseFloat(formData.get('cost')) || 0;
+      } else if (taskType === '苗木購買') {
+        return parseFloat(formData.get('total')) || 0;
+      } else if (taskType === '肥料購買') {
+        return parseFloat(formData.get('total')) || 0;
+      } else if (taskType === '下肥作業') {
+        return parseFloat(formData.get('totalWage')) || 0;
+      } else if (taskType === '藥劑使用') {
+        return parseFloat(formData.get('totalCost')) || 0;
+      } else if (taskType === '噴藥方式') {
+        return parseFloat(formData.get('cost')) || 0;
+      } else if (taskType === '種植工資') {
+        return parseFloat(formData.get('totalWage')) || 0;
+      }
+      return 0;
+    }
+
+    // 將任務資料加入成本記錄
+    function addToCostRecords(taskType, formData) {
+      const record = Object.fromEntries(formData.entries());
+      if (taskType === '翻土') {
+        record.totalCost = getTaskAmount(taskType, formData);
+        costRecords.tilling.push(record);
+      } else if (taskType === '蔬菜溝') {
+        costRecords.vegditch.push(record);
+      } else if (taskType === '苗木購買') {
+        costRecords.seedling.push(record);
+      } else if (taskType === '肥料購買') {
+        costRecords.fertilizer.push(record);
+      } else if (taskType === '下肥作業') {
+        costRecords.fertilizerWage.push(record);
+      } else if (taskType === '藥劑使用') {
+        costRecords.pesticide.push(record);
+      } else if (taskType === '噴藥方式') {
+        costRecords.spray.push(record);
+      } else if (taskType === '種植工資') {
+        record.area = record.areaUnit === '甲' ? parseFloat(record.area) * 10 : parseFloat(record.area);
+        costRecords.plantingWage.push(record);
+      }
+    }
+
+    // 分配任務
+    document.getElementById('submitTaskForm').addEventListener('click', function() {
+      const form = document.getElementById('assignTaskForm');
+      const formData = new FormData(form);
+      const newTask = {
+        id: tasks.length + 1,
+        vendor: formData.get('vendor'),
+        farmland: formData.get('farmland'),
+        taskType: formData.get('taskType'),
+        deadline: formData.get('deadline'),
+        status: '待完成',
+        formData: null
+      };
+      tasks.push(newTask);
+      bootstrap.Modal.getInstance(document.getElementById('assignTaskModal')).hide();
+      form.reset();
+      updateTaskTable();
+      updateTaskApprovalTable();
+    });
+
+    // 模擬廠商完成任務
+    function simulateTaskCompletion(taskId, formData) {
+      const task = tasks.find(t => t.id == taskId);
+      if (task && task.status === '待完成') {
+        task.status = '待審核';
+        task.formData = formData;
+        updateTaskTable();
+        updateTaskApprovalTable();
+      }
+    }
+
+    // 初始化
+    updateCostRecords();
+    updateTaskTable();
+    updateTaskApprovalTable();
+
+    // 模擬廠商回傳（測試用）
+    setTimeout(() => {
+      const tillingForm = new FormData();
+      tillingForm.append('farmland', '農地1');
+      tillingForm.append('date', '2025-03-02');
+      tillingForm.append('equipment', '拖拉機');
+      tillingForm.append('workingHours', '6');
+      tillingForm.append('oilConsumed', '12');
+      tillingForm.append('rentCost', '50');
+      tillingForm.append('maintenanceCost', '20');
+      simulateTaskCompletion(1, tillingForm);
+
+      const fertilizerWageForm = new FormData();
+      fertilizerWageForm.append('farmland', '農地2');
+      fertilizerWageForm.append('date', '2025-03-06');
+      fertilizerWageForm.append('numberOfBags', '25');
+      fertilizerWageForm.append('totalWage', '250');
+      simulateTaskCompletion(2, fertilizerWageForm);
+    }, 2000);
+
+    // 照片預覽功能
+    document.getElementById('photosModal').addEventListener('change', function(e) {
+      const previewContainer = document.getElementById('photoPreview');
+      previewContainer.innerHTML = '';
+      const files = e.target.files;
+      if (files) {
+        Array.from(files).forEach(file => {
+          if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+              const img = document.createElement('img');
+              img.src = event.target.result;
+              img.style.maxWidth = '100px';
+              img.style.maxHeight = '100px';
+              img.classList.add('img-thumbnail');
+              previewContainer.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      }
+    });
+
+    // 密碼顯示/隱藏切換
+    document.querySelectorAll('.toggle-password').forEach(button => {
+      button.addEventListener('click', function() {
+        const targetId = this.getAttribute('data-target');
+        const input = document.getElementById(targetId);
+        if (input.type === 'password') {
+          input.type = 'text';
+          this.textContent = '隱藏';
+        } else {
+          input.type = 'password';
+          this.textContent = '顯示';
+        }
+      });
+    });
+
+    // Modal 表單提交
+    document.getElementById('submitLandForm').addEventListener('click', function() {
+      const form = document.getElementById('landFormModal');
+      const formData = new FormData(form);
+      const area = parseFloat(formData.get('area'));
+      const unit = formData.get('areaUnit');
+      const areaInFen = unit === '甲' ? area * 10 : area;
+      formData.set('area', areaInFen);
+      console.log('農地資料:', Array.from(formData.entries()));
+      bootstrap.Modal.getInstance(document.getElementById('landModal')).hide();
+      form.reset();
+      document.getElementById('photoPreview').innerHTML = '';
+    });
+
+    document.getElementById('submitTillingFormModal').addEventListener('click', function() {
+      const form = document.getElementById('tillingFormModal');
+      const formData = new FormData(form);
+      costRecords.tilling.push({
+        farmland: formData.get('farmland'),
+        date: formData.get('date'),
+        equipment: formData.get('equipment'),
+        workingHours: parseFloat(formData.get('workingHours')),
+        oilConsumed: parseFloat(formData.get('oilConsumed')),
+        rentCost: parseFloat(formData.get('rentCost')) || 0,
+        maintenanceCost: parseFloat(formData.get('maintenanceCost')) || 0,
+        totalCost: getTaskAmount('翻土', formData)
+      });
+      bootstrap.Modal.getInstance(document.getElementById('tillingModal')).hide();
+      form.reset();
+      updateCostRecords();
+    });
+
+    document.getElementById('submitVegditchFormModal').addEventListener('click', function() {
+      const form = document.getElementById('vegditchFormModal');
+      const formData = new FormData(form);
+      costRecords.vegditch.push(Object.fromEntries(formData.entries()));
+      bootstrap.Modal.getInstance(document.getElementById('vegditchModal')).hide();
+      form.reset();
+      updateCostRecords();
+    });
+
+// 苗木購買表單提交
+document.getElementById('submitSeedlingFormModal').addEventListener('click', function() {
+  const form = document.getElementById('seedlingFormModal');
+  const formData = new FormData(form);
+  const quantity = parseFloat(formData.get('quantity')) || 0;
+  const unitPrice = parseFloat(formData.get('unitPrice')) || 0;
+  const total = quantity * unitPrice;
+  costRecords.seedling.push({
+    farmland: formData.get('farmland'),
+    date: formData.get('date'),
+    seedType: formData.get('seedType'),
+    quantity: quantity,
+    unitPrice: unitPrice,
+    total: total
+  });
+  bootstrap.Modal.getInstance(document.getElementById('seedlingModal')).hide();
+  form.reset();
+  updateCostRecords();
+});
+
+// 肥料購買表單提交
+document.getElementById('submitFertilizerFormModal').addEventListener('click', function() {
+  const form = document.getElementById('fertilizerFormModal');
+  const formData = new FormData(form);
+  const quantity = parseFloat(formData.get('quantity')) || 0;
+  const unitPrice = parseFloat(formData.get('unitPrice')) || 0;
+  const total = quantity * unitPrice;
+  costRecords.fertilizer.push({
+    farmland: formData.get('farmland'),
+    date: formData.get('purchaseDate'),
+    fertilizerType: formData.get('fertilizerType'),
+    quantity: quantity,
+    unitPrice: unitPrice,
+    total: total
+  });
+  bootstrap.Modal.getInstance(document.getElementById('fertilizerModal')).hide();
+  form.reset();
+  updateCostRecords();
+});
+
+// 下肥作業表單提交
+document.getElementById('submitFertilizerWageFormModal').addEventListener('click', function() {
+  const form = document.getElementById('fertilizerWageFormModal');
+  const formData = new FormData(form);
+  const numberOfBags = parseFloat(formData.get('numberOfBags')) || 0;
+  const wagePerBag = parseFloat(document.getElementById('fertilizerWagePerBagInline').value) || 10; // 從系統設定取得
+  const totalWage = numberOfBags * wagePerBag;
+  costRecords.fertilizerWage.push({
+    farmland: formData.get('farmland'),
+    date: formData.get('date'),
+    numberOfBags: numberOfBags,
+    totalWage: totalWage
+  });
+  bootstrap.Modal.getInstance(document.getElementById('fertilizerWageModal')).hide();
+  form.reset();
+  updateCostRecords();
+});
+
+// 藥劑使用表單提交
+document.getElementById('submitPesticideFormModal').addEventListener('click', function() {
+  const form = document.getElementById('pesticideFormModal');
+  const formData = new FormData(form);
+  const usageAmount = parseFloat(formData.get('usageAmount')) || 0;
+  const unitPrice = parseFloat(formData.get('unitPrice')) || 0;
+  const totalCost = usageAmount * unitPrice;
+  costRecords.pesticide.push({
+    farmland: formData.get('farmland'),
+    date: formData.get('date'),
+    pesticideType: formData.get('pesticideType'),
+    usageAmount: usageAmount,
+    unitPrice: unitPrice,
+    totalCost: totalCost
+  });
+  bootstrap.Modal.getInstance(document.getElementById('pesticideModal')).hide();
+  form.reset();
+  updateCostRecords();
+});
+
+// 噴藥方式表單提交
+document.getElementById('submitSprayFormModal').addEventListener('click', function() {
+  const form = document.getElementById('sprayFormModal');
+  const formData = new FormData(form);
+  costRecords.spray.push({
+    farmland: formData.get('farmland'),
+    date: formData.get('date'),
+    method: formData.get('methods'),
+    personnel: formData.get('personnel'),
+    cost: parseFloat(formData.get('cost')) || 0,
+    remarks: formData.get('remarks')
+  });
+  bootstrap.Modal.getInstance(document.getElementById('sprayModal')).hide();
+  form.reset();
+  updateCostRecords();
+});
+
+// 種植工資表單提交
+document.getElementById('submitPlantingWageFormModal').addEventListener('click', function() {
+  const form = document.getElementById('plantingWageFormModal');
+  const formData = new FormData(form);
+  const area = parseFloat(formData.get('area')) || 0;
+  const unit = formData.get('areaUnit');
+  const areaInFen = unit === '甲' ? area * 10 : area;
+  const wagePerFen = parseFloat(document.getElementById('plantingWageInline').value) || 500; // 從系統設定取得
+  const totalWage = areaInFen * wagePerFen;
+  costRecords.plantingWage.push({
+    farmland: formData.get('farmland'),
+    date: formData.get('date'),
+    area: areaInFen,
+    totalWage: totalWage
+  });
+  bootstrap.Modal.getInstance(document.getElementById('plantingWageModal')).hide();
+  form.reset();
+  updateCostRecords();
+});
+
+// 新增廠商表單提交
+document.getElementById('submitVendorFormModal').addEventListener('click', function() {
+  const form = document.getElementById('vendorFormModal');
+  const formData = new FormData(form);
+  const vendorTableBody = document.querySelector('#vendorTable tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>${formData.get('name')}</td>
+    <td>${formData.get('phone')}</td>
+    <td>${formData.get('email')}</td>
+    <td>${formData.get('account')}</td>
+  `;
+  vendorTableBody.appendChild(tr);
+  bootstrap.Modal.getInstance(document.getElementById('vendorModal')).hide();
+  form.reset();
+});
+
+// 農地詳情查看
+document.querySelectorAll('.viewLand').forEach(button => {
+  button.addEventListener('click', function() {
+    const landId = this.getAttribute('data-land-id');
+    // 假設的農地資料，這裡可以根據實際需求從後端或資料庫取得
+    const landData = {
+      1: { number: '12345', area: 1000, location: '台中市', photos: ['https://via.placeholder.com/400'] },
+      2: { number: '67890', area: 20, location: '彰化縣', photos: ['https://via.placeholder.com/400'] }
+    };
+    const land = landData[landId];
+    if (land) {
+      document.getElementById('viewLandNumber').textContent = land.number;
+      document.getElementById('viewLandArea').textContent = land.area;
+      document.getElementById('viewLandLocation').textContent = land.location;
+      const carouselInner = document.querySelector('#viewLandPhotos .carousel-inner');
+      carouselInner.innerHTML = '';
+      land.photos.forEach((photo, index) => {
+        const div = document.createElement('div');
+        div.className = `carousel-item${index === 0 ? ' active' : ''}`;
+        div.innerHTML = `<img src="${photo}" class="d-block w-100" alt="農地照片">`;
+        carouselInner.appendChild(div);
+      });
+      new bootstrap.Modal(document.getElementById('viewLandModal')).show();
+    }
+  });
+});
+
+// 系統設定更新
+document.getElementById('settingsFormInline').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const plantingWage = document.getElementById('plantingWageInline').value;
+  const fertilizerWagePerBag = document.getElementById('fertilizerWagePerBagInline').value;
+  console.log('系統設定已更新:', { plantingWage, fertilizerWagePerBag });
+  // 這裡可以加入後續邏輯，例如儲存到後端
+});
+
+// 自動計算總額（苗木購買）
+document.getElementById('quantityModal').addEventListener('input', updateSeedlingTotal);
+document.getElementById('unitPriceModal').addEventListener('input', updateSeedlingTotal);
+function updateSeedlingTotal() {
+  const quantity = parseFloat(document.getElementById('quantityModal').value) || 0;
+  const unitPrice = parseFloat(document.getElementById('unitPriceModal').value) || 0;
+  document.getElementById('totalSeedling').value = quantity * unitPrice;
+}
+
+// 自動計算總額（肥料購買）
+document.getElementById('fQuantityModal').addEventListener('input', updateFertilizerTotal);
+document.getElementById('fUnitPriceModal').addEventListener('input', updateFertilizerTotal);
+function updateFertilizerTotal() {
+  const quantity = parseFloat(document.getElementById('fQuantityModal').value) || 0;
+  const unitPrice = parseFloat(document.getElementById('fUnitPriceModal').value) || 0;
+  document.getElementById('totalFertilizer').value = quantity * unitPrice;
+}
+
+// 自動計算總工資（下肥作業）
+document.getElementById('numberOfBagsModal').addEventListener('input', function() {
+  const numberOfBags = parseFloat(this.value) || 0;
+  const wagePerBag = parseFloat(document.getElementById('fertilizerWagePerBagInline').value) || 10;
+  document.getElementById('fertilizerWageTotalModal').value = numberOfBags * wagePerBag;
+});
+
+// 自動計算總費用（藥劑使用）
+document.getElementById('usageAmountModal').addEventListener('input', updatePesticideTotal);
+document.getElementById('pUnitPriceModal').addEventListener('input', updatePesticideTotal);
+function updatePesticideTotal() {
+  const usageAmount = parseFloat(document.getElementById('usageAmountModal').value) || 0;
+  const unitPrice = parseFloat(document.getElementById('pUnitPriceModal').value) || 0;
+  document.getElementById('pTotalCostModal').value = usageAmount * unitPrice;
+}
+
+// 自動計算總工資（種植工資）
+document.getElementById('plantingAreaModal').addEventListener('input', updatePlantingWageTotal);
+document.getElementById('plantingAreaUnitModal').addEventListener('change', updatePlantingWageTotal);
+function updatePlantingWageTotal() {
+  const area = parseFloat(document.getElementById('plantingAreaModal').value) || 0;
+  const unit = document.getElementById('plantingAreaUnitModal').value;
+  const areaInFen = unit === '甲' ? area * 10 : area;
+  const wagePerFen = parseFloat(document.getElementById('plantingWageInline').value) || 500;
+  document.getElementById('plantingWageTotalModal').value = areaInFen * wagePerFen;
+}
+
+
+// 報表統計相關功能
+// 將所有成本記錄整合成單一陣列
+function getAllCostRecords() {
+  const allRecords = [];
+  Object.keys(costRecords).forEach(type => {
+    costRecords[type].forEach(record => {
+      let costField, workType;
+      switch(type) {
+        case 'tilling': costField = 'totalCost'; workType = '翻土'; break;
+        case 'vegditch': costField = 'cost'; workType = '蔬菜溝'; break;
+        case 'seedling': costField = 'total'; workType = '苗木購買'; break;
+        case 'fertilizer': costField = 'total'; workType = '肥料購買'; break;
+        case 'fertilizerWage': costField = 'totalWage'; workType = '下肥作業'; break;
+        case 'pesticide': costField = 'totalCost'; workType = '藥劑使用'; break;
+        case 'spray': costField = 'cost'; workType = '噴藥方式'; break;
+        case 'plantingWage': costField = 'totalWage'; workType = '種植工資'; break;
+      }
+      allRecords.push({
+        farmland: record.farmland,
+        date: record.date,
+        workType: workType,
+        cost: parseFloat(record[costField]) || 0
+      });
+    });
+  });
+  return allRecords;
+}
+
+// 過濾資料
+function filterRecords() {
+  const farmland = document.getElementById('farmlandInline').value;
+  const workType = document.getElementById('workTypeInline').value;
+  const periodType = document.getElementById('periodTypeInline').value;
+  const periodValue = document.getElementById('periodValueInline').value.trim();
+
+  let allRecords = getAllCostRecords();
+
+  // 農地過濾
+  if (farmland) {
+    allRecords = allRecords.filter(record => record.farmland === farmland);
+  }
+
+  // 作業類型過濾
+  if (workType) {
+    allRecords = allRecords.filter(record => record.workType === workType);
+  }
+
+  // 期間過濾
+  if (periodValue) {
+    allRecords = allRecords.filter(record => {
+      const date = new Date(record.date);
+      if (periodType === 'month') {
+        return date.toISOString().slice(0, 7) === periodValue; // 例如 "2025-01"
+      } else if (periodType === 'quarter') {
+        const [q, year] = periodValue.split('-'); // 例如 "Q1-2025"
+        const quarter = parseInt(q.replace('Q', ''));
+        const month = date.getMonth() + 1;
+        const yearMatch = date.getFullYear().toString() === year;
+        return yearMatch && (
+          (quarter === 1 && month <= 3) ||
+          (quarter === 2 && month >= 4 && month <= 6) ||
+          (quarter === 3 && month >= 7 && month <= 9) ||
+          (quarter === 4 && month >= 10)
+        );
+      } else if (periodType === 'year') {
+        return date.getFullYear().toString() === periodValue; // 例如 "2025"
+      }
+      return true;
+    });
+  }
+
+  return allRecords;
+}
+
+// 更新報表表格
+function updateReportTable(records) {
+  const tbody = document.querySelector('#reportTableInline tbody');
+  tbody.innerHTML = '';
+  records.forEach(record => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${record.farmland}</td>
+      <td>${record.workType}</td>
+      <td>${record.date}</td>
+      <td>${record.cost}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+let chartInstance = null;
+
+function updateCostTrendChart(records) {
+  const ctx = document.getElementById('reportChartInline').getContext('2d');
+  const workType = document.getElementById('workTypeInline').value;
+  
+  if (chartInstance) {
+    chartInstance.destroy();
+  }
+
+  // 動態檢測螢幕寬度
+  const screenWidth = window.innerWidth;
+  let chartHeight, borderWidth, pointRadius, fontSizeBase;
+
+  // 根據螢幕尺寸設定參數
+  if (screenWidth <= 576) { // 手機
+    chartHeight = 400; // 高度 400px
+    borderWidth = 3;   // 折線粗細 3px
+    pointRadius = 5;   // 數據點 5px
+    fontSizeBase = 12; // 基礎字體大小 12px
+  } else if (screenWidth <= 768) { // 平板
+    chartHeight = 450; // 高度 450px
+    borderWidth = 2.5; // 折線粗細 2.5px
+    pointRadius = 4;   // 數據點 4px
+    fontSizeBase = 14; // 基礎字體大小 14px
+  } else { // 桌機
+    chartHeight = 500; // 高度 500px
+    borderWidth = 2;   // 折線粗細 2px
+    pointRadius = 3;   // 數據點 3px
+    fontSizeBase = 16; // 基礎字體大小 16px
+  }
+
+  // 動態設定圖表高度
+  ctx.canvas.style.height = `${chartHeight}px`;
+  ctx.canvas.style.width = '100%';
+
+  // 通用圖表選項
+  const chartOptions = {
+    scales: {
+      x: { 
+        title: { display: true, text: '日期', font: { size: fontSizeBase + 2 } }, // 標題稍大
+        ticks: { font: { size: fontSizeBase } } // 刻度文字
+      },
+      y: { 
+        title: { display: true, text: '成本 (元)', font: { size: fontSizeBase + 2 } },
+        ticks: { font: { size: fontSizeBase } },
+        beginAtZero: true
+      }
+    },
+    plugins: {
+      legend: { 
+        display: true,
+        labels: { font: { size: fontSizeBase } } // 圖例文字
+      }
+    },
+    responsive: true,
+    maintainAspectRatio: false // 允許自適應高度
+  };
+
+  // 顏色陣列
+  const colors = ['#007bff', '#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6610f2', '#e83e8c', '#fd7e14'];
+
+  if (!workType) { // 如果選擇「全部」
+    const costByTypeAndDate = {};
+    records.forEach(record => {
+      if (!costByTypeAndDate[record.workType]) {
+        costByTypeAndDate[record.workType] = {};
+      }
+      if (!costByTypeAndDate[record.workType][record.date]) {
+        costByTypeAndDate[record.workType][record.date] = 0;
+      }
+      costByTypeAndDate[record.workType][record.date] += record.cost;
+    });
+
+    const allDates = [...new Set(records.map(record => record.date))].sort();
+    const workTypes = Object.keys(costByTypeAndDate);
+
+    const datasets = workTypes.map((type, index) => ({
+      label: type,
+      data: allDates.map(date => costByTypeAndDate[type][date] || 0),
+      borderColor: colors[index % colors.length],
+      borderWidth: borderWidth, // 動態折線粗細
+      pointRadius: pointRadius, // 動態數據點大小
+      pointHoverRadius: pointRadius + 2, // 懸停時稍大
+      fill: false,
+      tension: 0.1
+    }));
+
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: { labels: allDates, datasets: datasets },
+      options: chartOptions
+    });
+  } else { // 單一作業類型
+    const costByDate = {};
+    records.forEach(record => {
+      if (!costByDate[record.date]) costByDate[record.date] = 0;
+      costByDate[record.date] += record.cost;
+    });
+
+    const labels = Object.keys(costByDate).sort();
+    const data = labels.map(date => costByDate[date]);
+
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: `${workType} 成本趨勢`,
+          data: data,
+          borderColor: '#007bff',
+          borderWidth: borderWidth, // 動態折線粗細
+          pointRadius: pointRadius, // 動態數據點大小
+          pointHoverRadius: pointRadius + 2,
+          fill: false,
+          tension: 0.1
+        }]
+      },
+      options: chartOptions
+    });
+  }
+}
+
+// 監聽螢幕尺寸變化，動態更新圖表
+window.addEventListener('resize', () => {
+  const allRecords = getAllCostRecords();
+  updateCostTrendChart(allRecords);
+});
+
+
+// 更新各項成本統計
+function updateCostSummary(records) {
+  const summaryDiv = document.getElementById('costReports');
+  summaryDiv.innerHTML = '';
+
+  const costByType = {};
+  records.forEach(record => {
+    if (!costByType[record.workType]) {
+      costByType[record.workType] = 0;
+    }
+    costByType[record.workType] += record.cost;
+  });
+
+  const totalCost = Object.values(costByType).reduce((sum, cost) => sum + cost, 0);
+  
+  const table = document.createElement('table');
+  table.className = 'table table-bordered';
+  table.innerHTML = `
+    <thead><tr><th>作業類型</th><th>總成本 (元)</th></tr></thead>
+    <tbody>
+      ${Object.keys(costByType).map(type => `
+        <tr><td>${type}</td><td>${costByType[type].toFixed(2)}</td></tr>
+      `).join('')}
+      <tr><td><strong>總計</strong></td><td><strong>${totalCost.toFixed(2)}</strong></td></tr>
+    </tbody>
+  `;
+  summaryDiv.appendChild(table);
+}
+
+// 套用過濾按鈕
+document.getElementById('applyFilterInline').addEventListener('click', function() {
+  const filteredRecords = filterRecords();
+  updateReportTable(filteredRecords);
+  updateCostTrendChart(filteredRecords);
+  updateCostSummary(filteredRecords);
+});
+
+// 匯出 PDF（使用完整 Base64 嵌入 Noto Sans TC）
+document.getElementById('exportCombinedPDFInline').addEventListener('click', function() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  // 嵌入完整的 Noto Sans TC Base64
+  const notoSansTCBase64 = 'YOUR_FULL_BASE64_HERE'; // 貼上你生成的 Base64
+
+  try {
+    doc.addFileToVFS('NotoSansTC-Regular.ttf', notoSansTCBase64);
+    doc.addFont('NotoSansTC-Regular.ttf', 'NotoSansTC', 'normal');
+    doc.setFont('NotoSansTC');
+  } catch (error) {
+    console.error('字型嵌入失敗:', error);
+    alert('字型載入失敗，中文可能顯示異常');
+  }
+
+  const filteredRecords = filterRecords();
+
+  // 標題
+  doc.setFontSize(16);
+  doc.text('綜合報表', 10, 10);
+
+  // 成本明細表
+  doc.autoTable({
+    startY: 20,
+    head: [['農地', '作業類型', '日期', '成本']],
+    body: filteredRecords.map(record => [record.farmland, record.workType, record.date, record.cost]),
+    styles: { font: 'NotoSansTC', fontSize: 10, cellPadding: 2 },
+    headStyles: { fillColor: [22, 160, 133], textColor: [255, 255, 255], fontSize: 12 },
+    columnStyles: { 0: { cellWidth: 40 }, 1: { cellWidth: 50 }, 2: { cellWidth: 40 }, 3: { cellWidth: 30 } },
+  });
+
+  // 各項成本統計
+  const costByType = {};
+  filteredRecords.forEach(record => {
+    costByType[record.workType] = (costByType[record.workType] || 0) + record.cost;
+  });
+  const totalCost = Object.values(costByType).reduce((sum, cost) => sum + cost, 0);
+  const summaryData = Object.keys(costByType).map(type => [type, costByType[type].toFixed(2)]);
+  summaryData.push(['總計', totalCost.toFixed(2)]);
+
+  doc.autoTable({
+    startY: doc.lastAutoTable.finalY + 10,
+    head: [['作業類型', '總成本 (元)']],
+    body: summaryData,
+    styles: { font: 'NotoSansTC', fontSize: 10, cellPadding: 2 },
+    headStyles: { fillColor: [22, 160, 133], textColor: [255, 255, 255], fontSize: 12 },
+    columnStyles: { 0: { cellWidth: 100 }, 1: { cellWidth: 60 } },
+  });
+
+  doc.save('綜合報表.pdf');
+});
+
+// 匯出 Excel
+document.getElementById('exportCombinedExcelInline').addEventListener('click', function() {
+  const filteredRecords = filterRecords();
+
+  // 成本明細表
+  const detailData = [['農地', '作業類型', '日期', '成本'], ...filteredRecords.map(record => [record.farmland, record.workType, record.date, record.cost])];
+
+  // 各項成本統計
+  const costByType = {};
+  filteredRecords.forEach(record => {
+    costByType[record.workType] = (costByType[record.workType] || 0) + record.cost;
+  });
+  const totalCost = Object.values(costByType).reduce((sum, cost) => sum + cost, 0);
+  const summaryData = [['作業類型', '總成本 (元)'], ...Object.keys(costByType).map(type => [type, costByType[type]]), ['總計', totalCost]];
+
+  const wb = XLSX.utils.book_new();
+  const detailWs = XLSX.utils.aoa_to_sheet(detailData);
+  const summaryWs = XLSX.utils.aoa_to_sheet(summaryData);
+  XLSX.utils.book_append_sheet(wb, detailWs, '成本明細');
+  XLSX.utils.book_append_sheet(wb, summaryWs, '成本統計');
+  XLSX.writeFile(wb, '綜合報表.xlsx');
+});
+
+// 初始化報表頁面
+document.querySelector('.sidebar a[data-section="reports"]').addEventListener('click', function() {
+  const allRecords = getAllCostRecords();
+  updateReportTable(allRecords);
+  updateCostTrendChart(allRecords);
+  updateCostSummary(allRecords);
+});
+</script>
+</body>
+</html>
