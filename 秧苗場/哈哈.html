@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>農民交易平台流程圖與架構圖</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: zoomIn 0.5s ease-in-out;
+    }
+    h1 {
+      color: #2e7d32;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .section {
+      margin-bottom: 40px;
+      width: 100%;
+      max-width: 1400px;
+    }
+    .flowchart-container, .structure-container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      overflow-x: auto;
+      width: 100%;
+    }
+    svg {
+      width: 100%;
+      height: auto;
+      max-width: 100%;
+    }
+    text {
+      font-size: 14px;
+      fill: #333;
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+    rect {
+      stroke: #34D399;
+      stroke-width: 2;
+      fill: #fff;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    rect.decision {
+      fill: #a5d6a7;
+    }
+    path {
+      stroke: #059669;
+      stroke-width: 2;
+      fill: none;
+      stroke-dasharray: 1000;
+      stroke-dashoffset: 1000;
+      animation: drawArrow 1s ease-in-out forwards;
+    }
+    .arrow {
+      marker-end: url(#arrowhead);
+    }
+    /* 動畫定義 */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes drawArrow {
+      to { stroke-dashoffset: 0; }
+    }
+    @keyframes zoomIn {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    /* 響應式調整 */
+    @media (max-width: 768px) {
+      text {
+        font-size: 12px; /* 手機版減小字體 */
+      }
+      .flowchart-container, .structure-container {
+        padding: 10px;
+      }
+      .section {
+        max-width: 100%;
+      }
+    }
+    @media (max-width: 480px) {
+      text {
+        font-size: 10px; /* 更小螢幕進一步減小 */
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>農民交易平台流程與架構圖</h1>
+
+  <!-- 主流程圖 -->
+  <div class="section">
+    <h2>主流程圖</h2>
+    <div class="flowchart-container">
+      <svg viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#059669" />
+          </marker>
+        </defs>
+        <!-- 節點 -->
+        <rect x="300" y="20" width="200" height="50" rx="5" />
+        <text x="400" y="45">農民登入/註冊 (個人IP帳號)</text>
+        <rect x="300" y="90" width="200" height="50" rx="5" />
+        <text x="400" y="115">上架蔬菜資訊 & 田間紀錄</text>
+        <rect x="280" y="160" width="240" height="50" rx="5" class="decision" />
+        <text x="400" y="185">選擇交易類型</text>
+        <rect x="150" y="230" width="200" height="50" rx="5" />
+        <text x="250" y="255">預約交易流程</text>
+        <rect x="450" y="230" width="200" height="50" rx="5" />
+        <text x="550" y="255">即時拍賣流程</text>
+        <rect x="300" y="300" width="200" height="50" rx="5" />
+        <text x="400" y="325">農民評分更新</text>
+        <!-- 箭頭 -->
+        <path d="M400 70 L400 90" class="arrow" style="animation-delay: 0.2s;" />
+        <path d="M400 140 L400 160" class="arrow" style="animation-delay: 0.4s;" />
+        <path d="M400 210 L250 230" class="arrow" style="animation-delay: 0.6s;" />
+        <path d="M400 210 L550 230" class="arrow" style="animation-delay: 0.6s;" />
+        <path d="M250 280 L400 300" stroke-dasharray="5" class="arrow" style="animation-delay: 0.8s;" />
+        <path d="M550 280 L400 300" stroke-dasharray="5" class="arrow" style="animation-delay: 0.8s;" />
+      </svg>
+    </div>
+  </div>
+
+  <!-- 預約交易流程 -->
+  <div class="section">
+    <h2>預約交易流程</h2>
+    <div class="flowchart-container">
+      <svg viewBox="0 0 450 450" preserveAspectRatio="xMidYMid meet">
+        <rect x="125" y="20" width="200" height="50" rx="5" />
+        <text x="225" y="45">消費者瀏覽列表 & 預約下單</text>
+        <rect x="125" y="90" width="200" height="50" rx="5" />
+        <text x="225" y="115">平台提示包裝/加工/物流服務需求</text>
+        <rect x="125" y="160" width="200" height="50" rx="5" />
+        <text x="225" y="185">消費者選擇服務 & 確認預約</text>
+        <rect x="125" y="230" width="200" height="50" rx="5" />
+        <text x="225" y="255">付款完成</text>
+        <rect x="125" y="300" width="200" height="50" rx="5" />
+        <text x="225" y="325">農民備貨、包裝、加工及物流安排</text>
+        <rect x="125" y="370" width="200" height="50" rx="5" />
+        <text x="225" y="395">交貨 & 消費者接收</text>
+        <!-- 箭頭 -->
+        <path d="M225 70 L225 90" class="arrow" style="animation-delay: 0.2s;" />
+        <path d="M225 140 L225 160" class="arrow" style="animation-delay: 0.4s;" />
+        <path d="M225 210 L225 230" class="arrow" style="animation-delay: 0.6s;" />
+        <path d="M225 280 L225 300" class="arrow" style="animation-delay: 0.8s;" />
+        <path d="M225 350 L225 370" class="arrow" style="animation-delay: 1s;" />
+      </svg>
+    </div>
+  </div>
+
+  <!-- 即時拍賣流程 -->
+  <div class="section">
+    <h2>即時拍賣流程</h2>
+    <div class="flowchart-container">
+      <svg viewBox="0 0 450 550" preserveAspectRatio="xMidYMid meet">
+        <rect x="125" y="20" width="200" height="50" rx="5" />
+        <text x="225" y="45">拍賣前準備：採收訊息提前2-3天上架</text>
+        <rect x="125" y="90" width="200" height="50" rx="5" />
+        <text x="225" y="115">拍賣開始 (如12hr內)</text>
+        <rect x="125" y="160" width="200" height="50" rx="5" />
+        <text x="225" y="185">消費者透過「＋加幾」按鈕出價競標</text>
+        <rect x="125" y="230" width="200" height="50" rx="5" />
+        <text x="225" y="255">拍賣結束 & 系統自動確認得標者</text>
+        <rect x="125" y="300" width="200" height="50" rx="5" />
+        <text x="225" y="325">得標者付款</text>
+        <rect x="125" y="370" width="200" height="50" rx="5" />
+        <text x="225" y="395">農民安排出貨 (物流同步)</text>
+        <rect x="125" y="440" width="200" height="50" rx="5" />
+        <text x="225" y="465">交貨 & 消費者接收</text>
+        <!-- 箭頭 -->
+        <path d="M225 70 L225 90" class="arrow" style="animation-delay: 0.2s;" />
+        <path d="M225 140 L225 160" class="arrow" style="animation-delay: 0.4s;" />
+        <path d="M225 210 L225 230" class="arrow" style="animation-delay: 0.6s;" />
+        <path d="M225 280 L225 300" class="arrow" style="animation-delay: 0.8s;" />
+        <path d="M225 350 L225 370" class="arrow" style="animation-delay: 1s;" />
+        <path d="M225 420 L225 440" class="arrow" style="animation-delay: 1.2s;" />
+      </svg>
+    </div>
+  </div>
+
+  <!-- 完成後流程 -->
+  <div class="section">
+    <h2>完成後流程</h2>
+    <div class="flowchart-container">
+      <svg viewBox="0 0 450 250" preserveAspectRatio="xMidYMid meet">
+        <rect x="125" y="20" width="200" height="50" rx="5" />
+        <text x="225" y="45">交易完成</text>
+        <rect x="125" y="90" width="200" height="50" rx="5" />
+        <text x="225" y="115">農民與消費者互評</text>
+        <!-- 箭頭 -->
+        <path d="M225 70 L225 90" class="arrow" style="animation-delay: 0.2s;" />
+        <path d="M100 20 L125 40" stroke-dasharray="5" class="arrow" style="animation-delay: 0.4s;" />
+        <path d="M350 20 L325 40" stroke-dasharray="5" class="arrow" style="animation-delay: 0.4s;" />
+      </svg>
+    </div>
+  </div>
+
+  <!-- 架構圖 -->
+  <div class="section">
+    <h2>系統架構圖</h2>
+    <div class="structure-container">
+      <svg viewBox="0 0 800 350" preserveAspectRatio="xMidYMid meet">
+        <rect x="50" y="120" width="200" height="80" rx="5" />
+        <text x="150" y="150">農民</text>
+        <text x="150" y="170">個人IP帳號：田間紀錄/評分</text>
+        <rect x="550" y="120" width="200" height="80" rx="5" />
+        <text x="650" y="150">消費者</text>
+        <rect x="300" y="80" width="200" height="120" rx="5" class="decision" />
+        <text x="400" y="140">交易平台</text>
+        <!-- 雙向箭頭 -->
+        <path d="M250 160 H300" class="arrow" style="animation-delay: 0.2s;" />
+        <path d="M500 160 H550" class="arrow" style="animation-delay: 0.2s;" />
+        <path d="M300 160 H250" class="arrow" style="animation-delay: 0.4s;" />
+        <path d="M550 160 H500" class="arrow" style="animation-delay: 0.4s;" />
+        <!-- 標籤 -->
+        <text x="275" y="145">上架/出貨/田間資訊</text>
+        <text x="525" y="145">瀏覽/下單/評分</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>
