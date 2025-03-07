@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>插秧排程</title>
+  <!-- Tailwind CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
+  <!-- Hammer.js 用於觸控滑動 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+  <style>
+    /* === 側邊欄（統一樣式）=== */
+    .sidebar {
+      width: 250px;
+      height: 100vh;
+      background-color: #34D399;
+      color: white;
+      position: fixed;
+      left: 0;
+      top: 0;
+      transition: transform 0.3s ease-in-out;
+      z-index: 50;
+    }
+    .sidebar a {
+      display: block;
+      padding: 1rem 1.25rem;
+      color: white;
+      text-decoration: none;
+      font-size: 1rem;
+      transition: background-color 0.3s;
+    }
+    .sidebar a:hover {
+      background-color: #059669;
+    }
+    .sidebar .active {
+      background-color: #059669;
+    }
+    /* === 側邊欄遮罩 === */
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 40;
+      display: none;
+    }
+    .sidebar-overlay.show {
+      display: block;
+    }
+    /* === 手機版設定 === */
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+    }
+    
+    /* ==========================================================================
+       CSS RESET - 清除所有瀏覽器預設樣式
+       ========================================================================== */
+    select,
+    input[type="date"] {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 4px;
+      font-family: inherit;
+    }
+    html, body, div, span, applet, object, iframe,
+    h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+    a, abbr, acronym, address, big, cite, code,
+    del, dfn, em, img, ins, kbd, q, s, samp,
+    small, strike, strong, sub, sup, tt, var,
+    b, u, i, center,
+    dl, dt, dd, ol, ul, li,
+    fieldset, form, label, legend,
+    table, caption, tbody, tfoot, thead, tr, th, td,
+    article, aside, canvas, details, embed, 
+    figure, figcaption, footer, header, hgroup, 
+    menu, nav, output, ruby, section, summary,
+    time, mark, audio, video {
+      margin: 0;
+      padding: 0;
+      border: 0;
+      font-size: 100%;
+      font: inherit;
+      vertical-align: baseline;
+    }
+    article, aside, details, figcaption, figure, 
+    footer, header, hgroup, menu, nav, section {
+      display: block;
+    }
+    body {
+      line-height: 1;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+    ol, ul {
+      list-style: none;
+    }
+    blockquote, q {
+      quotes: none;
+    }
+    blockquote:before, blockquote:after,
+    q:before, q:after {
+      content: '';
+      content: none;
+    }
+    table {
+      border-collapse: collapse;
+      border-spacing: 0;
+    }
+    
+    /* === 其他基本樣式及頁面排版 === */
+    button {
+      height: 40px;
+    }
+    .calendar-day {
+      min-height: 120px;
+      transition: all 0.3s;
+      padding: 0.5rem;
+    }
+    .calendar-day:hover {
+      background-color: #f0f9ff;
+    }
+    .schedule-item {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      margin: 0.125rem 0;
+      border-radius: 0.25rem;
+      background-color: #93c5fd;
+      color: #1e40af;
+    }
+    .over-limit {
+      background-color: #fca5a5;
+      color: #991b1b;
+      font-weight: bold;
+    }
+    .calendar-container {
+      flex-grow: 1;
+      padding: 1.25rem;
+      background-color: #f9fafb;
+      min-height: 100vh;
+      margin-left: 250px;
+      transition: margin-left 0.3s ease-in-out;
+      width: calc(100% - 250px);
+    }
+    .desktop-calendar {
+      background-color: #ffffff;
+      border-radius: 0.5rem;
+      box-shadow: 0 0.625rem 1.25rem rgba(0,0,0,0.1);
+      overflow: hidden;
+      margin-bottom: 1.25rem;
+    }
+    .daily-limit-desktop {
+      margin-bottom: 1.5rem;
+    }
+    @media (max-width: 768px) {
+      .calendar-container {
+        margin-left: 0;
+        width: 100%;
+      }
+      .desktop-calendar {
+        display: none;
+      }
+      .mobile-date-picker {
+        display: block;
+        margin-bottom: 1.5rem;
+      }
+      #monthTitle {
+        display: none;
+      }
+    }
+    @media (min-width: 769px) {
+      #mobileCardContainer {
+        display: none;
+      }
+    }
+    /* === 輸入組 === */
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 1rem;
+    }
+    .input-group label {
+      font-weight: bold;
+      margin-bottom: 0.25rem;
+      font-size: 1rem;
+    }
+    .input-group input,
+    .input-group select,
+    .input-group textarea {
+      padding: 0.75rem;
+      border: 1px solid #ccc;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      transition: 0.3s;
+    }
+    /* === 手機大卡片 (Swipe) === */
+    #mobileCardContainer {
+      display: block;
+      position: relative;
+      min-height: 400px;
+      overflow-y: visible;
+    }
+    #mobileCard {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: linear-gradient(135deg, #93c5fd, #c7d2fe);
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+      padding: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow-y: auto;
+      transition: transform 0.7s ease-in-out;
+    }
+    #mobileCard:hover {
+      transform: scale(1.02);
+    }
+    @media (min-width: 769px) {
+      #mobileCardContainer {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <!-- 側邊欄與主要內容 -->
+  <div class="flex">
+    <!-- 手機側邊欄 Toggle 按鈕 -->
+    <button onclick="toggleSidebar()" class="sidebar-toggle fixed top-4 left-4 bg-green-500 text-white p-2 rounded lg:hidden z-1000">☰</button>
+    <!-- 側邊欄 -->
+    <div class="sidebar" id="sidebar">
+      <div class="text-center py-6 font-bold text-2xl">秧苗場管理</div>
+      <a href="calender.html" class="active">插秧排程</a>
+      <a href="workerManage.html">插秧工人管理</a>
+      <a href="TransplantingList.html">插秧單</a>
+      <a href="Shipment.html">出貨單</a>
+      <a href="harvest.html">割稻管理</a>
+      <a href="customer.html">客戶管理</a>
+      <a href="profile.html">秧苗場個人檔案設定</a>
+      <a href="#">登出</a>
+    </div>
+    <!-- 手機側邊欄 Toggle 按鈕 (重複) -->
+    <button onclick="toggleSidebar()" class="sidebar-toggle w-12 fixed top-4 left-4 bg-green-500 text-white p-2 rounded lg:hidden z-50">☰</button>
+    <!-- 側邊欄遮罩 -->
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <!-- 主要內容容器 -->
+    <div class="calendar-container">
+      <!-- 桌機版：月份選擇與每日上限輸入 -->
+      <div class="flex justify-between items-center mb-6">
+        <div class="flex items-center space-x-4">
+          <button onclick="changeMonth(-1)" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 hidden lg:block">◀ 上個月</button>
+          <h2 id="monthTitle" class="text-2xl font-bold">2025年 2月</h2>
+          <button onclick="changeMonth(1)" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 hidden lg:block">下個月 ▶</button>
+        </div>
+        <div class="flex space-x-4">
+          <button onclick="showAddSchedule()" class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600" id="addSchedule">新增排程</button>
+        </div>
+      </div>
+      <!-- 每日上限輸入 (桌機版) -->
+      <div class="daily-limit-desktop mb-6 hidden lg:block">
+        <label for="dailyLimit" class="block text-sm font-medium mb-1">每日排程上限 (甲):</label>
+        <input type="number" id="dailyLimit" class="w-full p-2 border rounded" value="10" onchange="updateDailyLimit()" />
+      </div>
+      <!-- 桌機版日曆 -->
+      <div class="bg-white rounded-lg shadow overflow-hidden desktop-calendar">
+        <div class="grid grid-cols-7 bg-gray-100">
+          <div class="py-2 text-center font-bold text-red-600">日</div>
+          <div class="py-2 text-center font-bold">一</div>
+          <div class="py-2 text-center font-bold">二</div>
+          <div class="py-2 text-center font-bold">三</div>
+          <div class="py-2 text-center font-bold">四</div>
+          <div class="py-2 text-center font-bold">五</div>
+          <div class="py-2 text-center font-bold text-red-600">六</div>
+        </div>
+        <div id="calendar" class="grid grid-cols-7 border-t">
+          <!-- 日期格子由 JS 產生 -->
+        </div>
+      </div>
+      <!-- 手機版：日期選擇與每日上限輸入 -->
+      <div class="mobile-date-picker mb-6 lg:hidden">
+        <label for="mobileDate" class="block text-sm font-medium mb-1">選擇日期:</label>
+        <input type="date" id="mobileDate" class="w-full p-2 border rounded" onchange="onMobileDateChange()" />
+      </div>
+      <div class="mb-4 lg:hidden">
+        <label for="mobileDailyLimit" class="block text-sm font-medium mb-1">每日排程上限 (甲):</label>
+        <input type="number" id="mobileDailyLimit" class="w-full p-2 border rounded" value="10" onchange="updateDailyLimitMobile()" />
+      </div>
+      <!-- 手機版大卡片 -->
+      <div id="mobileCardContainer" class="lg:hidden mt-6">
+        <!-- 手機行程卡片由 JS 動態建立 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增排程 Modal -->
+  <div id="addScheduleModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+    <div class="bg-white p-6 rounded-lg w-96">
+      <h3 class="text-xl font-bold mb-4">新增插秧排程</h3>
+      <form class="space-y-4">
+        <div class="input-group">
+          <label for="scheduleDate">日期</label>
+          <input type="date" id="scheduleDate" class="w-full p-2 border rounded">
+        </div>
+        <div class="input-group">
+          <label for="farmer_name">農民名稱</label>
+          <select id="farmer_name" class="w-full p-2 border rounded">
+            <option value="">請選擇農民</option>
+            <option value="李農">李農</option>
+            <option value="陳農">陳農</option>
+            <option value="大農">大農</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="farm">選擇地塊</label>
+          <select id="farm" class="w-full p-2 border rounded">
+            <option value="">請選擇田地</option>
+            <option value="地點A">地點A</option>
+            <option value="地點B">地點B</option>
+            <option value="未知">未知（需手動輸入）</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="notes">備註 (選填)</label>
+          <textarea id="notes" class="w-full p-2 border rounded"></textarea>
+        </div>
+        <div class="flex space-x-4">
+          <button type="button" onclick="hideAddSchedule()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 w-1/2">取消</button>
+          <button type="button" onclick="addSchedule()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-1/2">確定</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 每日排程 Modal -->
+  <div id="dailyScheduleModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+    <div class="bg-white p-6 rounded-lg w-96">
+      <h3 id="dailyScheduleTitle" class="text-xl font-bold mb-4"></h3>
+      <div id="dailyScheduleContent" class="space-y-2"></div>
+      <div class="flex space-x-2 mt-4">
+        <button onclick="hideDailySchedule()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 flex-1">關閉</button>
+        <button onclick="printDailySchedule()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 flex-1">列印</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 側邊欄 Toggle 函式
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('show');
+      const toggleButtons = document.querySelectorAll('.sidebar-toggle');
+      if (sidebar.classList.contains('open')) {
+        toggleButtons.forEach(btn => { btn.style.display = 'none'; });
+      } else {
+        toggleButtons.forEach(btn => { btn.style.display = 'block'; });
+      }
+    }
+  </script>
+  <!-- calender.js -->
+  <script >
+
+        /********************
+     * 全域變數與查詢表 (模擬後台資料)
+     ********************/
+    // 模擬農民與田地的對應面積（單位：甲）
+    const areaLookup = {
+        "李農": { "地點A": 5, "地點B": 6, "未知": 4 },
+        "陳農": { "地點A": 7, "地點B": 8, "未知": 6 },
+        "大農": { "地點A": 9, "地點B": 10, "未知": 8 }
+      };
+    
+    function formatDate(date) {
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    /********************
+     * 桌機日曆功能 (Desktop)
+     ********************/
+    let currentMonth = new Date(2025, 0); // 從 2025 年 1 月開始
+    const monthNames = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"];
+    let dailyLimit = 10; // 每日排程上限 (甲)
+
+    // 假資料：包含日期、農民名稱、田地、面積 與 備註
+    const schedules = [
+      { date: '2025-02-05', farmer: '李農', farm: '地點A', area: areaLookup["李農"]["地點A"], notes: '備註1' },
+      { date: '2025-02-05', farmer: '李農', farm: '地點B', area: areaLookup["李農"]["地點B"], notes: '備註1' },
+      { date: '2025-02-05', farmer: '李農', farm: '未知', area: areaLookup["李農"]["未知"], notes: '備註1' },
+      { date: '2025-02-10', farmer: '陳農', farm: '地點A', area: areaLookup["陳農"]["地點A"], notes: '備註2' },
+      { date: '2025-02-10', farmer: '陳農', farm: '地點B', area: areaLookup["陳農"]["地點B"], notes: '備註2' },
+      { date: '2025-02-15', farmer: '大農', farm: '地點A', area: areaLookup["大農"]["地點A"], notes: '備註3' },
+      { date: '2025-02-20', farmer: '大農', farm: '地點B', area: areaLookup["大農"]["地點B"], notes: '備註4' }
+    ];
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('show');
+      const toggleButtons = document.querySelectorAll('.sidebar-toggle');
+      if (sidebar.classList.contains('open')) {
+        toggleButtons.forEach(btn => { btn.style.display = 'none'; });
+      } else {
+        toggleButtons.forEach(btn => { btn.style.display = 'block'; });
+      }
+    }
+
+    function changeMonth(offset) {
+      currentMonth.setMonth(currentMonth.getMonth() + offset);
+      renderCalendar();
+    }
+
+    function renderCalendar() {
+      const calendar = document.getElementById('calendar');
+      const monthTitle = document.getElementById('monthTitle');
+      const year = currentMonth.getFullYear();
+      const month = currentMonth.getMonth();
+      monthTitle.textContent = `${year}年 ${monthNames[month]}`;
+
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const daysInMonth = lastDay.getDate();
+      const firstDayOfWeek = firstDay.getDay();
+      calendar.innerHTML = '';
+
+      // 補齊前面空格
+      for (let i = 0; i < firstDayOfWeek; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.classList.add('calendar-day', 'border-b', 'border-r', 'p-2', 'bg-gray-50');
+        calendar.appendChild(emptyCell);
+      }
+
+      // 填充日期
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dayCell = document.createElement('div');
+        dayCell.classList.add('calendar-day', 'border-b', 'border-r', 'p-2');
+        dayCell.innerHTML = `<div class="text-center font-medium">${day}</div>`;
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const scheduledItems = schedules.filter(schedule => schedule.date === dateStr);
+        let totalArea = 0;
+        const maxVisible = 4;
+        scheduledItems.forEach((schedule, index) => {
+          if (index < maxVisible) {
+            const scheduleDiv = document.createElement('div');
+            scheduleDiv.classList.add('schedule-item');
+            scheduleDiv.textContent = `${schedule.farmer} (${schedule.area}甲) - ${schedule.notes}`;
+            dayCell.appendChild(scheduleDiv);
+          }
+          totalArea += schedule.area;
+        });
+        if (totalArea >= dailyLimit) {
+          const warningDiv = document.createElement('div');
+          warningDiv.classList.add('schedule-item', 'over-limit');
+          warningDiv.textContent = `當日排程已達上限 (最多 ${dailyLimit} 甲)`;
+          dayCell.appendChild(warningDiv);
+        }
+        dayCell.addEventListener('click', () => showDailySchedule(dateStr));
+        calendar.appendChild(dayCell);
+      }
+    }
+
+    function showDailySchedule(dateStr) {
+      const scheduledItems = schedules.filter(schedule => schedule.date === dateStr);
+      const dailyScheduleTitle = document.getElementById('dailyScheduleTitle');
+      const dailyScheduleContent = document.getElementById('dailyScheduleContent');
+      dailyScheduleTitle.textContent = `日期: ${dateStr}`;
+      dailyScheduleContent.innerHTML = '';
+      if (scheduledItems.length === 0) {
+        dailyScheduleContent.innerHTML = '<p>當日無排程</p>';
+      } else {
+        scheduledItems.forEach(schedule => {
+          const scheduleDiv = document.createElement('div');
+          scheduleDiv.classList.add('schedule-item');
+          scheduleDiv.textContent = `${schedule.farmer} (${schedule.area}甲) - ${schedule.notes}`;
+          dailyScheduleContent.appendChild(scheduleDiv);
+        });
+      }
+      document.getElementById('dailyScheduleModal').classList.remove('hidden');
+    }
+
+    function hideDailySchedule() {
+      document.getElementById('dailyScheduleModal').classList.add('hidden');
+    }
+
+    function showAddSchedule() {
+      document.getElementById('addScheduleModal').classList.remove('hidden');
+    }
+
+    function hideAddSchedule() {
+      document.getElementById('addScheduleModal').classList.add('hidden');
+    }
+
+    // 新增排程：只驗證日期與農民名稱與田地，面積由 areaLookup 決定
+    function addSchedule() {
+      const date = document.getElementById('scheduleDate').value;
+      const farmer = document.getElementById('farmer_name').value;
+      const farm = document.getElementById('farm').value;
+      const notes = document.getElementById('notes').value;
+      
+      if (!date || !farmer || !farm) {
+        alert('請填寫日期、農民名稱與選擇地塊（備註為選填）');
+        return;
+      }
+      
+      // 由 lookup 取得面積
+      const area = areaLookup[farmer] && areaLookup[farmer][farm] ? areaLookup[farmer][farm] : 0;
+      
+      const daySchedules = schedules.filter(schedule => schedule.date === date);
+      const totalArea = daySchedules.reduce((total, schedule) => total + schedule.area, 0);
+      if (totalArea + area > dailyLimit) {
+        alert(`當日排程已達上限，每天最多只能排 ${dailyLimit} 甲`);
+        return;
+      }
+      
+      schedules.push({ date, farmer, farm, area, notes });
+      renderCalendar();
+      hideAddSchedule();
+    }
+
+    function updateDailyLimit() {
+      dailyLimit = parseFloat(document.getElementById('dailyLimit').value);
+      renderCalendar();
+      document.getElementById('mobileDailyLimit').value = dailyLimit;
+      renderMobileCard(mobileCurrentDate);
+    }
+
+    function updateDailyLimitMobile() {
+      dailyLimit = parseFloat(document.getElementById('mobileDailyLimit').value);
+      renderCalendar();
+      renderMobileCard(mobileCurrentDate);
+    }
+
+    /********************
+     * 手機大卡片功能 (明顯滑動效果)
+     ********************/
+    let mobileCurrentDate = new Date();
+    let isSliding = false;
+
+    function createMobileCardElement(date) {
+      const dateStr = formatDate(date);
+      const card = document.createElement('div');
+      card.id = 'mobileCard';
+      card.className = "min-h-[300px] bg-gradient-to-r from-blue-200 to-blue-400 rounded-2xl p-6 flex flex-col justify-center items-center";
+      card.style.position = "absolute";
+      card.style.top = "0";
+      card.style.left = "0";
+      card.style.width = "100%";
+      card.style.transition = "transform 0.7s ease-in-out";
+      let html = `<h2 class="text-3xl font-bold mb-4">${dateStr}</h2>`;
+      const daySchedules = schedules.filter(s => s.date === dateStr);
+      let totalArea = 0;
+      if (daySchedules.length === 0) {
+        html += `<p class="text-xl text-gray-700">當日無排程</p>`;
+      } else {
+        daySchedules.forEach(s => {
+          html += `<div class="bg-white rounded-lg p-4 mb-4 w-full shadow">
+                    <p class="text-2xl font-semibold">${s.farmer}</p>
+                    <p class="mt-2 text-lg">面積：${s.area} 甲</p>
+                    <p class="mt-2 text-lg">備註：${s.notes}</p>
+                  </div>`;
+          totalArea += s.area;
+        });
+      }
+      if (totalArea >= dailyLimit) {
+        html += `<div class="bg-red-100 text-red-700 rounded p-2 mt-2">當日排程已達上限 (最多 ${dailyLimit} 甲)</div>`;
+      }
+      card.innerHTML = html;
+      return card;
+    }
+
+    function renderMobileCard(date) {
+      const container = document.getElementById('mobileCardContainer');
+      container.innerHTML = "";
+      const card = createMobileCardElement(date);
+      card.style.transform = "translateX(0)";
+      container.appendChild(card);
+      document.getElementById('mobileDate').value = formatDate(date);
+    }
+
+    function slideMobileCard(direction) {
+      if (isSliding) return;
+      isSliding = true;
+      
+      const container = document.getElementById('mobileCardContainer');
+      const currentCard = document.getElementById('mobileCard');
+      const newDate = new Date(mobileCurrentDate);
+      if (direction === 'left') {
+        newDate.setDate(newDate.getDate() + 1);
+      } else if (direction === 'right') {
+        newDate.setDate(newDate.getDate() - 1);
+      }
+      const newCard = createMobileCardElement(newDate);
+      newCard.style.transform = (direction === 'left') ? "translateX(150%)" : "translateX(-150%)";
+      container.appendChild(newCard);
+      newCard.offsetWidth;
+      currentCard.style.transform = (direction === 'left') ? "translateX(-150%)" : "translateX(150%)";
+      newCard.style.transform = "translateX(0)";
+      
+      newCard.addEventListener('transitionend', function handler(e) {
+        if (e.propertyName !== "transform") return;
+        newCard.removeEventListener('transitionend', handler);
+        container.removeChild(currentCard);
+        mobileCurrentDate = newDate;
+        isSliding = false;
+      });
+    }
+
+    function onMobileDateChange() {
+      const newDate = new Date(document.getElementById('mobileDate').value);
+      if (!isNaN(newDate)) {
+        mobileCurrentDate = newDate;
+        renderMobileCard(mobileCurrentDate);
+      }
+    }
+
+    renderMobileCard(mobileCurrentDate);
+
+    document.addEventListener('keydown', function(e) {
+      if (window.innerWidth < 768) {
+        if (e.key === 'ArrowRight') {
+          slideMobileCard('left');
+        } else if (e.key === 'ArrowLeft') {
+          slideMobileCard('right');
+        }
+      }
+    });
+
+    const mobileCardElem = document.getElementById('mobileCardContainer');
+    const hammerMobile = new Hammer(mobileCardElem);
+    hammerMobile.on('swipeleft', function() {
+      slideMobileCard('left');
+    });
+    hammerMobile.on('swiperight', function() {
+      slideMobileCard('right');
+    });
+
+    /********************
+     * 列印功能
+     ********************/
+    function printDailySchedule() {
+      const titleText = document.getElementById("dailyScheduleTitle").textContent;
+      const printDate = titleText.split(":")[1].trim();
+      const daySchedules = schedules.filter(schedule => schedule.date === printDate);
+      if (daySchedules.length === 0) {
+        alert("當日沒有行程，無法列印！");
+        return;
+      }
+      let totalArea = 0;
+      let tableRows = "";
+      daySchedules.forEach(schedule => {
+        totalArea += schedule.area;
+        tableRows += 
+          `<tr>
+            <td style="border: 1px solid #ccc; padding: 10px;">${printDate}</td>
+            <td style="border: 1px solid #ccc; padding: 10px;">${schedule.farmer}</td>
+            <td style="border: 1px solid #ccc; padding: 10px; text-align: center;">${schedule.area} 甲</td>
+            <td style="border: 1px solid #ccc; padding: 10px;">${schedule.notes}</td>
+          </tr>`;
+      });
+      tableRows += `<tr>
+            <td colspan="2" style="border: 1px solid #ccc; padding: 10px; text-align: right;"><strong>總面積:</strong></td>
+            <td style="border: 1px solid #ccc; padding: 10px; text-align: center;"><strong>${totalArea} 甲</strong></td>
+            <td style="border: 1px solid #ccc; padding: 10px;"></td>
+          </tr>`;
+      if(totalArea > dailyLimit){
+        tableRows += `<tr>
+          <td colspan="4" style="border: 1px solid #ccc; padding: 10px; text-align: center; color: red;"><strong>警告：當日排程已超過上限 (${dailyLimit} 甲)！</strong></td>
+        </tr>`;
+      }
+      const originalBody = document.body.innerHTML;
+      document.body.innerHTML = 
+        `<div style="text-align: center; padding: 20px;">
+          <h1 style="font-size: 22px; margin-bottom: 20px;">${printDate} - 插秧行程表</h1>
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr>
+                <th style="background: #34D399; color: white; padding: 10px; border: 1px solid #ccc;">日期</th>
+                <th style="background: #34D399; color: white; padding: 10px; border: 1px solid #ccc;">農民姓名</th>
+                <th style="background: #34D399; color: white; padding: 10px; border: 1px solid #ccc;">面積（甲）</th>
+                <th style="background: #34D399; color: white; padding: 10px; border: 1px solid #ccc;">備註</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+        </div>`;
+      window.print();
+      location.reload();
+    }
+
+    renderCalendar();
+  </script>
+</body>
+</html>
