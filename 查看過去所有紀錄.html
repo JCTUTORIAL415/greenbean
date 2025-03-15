@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>查看過去所有紀錄</title>
+    <link rel="stylesheet" href="record.css">
+    <link rel="stylesheet" href="chrisplugin.css">
+    <script src="chrisplugin.js"></script>
+    <script src="html5-qrcode.min.js"></script>
+    <meta name="apple-mobile-web-app-title" content="蓋亞雲藥通">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon" sizes="57x57" href="https://dronecropcloud.gaiyas.com/material/image/icon-57.jpeg">
+    <link rel="apple-touch-icon" sizes="72x72" href="https://dronecropcloud.gaiyas.com/material/image/icon-72.jpeg">
+    <link rel="apple-touch-icon" sizes="114x114" href="https://dronecropcloud.gaiyas.com/material/image/icon-114.jpeg">
+    <link rel="apple-touch-icon" sizes="120x120" href="https://dronecropcloud.gaiyas.com/material/image/icon-120.jpeg">
+    <link rel="apple-touch-icon" sizes="144x144" href="https://dronecropcloud.gaiyas.com/material/image/icon-144.jpeg">
+    <link rel="apple-touch-icon" sizes="152x152" href="https://dronecropcloud.gaiyas.com/material/image/icon-152.jpeg">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://dronecropcloud.gaiyas.com/material/image/icon-180.jpeg">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://dronecropcloud.gaiyas.com/material/image/icon-360.jpeg">
+    <link rel="manifest" href="https://dronecropcloud.gaiyas.com/frontend/manifest.json">
+    <meta name="theme-color" content="#ffffff">
+
+    <style>
+        html {
+            max-width: 100%;
+            max-height: 100dvh;
+            padding: 0;
+            margin: 0;
+            overflow: none;
+        }
+
+        body {
+            background-color: #004D8F;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 100%;
+            max-height: 100dvh;
+            padding: 0;
+            margin: 0;
+            overflow: none;
+        }
+
+        .navigationbar {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            height: 40px;
+            z-index: 700;
+        }
+
+        .button {
+            background-color: #ffffff;
+            color: rgb(0, 0, 0);
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 95%;
+            height: 37px;
+            font-weight: 800;
+            font-size: 15px;
+        }
+
+        .button:hover {
+            background-color: #b4b4b4;
+        }
+
+        .select_bar {
+            width: 90%;
+            display: flex;
+            position: fixed;
+            top: 80px;
+            height: 50px;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
+        }
+
+        .inputdiv {
+            position: relative;
+            width: 28%;
+            margin-right: 2%;
+        }
+
+        .inputdiv:last-of-type {
+            margin-right: 0;
+        }
+
+        .label {
+            font-size: 12px;
+            position: absolute;
+            top: -15px;
+            left: 5px;
+            color: white;
+        }
+
+        select {
+            background-color: #ffffff;
+            color: rgb(0, 0, 0);
+            border: none;
+            border-radius: 5px;
+            padding: 5px;
+            font-size: 12px;
+            cursor: pointer;
+            width: 100%;
+            height: 35px;
+        }
+
+        .button#upload {
+            background-color: #ffffff;
+            color: rgb(0, 0, 0);
+            border: none;
+            border-radius: 5px;
+            padding: 8px 15px;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            height: 35px;
+            min-width: 80px;
+            text-align: center;
+            margin-left: 3%;
+            align-self: center;
+        }
+
+        .button#upload:hover {
+            background-color: #b4b4b4;
+        }
+
+        .record {
+            position: relative;
+            top: 150px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.958);
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 90%;
+            color: black;
+            font-size: 20px;
+            height: calc(100dvh - 200px);
+            overflow-y: auto;
+            z-index: 700;
+        }
+
+        .recorddiv {
+            background-color: rgba(255, 255, 255, 0.958);
+            border: 1px solid #ccc;
+            width: calc(100% - 10px);
+            height: auto;
+            padding: 5px;
+            margin: 10px 0px;
+        }
+
+        .fill {
+            width: 100%;
+        }
+
+        .margin-0px_10px {
+            margin: 0px 10px;
+        }
+
+        .detailitem {
+            cursor: pointer;
+        }
+
+        .cursor-pointer {
+            cursor: pointer;
+        }
+
+        .upload {
+            background: lightgreen;
+        }
+
+        .notupload {
+            background: lightcoral;
+        }
+        @media (max-width: 600px) {
+    .select_bar {
+        width: 95%;
+        padding: 0 5px;
+        height: 50px;
+    }
+
+    .inputdiv {
+        width: 31.33%; /* 進一步增加下拉選單寬度，平分剩餘空間 */
+        margin-right: 1%;
+    }
+
+    .label {
+        font-size: 11px;
+        top: -14px;
+    }
+
+    select {
+        font-size: 12px;
+        padding: 6px;
+        height: 38px;
+        border-radius: 4px;
+    }
+
+    .button#upload {
+        font-size: 10px; /* 縮減字體大小 */
+        padding: 6px 2px; /* 極度縮減水平內邊距 */
+        min-width: 15px; /* 最小寬度設為 15px */
+        height: 38px;
+        margin-left: 1%;
+    }
+}
+    </style>
+</head>
+<body>
+    <div class="navigationbar flexcenter">
+        <input type="button" class="button light secondary" id="back" value="返回">
+    </div>
+    <div class="select_bar">
+        <div class="inputdiv fill margin-0px_10px">
+            <div class="label">年份</div>
+            <div class="select">
+                <select class="fill" id="year">
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2026">2026</option>
+                    <option value="2027">2027</option>
+                    <option value="2028">2028</option>
+                    <option value="2029">2029</option>
+                    <option value="2030">2030</option>
+                    <option value="2031">2031</option>
+                    <option value="2032">2032</option>
+                    <option value="2033">2033</option>
+                    <option value="2034">2034</option>
+                    <option value="2035">2035</option>
+                </select>
+            </div>
+        </div>
+        <div class="inputdiv fill margin-0px_10px">
+            <div class="label">月份</div>
+            <div class="select">
+                <select class="fill" id="month">
+                    <option value="">選擇月份</option>
+                    <option value="01">一月</option>
+                    <option value="02">二月</option>
+                    <option value="03">三月</option>
+                    <option value="04">四月</option>
+                    <option value="05">五月</option>
+                    <option value="06">六月</option>
+                    <option value="07">七月</option>
+                    <option value="08">八月</option>
+                    <option value="09">九月</option>
+                    <option value="10">十月</option>
+                    <option value="11">十一月</option>
+                    <option value="12">十二月</option>
+                </select>
+            </div>
+        </div>
+        <div class="inputdiv fill margin-0px_10px">
+            <div class="label">日期</div>
+            <div class="select">
+                <select class="fill" id="date">
+                    <option value="">選擇日期</option>
+                    <option value="01">1</option>
+                    <option value="02">2</option>
+                    <option value="03">3</option>
+                    <option value="04">4</option>
+                    <option value="05">5</option>
+                    <option value="06">6</option>
+                    <option value="07">7</option>
+                    <option value="08">8</option>
+                    <option value="09">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                    <option value="17">17</option>
+                    <option value="18">18</option>
+                    <option value="19">19</option>
+                    <option value="20">20</option>
+                    <option value="21">21</option>
+                    <option value="22">22</option>
+                    <option value="23">23</option>
+                    <option value="24">24</option>
+                    <option value="25">25</option>
+                    <option value="26">26</option>
+                    <option value="27">27</option>
+                    <option value="28">28</option>
+                    <option value="29">29</option>
+                    <option value="30">30</option>
+                    <option value="31">31</option>
+                </select>
+            </div>
+        </div>
+        <input type="button" class="button light secondary" id="upload" value="上傳">
+    </div>
+
+    <div class="record" id="main">
+        <div class="recorddiv upload">
+            <div class="detailitem" data-id="0">點擊查看農藥明細<div class="pesticidedetail" id="pesticidedetail_0"></div></div>
+            <div class="recorditem">使用者暱稱: 許小竣</div>
+            <div class="recorditem">會員姓名: 許徐程</div>
+            <div class="recorditem">施做作物: 水稻</div>
+            <div class="recorditem">無人機註冊號碼: B-IAB13636</div>
+            <div class="recorditem">作業面積: 60分</div>
+            <div class="recorditem">活動座標: 120.45148075, 23.70168526</div>
+            <div class="recorditem">是否使用免登資料: 否</div>
+            <div class="recorditem">開始時間: 2025-03-07 07:58:34</div>
+            <div class="recorditem">結束時間: 2025-03-07 08:03:47</div>
+            <div class="recorditem">施作日期: 2025-03-07</div>
+            <div class="flightpathshow cursor-pointer" data-id="29">飛行軌跡：點擊這裡快速查看路徑</div>
+            <div class="flightpathdownload cursor-pointer" data-id="29">飛行軌跡：點擊這裡下載檔案</div>
+        </div>
+        <!-- 其他 recorddiv 內容略 -->
+    </div>
+
+    <a href="https://dronecropcloud.gaiyas.com/frontend/record.html" download="record.kml" id="download" hidden=""></a>
+    <script src="initialize.js"></script>
+    <script src="record.js"></script>
+</body>
+</html>
