@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>收錢管理</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    /* 其他樣式保持不變... */
+
+    /* 修改收據樣式使其置中 */
+    .receipt-container-a4 {
+      width: 210mm; /* 改為A4完整寬度 */
+      min-height: 277mm;
+      padding: 15mm;
+      font-size: 16px;
+      font-family: 'Courier New', Courier, monospace;
+      background: #fff;
+      margin: 0 auto;
+      text-align: center; /* 新增：內容置中 */
+    }
+
+    .receipt-header-a4 {
+      text-align: center;
+      border-bottom: 2px double #000;
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+    }
+
+    .receipt-details-a4 {
+      margin: 20px auto; /* 新增：置中並增加上下間距 */
+      max-width: 180mm; /* 限制內容寬度 */
+      text-align: center;
+    }
+
+    .receipt-total-a4 {
+      margin: 20px auto;
+      padding-top: 15px;
+      border-top: 2px double #000;
+      text-align: center; /* 改為置中 */
+      max-width: 180mm;
+      font-size: 18px;
+    }
+
+    /* 其他樣式保持不變... */
+  </style>
+</head>
+<body class="bg-gray-50 font-sans">
+  <!-- 其他HTML結構保持不變... -->
+
+  <script>
+    // 在 generateReceiptWithPassword 函數中修改收據HTML結構
+    function generateReceiptWithPassword(tab) {
+      // ...前面的程式碼保持不變...
+
+      let receiptHTML = `
+        <div class="receipt-container-a4" style="position: relative;">
+          <div class="receipt-header-a4">
+            <h1 style="font-size: 24px; margin-bottom: 10px;">麥寮秧苗場 - ${tab === "shipment" ? "出貨單總收據" : "插秧與收割總收據"}</h1>
+            <p>統一編號: ${localStorage.getItem('companyTaxID') || '預設統一編號'}</p>
+            <p>地址: 雲林縣麥寮鄉施厝村施厝七街22號</p>
+            <p>行動電話: 0932057161</p>
+            <p>電話: 05-6911559</p>
+            <p>開立日期: ${currentDateTime}</p>
+            <p>收款人姓名: ${collectorName}</p>
+          </div>
+          
+          <div class="receipt-details-a4">
+            <h2 style="font-size: 18px; margin-bottom: 10px;">客戶: ${customer}</h2>
+            <div class="receipt-divider-a4"></div>
+            
+            <div style="margin: 15px 0; text-align: center;">
+              <h3 style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">項目明細:</h3>
+      `;
+
+      if (tab === "shipment") {
+        // ...出貨單明細保持不變...
+      } else {
+        // 插秧與收割明細調整為置中
+        currentReceiptIndices.forEach(index => {
+          const record = records[index];
+          totalFee += record.fee;
+          if (record.type === "插秧單") {
+            totalArea += record.area;
+            totalGrainsSum += record.totalGrains;
+            singlePurchaseSum += record.singlePurchase;
+            receiptHTML += `
+              <p style="text-align: center; margin: 5px 0;">插秧單 - 日期: ${record.date} | 代插師傅: ${record.transplantWorker || '-'}</p>
+              <p style="text-align: center; margin: 5px 0;">面積: ${record.area} 分 | 單買: ${record.singlePurchase} 顆 | 總插秧粒數: ${record.totalGrains} 顆</p>
+              <p style="text-align: center; margin: 5px 0;">費用: ${record.fee} 元</p>
+              <div class="receipt-divider-a4"></div>
+            `;
+          } else {
+            // ...收割單明細類似調整...
+          }
+        });
+      }
+
+      receiptHTML += `
+            </div>
+            
+            <div class="receipt-total-a4">
+              <p style="font-weight: bold; font-size: 18px;">總計: ${totalFee} 元</p>
+              <p style="font-weight: bold;">金額大寫: ${toChineseNumber(totalFee)}元整</p>
+            </div>
+            
+            <div class="receipt-stamp-a4">
+              <img id="stampImage-a4" src="${localStorage.getItem('stampImage') || ''}" style="margin: 0 auto;">
+            </div>
+          </div>
+        </div>
+      `;
+
+      // ...後面的程式碼保持不變...
+    }
+
+    // 修改 downloadReceipt 函數確保PDF置中
+    async function downloadReceipt() {
+      const { jsPDF } = window.jspdf;
+      const receiptElement = document.getElementById("receiptPrintArea");
+
+      // 創建臨時div確保內容完整置中
+      const tempDiv = document.createElement('div');
+      tempDiv.style.width = '210mm';
+      tempDiv.style.padding = '15mm';
+      tempDiv.style.fontFamily = "'Courier New', Courier, monospace";
+      tempDiv.style.fontSize = '16px';
+      tempDiv.style.textAlign = 'center';
+      tempDiv.style.margin = '0 auto';
+      tempDiv.innerHTML = document.getElementById("receiptContent").innerHTML;
+      document.body.appendChild(tempDiv);
+
+      const canvas = await html2canvas(tempDiv, { 
+        scale: 2,
+        useCORS: true,
+        width: tempDiv.offsetWidth,
+        height: tempDiv.offsetHeight,
+        windowWidth: tempDiv.offsetWidth,
+        windowHeight: tempDiv.offsetHeight
+      });
+      
+      const imgData = canvas.toDataURL("image/png");
+      document.body.removeChild(tempDiv);
+
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4"
+      });
+
+      // 計算置中位置
+      const imgWidth = 180; // 稍微小於A4寬度
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const xPos = (210 - imgWidth) / 2; // 計算置中x位置
+      
+      pdf.addImage(imgData, "PNG", xPos, 15, imgWidth, imgHeight);
+
+      // ...後面的保存收據程式碼保持不變...
+    }
+
+    // 其他函數保持不變...
+  </script>
+</body>
+</html>
