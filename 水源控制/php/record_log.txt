@@ -1,0 +1,169 @@
+2025-03-31 16:45:16 - Received data: Array
+(
+    [field] => 4494
+    [time] => 2025-03-31T14:44:29.387Z
+    [duration] => 46 秒
+    [status] => 已完成
+)
+
+2025-03-31 16:50:10 - db.php 載入完成, PDO 是否存在: 是
+2025-03-31 16:50:10 - Received data: Array
+(
+    [field] => 4494
+    [duration] => NaN 小時
+    [status] => 已完成
+)
+
+2025-03-31 16:52:54 - db.php 載入完成, PDO 是否存在: 是
+2025-03-31 16:52:54 - Received data: Array
+(
+    [field] => 4494
+    [time] => 2025-03-31T14:52:04.480Z
+    [duration] => 1
+    [status] => 已完成
+)
+
+2025-03-31 17:14:35 - db.php 載入完成, PDO 是否存在: 是
+2025-03-31 17:14:35 - Received data: Array
+(
+    [field] => 4494
+    [time] => 2025-03-31T15:14:05.958Z
+    [duration] => 1
+    [status] => 已完成
+)
+
+2025-03-31 17:28:47 - db.php 載入完成, PDO 是否存在: 是
+2025-03-31 17:28:47 - Received data: Array
+(
+    [field] => 4494
+    [time] => 2025-03-31T15:28:33.772Z
+    [duration] => 1
+    [status] => 已完成
+)
+
+2025-03-31 18:21:20 - db.php 載入完成, PDO 是否存在: 是
+2025-03-31 18:21:20 - Received data: Array
+(
+    [field] => 44941
+    [time] => 2025-03-31T16:20:44.198Z
+    [duration] => 1
+    [status] => 已完成
+)
+
+2025-03-31 18:22:53 - db.php 載入完成, PDO 是否存在: 是
+2025-03-31 18:22:53 - Received data: Array
+(
+    [field] => 44941
+    [time] => 2025-03-31T16:22:46.628Z
+    [duration] => 1
+    [status] => 已完成
+)
+
+2025-03-31 18:23:17 - db.php 載入完成, PDO 是否存在: 是
+2025-03-31 18:23:17 - Received data: Array
+(
+    [field] => 44941
+    [time] => 2025-03-31T16:22:59.283Z
+    [duration] => 1
+    [status] => 已完成
+)
+
+2025-03-31 18:31:20 - db.php 載入完成, PDO 是否存在: 是
+2025-03-31 18:31:20 - Received data: Array
+(
+    [field] => 44941
+    [time] => 2025-03-31T16:30:50.003Z
+    [duration] => 29 秒
+    [status] => 已完成
+)
+
+2025-04-07 18:17:18 - db.php 載入完成, PDO 是否存在: 是
+2025-04-07 18:17:18 - Received data: Array
+(
+    [field] => 44941
+    [time] => 2025-04-07T16:17:08.675Z
+    [duration] => 9 秒
+    [status] => 已完成
+)
+
+2025-04-07 18:20:51 - db.php 載入完成, PDO 是否存在: 是
+2025-04-07 18:20:51 - Received data: Array
+(
+    [field] => 44941
+    [time] => 2025-04-07T16:20:30.579Z
+    [duration] => 21 秒
+    [status] => 已完成
+)
+
+2025-04-07 18:23:01 - db.php 載入完成, PDO 是否存在: 是
+2025-04-07 18:23:01 - Received data: Array
+(
+    [field] => 44941
+    [time] => 2025-04-07T16:22:39.421Z
+    [duration] => 22 秒
+    [status] => 已完成
+)
+
+2025-04-07 18:25:01 - db.php 載入完成, PDO 是否存在: 是
+2025-04-07 18:25:01 - Received data: Array
+(
+    [field] => 44941
+    [time] => 2025-04-07T16:24:46.281Z
+    [duration] => 14 秒
+    [status] => 已完成
+)
+
+2025-04-07 18:37:29 - db.php 載入完成, PDO 是否存在: 是
+2025-04-07 18:37:29 - Received data: Array
+(
+    [field] => 44941
+    [time] => 2025-04-08T00:37:17+08:00
+    [duration] => 12 秒
+    [status] => 已完成
+)
+
+2025-04-07 18:39:18 - db.php 載入完成, PDO 是否存在: 是
+2025-04-07 18:39:18 - Received data: Array
+(
+    [field] => 44941
+    [time] => 2025-04-08T00:39:07+08:00
+    [duration] => 11 秒
+    [status] => 已完成
+)
+
+2025-04-07 19:42:33 - db.php 載入完成, PDO 是否存在: 是
+2025-04-07 19:42:33 - Received data: Array
+(
+    [field] => 44941
+    [time] => 2025-04-08T01:42:27+08:00
+    [duration] => 6 秒
+    [status] => 已完成
+)
+
+2025-04-08 14:32:25 - db.php 載入完成, PDO 是否存在: 是
+2025-04-08 14:32:25 - Received data: Array
+(
+    [field] => 44941
+    [time] => 2025-04-08T20:32:10+08:00
+    [duration] => 15 秒
+    [status] => 已完成
+)
+
+2025-04-08 17:02:58 - db.php 載入完成, PDO 是否存在: 是
+2025-04-08 17:02:58 - Received data: Array
+(
+    [field] => 4494187878
+    [time] => 2025-04-08T23:02:41+08:00
+    [duration] => 17 秒
+    [status] => 已完成
+)
+
+2025-04-20 05:22:58 - db.php 載入完成, PDO 是否存在: 是
+2025-04-20 05:22:58 - Received data: Array
+(
+    [field] => 4494187878
+    [time] => 2025-04-20T11:22:56+08:00
+    [duration] => 2 秒
+    [status] => 已完成
+)
+
