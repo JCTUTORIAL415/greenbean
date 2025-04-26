@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDaN5_Va2EReS1HsZMG_gAyLYfzgQMV5Pg"></script>
+  <title>客戶管理</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+    }
+    .sidebar {
+      width: 250px;
+      height: 100vh;
+      background-color: #34d399;
+      color: white;
+      position: fixed;
+      left: 0;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      font-size: 16px;
+      transition: transform 0.3s ease-in-out;
+      z-index: 110;
+    }
+    .sidebar a {
+      padding: 12px 20px;
+      color: white;
+      text-decoration: none;
+      transition: background 0.3s;
+    }
+    .sidebar a:hover,
+    .sidebar .active {
+      background-color: #059669;
+    }
+    .sidebar-header {
+      text-align: center;
+      padding: 20px 0;
+      font-weight: bold;
+      font-size: 24px;
+      color: white;
+      background-color: #34d399;
+    }
+    .content {
+      margin-left: 250px;
+      padding: 20px;
+      width: 100%;
+    }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 20px;
+      color: #2f4f4f;
+      text-align: left;
+    }
+    h2 {
+      font-size: 22px;
+      margin-bottom: 15px;
+      color: #2f4f4f;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th, td {
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      text-align: left;
+      font-size: 14px;
+    }
+    th {
+      background-color: #34d399;
+      color: white;
+      font-weight: bold;
+    }
+    .action-button {
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      text-align: center;
+      width: 80px;
+      height: 36px;
+      box-sizing: border-box;
+    }
+    .action-button.edit {
+      background-color: #fbbf24;
+    }
+    .action-button.delete {
+      background-color: #ef4444;
+    }
+    .action-button.add-field {
+      background-color: #8b5cf6;
+    }
+    .action-button.view-field {
+      background-color: #10b981;
+    }
+    .action-button:hover {
+      opacity: 0.85;
+    }
+    .action-button-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 100;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 600px;
+      position: relative;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-content input,
+    .modal-content select {
+      width: 100%;
+      padding: 1229px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+    }
+    .modal-content button {
+      width: 100%;
+      padding: 12px;
+      background-color: #34d399;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .modal-content button:hover {
+      background-color: #059669;
+    }
+    .modal-content .action-button {
+      width: 80px;
+      height: 36px;
+      font-size: 14px;
+      padding: 8px 12px;
+      box-sizing: border-box;
+    }
+    .close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .search-container {
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .search-container input {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      width: 100%;
+      max-width: 300px;
+    }
+    .search-container button {
+      width: auto;
+      height: 36px;
+      padding: 0 20px;
+    }
+    .location-link {
+      color: #3b82f6;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .location-link:hover {
+      text-decoration: underline;
+    }
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .content {
+        margin-left: 0;
+        padding: 15px;
+      }
+      .sidebar-toggle {
+        display: block;
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        background-color: #34d399;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 4px;
+        z-index: 120;
+        cursor: pointer;
+      }
+      #sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 90;
+      }
+      .action-button-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .action-button {
+        width: 100%;
+        max-width: 150px;
+        height: 40px;
+        font-size: 12px;
+        padding: 8px 12px;
+        box-sizing: border-box;
+      }
+      .modal-content {
+        margin: 15% auto;
+        padding: 15px;
+      }
+      .modal-content input,
+      .modal-content select,
+      .modal-content button {
+        font-size: 13px;
+      }
+      .modal-content .action-button {
+        width: 100%;
+        max-width: 150px;
+        height: 40px;
+        font-size: 12px;
+        padding: 8px 12px;
+        box-sizing: border-box;
+      }
+      .title {
+        margin-left: 40px;
+        font-size: 24px;
+      }
+      .search-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      .search-container input {
+        max-width: 100%;
+        font-size: 13px;
+      }
+      .search-container button {
+        width: 100%;
+        max-width: 150px;
+        font-size: 13px;
+      }
+      th, td {
+        font-size: 13px;
+        padding: 8px 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar-toggle" onclick="toggleSidebar()">☰</div>
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">秧苗場管理</div>
+    <a href="index.html">首頁</a>
+    <a href="seedling.html">秧苗製成與管理</a>
+    <a href="calender.html">插秧排程</a>
+    <a href="Shipment.html">出貨單</a>
+    <a href="TransplantingList.html">插秧單</a>
+    <a href="harvest.html">割稻單</a>
+    <a href="customer.html" class="active">客戶管理</a>
+    <a href="workerManage.html">師傅管理</a>
+    <a href="payment.html">收錢管理</a>
+    <a href="profile.html">秧苗場個人檔案設定</a>
+    <a href="#">登出</a>
+  </div>
+  <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+  
+  <div class="content">
+    <h1 class="title">客戶管理</h1>
+    <div class="search-container">
+      <input type="text" id="searchInput" placeholder="搜尋客戶姓名..." oninput="searchCustomers()">
+      <button class="action-button" onclick="openCustomerModal()">新增客戶</button>
+    </div>
+    <h2>客戶列表</h2>
+    <table id="customerTable">
+      <thead>
+        <tr>
+          <th>姓名</th>
+          <th>電話</th>
+          <th>地點</th>
+          <th>田地數</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div id="customerModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeCustomerModal()">×</span>
+      <h2 id="customerModalTitle">新增客戶</h2>
+      <input type="text" id="customerName" placeholder="客戶姓名" />
+      <input type="text" id="customerPhone" placeholder="電話" />
+      <input type="text" id="customerAddress" placeholder="地點" />
+      <button id="customerModalSubmit" onclick="submitCustomer()">新增客戶</button>
+    </div>
+  </div>
+
+  <div id="fieldModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeFieldModal()">×</span>
+      <h2 id="fieldModalTitle">新增田地</h2>
+      <input type="text" id="fieldName" placeholder="田地名稱 (可空，預設為田地a, 田地b...)" />
+      <input type="number" id="fieldAreaValue" placeholder="面積 分 (可空)" step="0.1" />
+      <input type="text" id="fieldNote" placeholder="備註 (可空)" />
+      <input type="text" id="fieldLocation" placeholder="定位點 (可空，格式如：(24.2256,120.5578))" />
+      <button type="button" onclick="getCurrentLocation('fieldLocation')">取得當前定位點</button>
+      <button id="fieldModalSubmit" onclick="submitField()">新增田地</button>
+    </div>
+  </div>
+
+  <div id="viewFieldsModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeViewFieldsModal()">×</span>
+      <h2 id="viewFieldsModalTitle">田地資料</h2>
+      <div id="fieldsContainer"></div>
+    </div>
+  </div>
+
+  <script>
+    let customers = [];
+    let editingIndex = null;
+    let currentCustomerIndexForField = null;
+    let editingFieldIndex = null;
+
+    // 載入資料
+    function loadCustomers() {
+      const stored = localStorage.getItem("customers");
+      if (stored) {
+        customers = JSON.parse(stored);
+      } else {
+        // 初始化範例資料
+        customers = [
+          {
+            name: "陳永昌",
+            phone: "0918765432",
+            address: "台中市沙鹿區中山路200號",
+            fields: [
+              { fieldName: "田地a", fieldArea: "2.7分", fieldNote: "高產稻田", fieldLocation: "(24.2256,120.5578)" },
+              { fieldName: "田地b", fieldArea: "1.9分", fieldNote: "靠近灌溉渠", fieldLocation: "(24.2301,120.5623)" }
+            ]
+          },
+          {
+            name: "林秀琴",
+            phone: "0981234567",
+            address: "彰化縣福興鄉沿海路一段80號",
+            fields: [
+              { fieldName: "田地a", fieldArea: "3.1分", fieldNote: "有機稻田", fieldLocation: "(24.0305,120.4432)" }
+            ]
+          },
+          {
+            name: "王俊傑",
+            phone: "0926789012",
+            address: "雲林縣北港鎮華勝路30號",
+            fields: [
+              { fieldName: "田地a", fieldArea: "4.2分", fieldNote: "大面積田", fieldLocation: "(23.5753,120.3059)" },
+              { fieldName: "田地b", fieldArea: "2.0分", fieldNote: "試驗田", fieldLocation: "(23.5802,120.3104)" }
+            ]
+          },
+          {
+            name: "張美惠",
+            phone: "0972345678",
+            address: "嘉義縣布袋鎮中正路150號",
+            fields: []
+          },
+          {
+            name: "劉志強",
+            phone: "0937890123",
+            address: "台南市後壁區後壁里10號",
+            fields: [
+              { fieldName: "田地a", fieldArea: "2.5分", fieldNote: "優質稻田", fieldLocation: "(23.3667,120.3602)" }
+            ]
+          }
+        ];
+      }
+      renderCustomerTable();
+    }
+
+    // 儲存資料
+    function saveCustomers() {
+      localStorage.setItem("customers", JSON.stringify(customers));
+    }
+
+    // 驗證經緯度格式
+    function validateLocation(location) {
+      if (!location) return true; // 允許空值
+      const regex = /^\(\-?\d+\.\d+,\-?\d+\.\d+\)$/; // 匹配 (緯度,經度)
+      return regex.test(location);
+    }
+
+    function openCustomerModal() {
+      document.getElementById("customerModal").style.display = "block";
+    }
+    function closeCustomerModal() {
+      document.getElementById("customerModal").style.display = "none";
+      clearCustomerForm();
+      editingIndex = null;
+      document.getElementById("customerModalTitle").textContent = "新增客戶";
+      document.getElementById("customerModalSubmit").textContent = "新增客戶";
+    }
+    function clearCustomerForm() {
+      document.getElementById("customerName").value = "";
+      document.getElementById("customerPhone").value = "";
+      document.getElementById("customerAddress").value = "";
+    }
+    function submitCustomer() {
+      const name = document.getElementById("customerName").value.trim();
+      const phone = document.getElementById("customerPhone").value.trim();
+      const address = document.getElementById("customerAddress").value.trim();
+      if (!name || !phone || !address) {
+        alert("欄位不能漏喔～");
+        return;
+      }
+      if (editingIndex === null) {
+        const newCustomer = { name, phone, address, fields: [] };
+        customers.push(newCustomer);
+      } else {
+        customers[editingIndex].name = name;
+        customers[editingIndex].phone = phone;
+        customers[editingIndex].address = address;
+      }
+      saveCustomers();
+      renderCustomerTable();
+      closeCustomerModal();
+    }
+    function editCustomer(index) {
+      const customer = customers[index];
+      editingIndex = index;
+      document.getElementById("customerName").value = customer.name;
+      document.getElementById("customerPhone").value = customer.phone;
+      document.getElementById("customerAddress").value = customer.address;
+      document.getElementById("customerModalTitle").textContent = "編輯客戶";
+      document.getElementById("customerModalSubmit").textContent = "更新客戶";
+      openCustomerModal();
+    }
+    function confirmDelete(index) {
+      if (confirm("確定要刪除該客戶嗎？此操作無法恢復喔！")) {
+        customers.splice(index, 1);
+        saveCustomers();
+        renderCustomerTable();
+      }
+    }
+
+    function searchCustomers() {
+      const searchTerm = document.getElementById("searchInput").value.trim().toLowerCase();
+      const filteredCustomers = customers.filter(customer => 
+        customer.name.toLowerCase().includes(searchTerm)
+      );
+      renderCustomerTable(filteredCustomers);
+    }
+
+    function openFieldModal(index) {
+      currentCustomerIndexForField = index;
+      editingFieldIndex = null;
+      document.getElementById("fieldModalTitle").textContent = "新增田地";
+      document.getElementById("fieldModalSubmit").textContent = "新增田地";
+      clearFieldForm();
+      document.getElementById("fieldModal").style.display = "block";
+    }
+    function closeFieldModal() {
+      document.getElementById("fieldModal").style.display = "none";
+      clearFieldForm();
+      editingFieldIndex = null;
+    }
+    function clearFieldForm() {
+      document.getElementById("fieldName").value = "";
+      document.getElementById("fieldAreaValue").value = "";
+      document.getElementById("fieldNote").value = "";
+      document.getElementById("fieldLocation").value = "";
+    }
+    function submitField() {
+      const fieldNameInput = document.getElementById("fieldName").value.trim();
+      const fieldAreaValue = document.getElementById("fieldAreaValue").value.trim();
+      const fieldNote = document.getElementById("fieldNote").value.trim();
+      const fieldLocation = document.getElementById("fieldLocation").value.trim();
+      
+      if (fieldLocation && !validateLocation(fieldLocation)) {
+        alert("定位點格式無效，請輸入正確的經緯度，如 (24.2256,120.5578)");
+        return;
+      }
+      
+      const customerFields = customers[currentCustomerIndexForField].fields;
+      const fieldCount = customerFields.length;
+      const fieldName = fieldNameInput || `田地${String.fromCharCode(97 + fieldCount)}`; // 預設為田地a, 田地b...
+      
+      const fieldArea = fieldAreaValue ? `${fieldAreaValue}分` : "";
+      const newField = { fieldName, fieldArea, fieldNote, fieldLocation };
+      
+      if (editingFieldIndex === null) {
+        customerFields.push(newField);
+        alert("田地新增成功！");
+      } else {
+        customers[currentCustomerIndexForField].fields[editingFieldIndex] = newField;
+        alert("田地更新成功！");
+        editingFieldIndex = null;
+      }
+      saveCustomers();
+      renderCustomerTable();
+      closeFieldModal();
+    }
+    function editField(customerIndex, fieldIndex) {
+      closeViewFieldsModal();
+      currentCustomerIndexForField = customerIndex;
+      editingFieldIndex = fieldIndex;
+      const field = customers[customerIndex].fields[fieldIndex];
+      document.getElementById("fieldName").value = field.fieldName || "";
+      document.getElementById("fieldNote").value = field.fieldNote || "";
+      document.getElementById("fieldLocation").value = field.fieldLocation || "";
+      const match = field.fieldArea.match(/^(\d+(?:\.\d+)?)分$/);
+      if (match) {
+        document.getElementById("fieldAreaValue").value = match[1];
+      } else {
+        document.getElementById("fieldAreaValue").value = "";
+      }
+      document.getElementById("fieldModalTitle").textContent = "編輯田地";
+      document.getElementById("fieldModalSubmit").textContent = "更新田地";
+      document.getElementById("fieldModal").style.display = "block";
+    }
+
+    function openViewFieldsModal(index) {
+      const customer = customers[index];
+      document.getElementById("viewFieldsModalTitle").textContent = `${customer.name} 的田地資料`;
+      let html = '<div class="overflow-x-auto"><table style="width:100%; border-collapse: collapse;">';
+      html += '<thead><tr style="background-color: #34d399; color: white;">' +
+              '<th style="padding: 10px 15px; border: 1px solid #ddd;">田地</th>' +
+              '<th style="padding: 10px 15px; border: 1px solid #ddd;">面積</th>' +
+              '<th style="padding: 10px 15px; border: 1px solid #ddd;">備註</th>' +
+              '<th style="padding: 10px 15px; border: 1px solid #ddd;">定位點</th>' +
+              '<th style="padding: 10px 15px; border: 1px solid #ddd;">操作</th>' +
+              '</tr></thead><tbody>';
+      if (customer.fields.length > 0) {
+        customer.fields.forEach((field, fieldIndex) => {
+          const coords = field.fieldLocation && field.fieldLocation.includes('(') ? 
+            field.fieldLocation.match(/\((\-?\d+\.\d+),(\-?\d+\.\d+)\)/) : null;
+          const query = coords ? encodeURIComponent(`${coords[1]},${coords[2]}`) : '';
+          const locationLink = coords ? 
+            `<a href="https://www.google.com/maps/search/?api=1&query=${query}&basemap=satellite" target="_blank" class="location-link">${field.fieldLocation || '查看地圖'}</a>` : 
+            field.fieldLocation || '';
+          html += `<tr>
+                    <td style="padding: 10px 15px; border: 1px solid #ddd;">${field.fieldName}</td>
+                    <td style="padding: 10px 15px; border: 1px solid #ddd;">${field.fieldArea || ''}</td>
+                    <td style="padding: 10px 15px; border: 1px solid #ddd;">${field.fieldNote || ''}</td>
+                    <td style="padding: 10px 15px; border: 1px solid #ddd;">${locationLink}</td>
+                    <td style="padding: 10px 15px; border: 1px solid #ddd;">
+                      <button class="action-button edit" onclick="editField(${index}, ${fieldIndex})">編輯</button>
+                    </td>
+                   </tr>`;
+        });
+      } else {
+        html += '<tr><td colspan="5" style="padding: 10px 15px; border: 1px solid #ddd; text-align: center;">目前沒有田地資料</td></tr>';
+      }
+      html += '</tbody></table></div>';
+      document.getElementById("fieldsContainer").innerHTML = html;
+      document.getElementById("viewFieldsModal").style.display = "block";
+    }
+    function closeViewFieldsModal() {
+      document.getElementById("viewFieldsModal").style.display = "none";
+    }
+
+    function getCurrentLocation(inputId) {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          function(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            document.getElementById(inputId).value = `(${lat.toFixed(6)},${lng.toFixed(6)})`;
+          },
+          function(error) {
+            alert("無法取得定位點: " + error.message);
+          }
+        );
+      } else {
+        alert("您的瀏覽器不支援地理定位");
+      }
+    }
+
+    function renderCustomerTable(filteredCustomers = customers) {
+      const tbody = document.getElementById("customerTable").getElementsByTagName("tbody")[0];
+      tbody.innerHTML = "";
+      filteredCustomers.forEach((customer, index) => {
+        const row = tbody.insertRow();
+        row.innerHTML = `
+          <td>${customer.name}</td>
+          <td>${customer.phone}</td>
+          <td>${customer.address}</td>
+          <td>${customer.fields.length}</td>
+          <td>
+            <div class="action-button-container">
+              <button class="action-button edit" onclick="editCustomer(${index})">編輯</button>
+              <button class="action-button delete" onclick="confirmDelete(${index})">刪除</button>
+              <button class="action-button add-field" onclick="openFieldModal(${index})">新增田地</button>
+              <button class="action-button view-field" onclick="openViewFieldsModal(${index})">查看田地</button>
+            </div>
+          </td>
+        `;
+      });
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      const toggleBtn = document.querySelector('.sidebar-toggle');
+      if (sidebar.classList.contains('open')) {
+        sidebar.classList.remove('open');
+        overlay.style.display = "none";
+        toggleBtn.style.display = "block";
+      } else {
+        sidebar.classList.add('open');
+        overlay.style.display = "block";
+        toggleBtn.style.display = "none";
+      }
+    }
+
+    // 頁面載入時初始化
+    document.addEventListener("DOMContentLoaded", loadCustomers);
+  </script>
+</body>
+</html>
