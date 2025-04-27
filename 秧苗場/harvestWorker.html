@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>收割工人儀表板</title>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDaN5_Va2EReS1HsZMG_gAyLYfzgQMV5Pg"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to right, #d4fc79, #96e6a1);
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .container {
+      width: 90%;
+      max-width: 600px;
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+      margin: 0 auto 20px;
+      position: relative;
+    }
+    h1, h2 {
+      color: #2e7d32;
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 15px;
+    }
+    .input-group label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      font-size: 16px;
+    }
+    .input-group input, .input-group select {
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+    }
+    .hidden { display: none; }
+    .btn {
+      padding: 14px;
+      font-size: 18px;
+      font-weight: bold;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+      width: 100%;
+      box-sizing: border-box;
+      margin: 8px 0;
+    }
+    .btn.submit { background: linear-gradient(135deg, #4caf50, #2e7d32); }
+    .btn.cancel { background: linear-gradient(135deg, #e53935, #c62828); }
+    .btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2);
+    }
+    .record-container {
+      background: #f1f8e9;
+      padding: 20px;
+      border-radius: 10px;
+      max-height: 50vh;
+      overflow-y: auto;
+    }
+    .record {
+      background: white;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+    .modal.active { display: flex; }
+    .edit-modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .edit-modal-content .record-item {
+      border: 1px solid #ddd;
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 5px;
+    }
+    .btn-edit, .btn-delete {
+      background: #2196f3;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+      box-sizing: border-box;
+      margin: 8px 0;
+    }
+    .btn-delete { background: #f44336; }
+    .field-link {
+      color: #3b82f6;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .field-link:hover {
+      text-decoration: underline;
+    }
+    #customer-suggestions {
+      z-index: 1000;
+      max-width: 100%;
+      font-size: 14px;
+    }
+    #harvest-field-checkboxes {
+      padding: 12px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .flex.space-x-4 {
+      gap: 16px;
+    }
+    @media (max-width: 768px) {
+      .container {
+        width: 95%;
+        margin: 16px auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>收割工人儀表板</h1>
+    <form id="harvest-form" class="tab-content">
+      <div class="input-group">
+        <label for="harvest-customer">客戶姓名</label>
+        <input type="text" id="harvest-customer" required placeholder="輸入客戶名稱搜尋..." />
+        <div id="customer-suggestions" class="absolute bg-white w-full border rounded mt-1 max-h-40 overflow-y-auto hidden"></div>
+      </div>
+      <div class="input-group">
+        <label>田地選擇 (可複選)</label>
+        <div id="harvest-field-checkboxes" class="max-h-40 overflow-y-auto border p-2 rounded"></div>
+      </div>
+      <div class="input-group">
+        <label for="harvest-area">面積</label>
+        <input type="number" id="harvest-area" step="0.01" required />
+      </div>
+      <div class="input-group">
+        <label for="harvest-unit">單位</label>
+        <select id="harvest-unit" required>
+          <option value="分">分</option>
+          <option value="甲">甲</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label for="harvest-transport">是否代運</label>
+        <select id="harvest-transport" required>
+          <option value="true">是</option>
+          <option value="false">否</option>
+        </select>
+      </div>
+      <div class="flex space-x-4">
+        <button type="button" class="btn submit" onclick="saveHarvestField()">儲存田區</button>
+        <button type="button" class="btn submit" onclick="showTempRecords()">查看已儲存</button>
+        <button type="submit" class="btn submit">提交所有記錄</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="container record-container">
+    <h2>過去收割紀錄</h2>
+    <div class="flex flex-col sm:flex-row gap-4 mb-4">
+      <input type="text" id="search" placeholder="搜尋客戶..." class="w-full p-2 border rounded" />
+      <input type="date" id="date-filter" class="p-2 border rounded" />
+    </div>
+    <div id="record-list"></div>
+  </div>
+
+  <div id="edit-modal" class="modal">
+    <div class="edit-modal-content">
+      <h2 id="edit-modal-title" class="text-center">已儲存的田區記錄</h2>
+      <div id="temp-records-list"></div>
+      <div class="flex justify-end mt-4">
+        <button class="btn cancel" onclick="closeEditModal()">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let records = [
+      { type: "harvest", date: "2025-03-29", customer: "陳農", phone: "0987654321", farm: "田地A", area: 0.3, unit: "甲", transport: false, address: "地址2" },
+      { type: "harvest", date: "2025-03-30", customer: "王大哥", phone: "0912345678", farm: "田區B", area: 0.4, unit: "甲", transport: true, address: "地址2" },
+      { type: "harvest", date: "2025-04-02", customer: "大農", phone: "0912345678", farm: "田地B", area: 0.8, unit: "甲", transport: false, address: "地址3" },
+      { type: "harvest", date: "2025-04-03", customer: "林子怡", phone: "0927040169", farm: "田地1", area: 0.4, unit: "甲", transport: true, address: "地址4" }
+    ];
+    let tempHarvestRecords = [];
+
+    let farmersData = {
+      "王大哥": { 
+        phone: "0912345678", 
+        fields: [
+          { name: "田區A", remark: "平地", area: 0.5, unit: "甲", addressText: "地址1", coords: { lat: 23.5, lng: 121.0 } },
+          { name: "田區B", remark: "坡地", area: 0.4, unit: "甲", addressText: "地址2", coords: { lat: 23.6, lng: 121.2 } },
+          { name: "田區C", remark: "水田", area: 0.6, unit: "甲", addressText: "地址3", coords: { lat: 23.7, lng: 121.3 } }
+        ]
+      },
+      "陳農": { 
+        phone: "0987654321", 
+        fields: [
+          { name: "田地A", remark: "平地", area: 0.3, unit: "甲", addressText: "地址2", coords: { lat: 23.6, lng: 121.2 } },
+          { name: "田地B", remark: "草地", area: 0.5, unit: "甲", addressText: "地址4", coords: { lat: 23.8, lng: 121.4 } }
+        ]
+      },
+      "大農": { 
+        phone: "0912345678", 
+        fields: [
+          { name: "田地B", remark: "山坡", area: 0.8, unit: "甲", addressText: "地址3", coords: { lat: 23.7, lng: 121.3 } },
+          { name: "田地C", remark: "平地", area: 0.7, unit: "甲", addressText: "地址5", coords: { lat: 23.9, lng: 121.5 } }
+        ]
+      },
+      "林子怡": { 
+        phone: "0927040169", 
+        fields: [
+          { name: "田地1", remark: "草區", area: 0.4, unit: "甲", addressText: "地址4", coords: { lat: 23.8, lng: 121.4 } },
+          { name: "田地2", remark: "水區", area: 0.5, unit: "甲", addressText: "地址6", coords: { lat: 24.0, lng: 121.6 } }
+        ]
+      },
+      "張小明": { 
+        phone: "0976543210", 
+        fields: [
+          { name: "田地2", remark: "水區", area: 0.6, unit: "甲", addressText: "地址5", coords: { lat: 23.9, lng: 121.5 } },
+          { name: "田地3", remark: "坡地", area: 0.45, unit: "甲", addressText: "地址7", coords: { lat: 24.1, lng: 121.7 } }
+        ]
+      },
+      "李大華": { 
+        phone: "0935123456", 
+        fields: [
+          { name: "田區X", remark: "平地", area: 0.55, unit: "甲", addressText: "地址8", coords: { lat: 24.2, lng: 121.8 } },
+          { name: "田區Y", remark: "草區", area: 0.65, unit: "甲", addressText: "地址9", coords: { lat: 24.3, lng: 121.9 } }
+        ]
+      }
+    };
+
+    function initializeCustomerAutocomplete() {
+      const input = document.getElementById('harvest-customer');
+      const suggestions = document.getElementById('customer-suggestions');
+      
+      input.addEventListener('input', () => {
+        const value = input.value.toLowerCase();
+        suggestions.innerHTML = '';
+        if (!value) {
+          suggestions.classList.add('hidden');
+          return;
+        }
+        
+        const matches = Object.keys(farmersData).filter(farmer => 
+          farmer.toLowerCase().includes(value) || 
+          farmersData[farmer].phone.includes(value)
+        );
+        
+        matches.forEach(farmer => {
+          const div = document.createElement('div');
+          div.className = 'p-2 hover:bg-gray-100 cursor-pointer';
+          div.textContent = `${farmer} (${farmersData[farmer].phone})`;
+          div.onclick = () => {
+            input.value = farmer;
+            loadFieldCheckboxes(farmer);
+            suggestions.classList.add('hidden');
+          };
+          suggestions.appendChild(div);
+        });
+        
+        suggestions.classList.toggle('hidden', !matches.length);
+      });
+      
+      document.addEventListener('click', e => {
+        if (!suggestions.contains(e.target) && e.target !== input) {
+          suggestions.classList.add('hidden');
+        }
+      });
+    }
+
+    function loadFieldCheckboxes(customer) {
+      const container = document.getElementById('harvest-field-checkboxes');
+      container.innerHTML = '';
+      
+      if (customer && farmersData[customer]) {
+        farmersData[customer].fields.forEach(field => {
+          const div = document.createElement('div');
+          div.className = 'flex items-center mb-2';
+          const query = encodeURIComponent(`${field.coords.lat},${field.coords.lng}`);
+          div.innerHTML = `
+            <input type="checkbox" value="${field.name}" class="mr-2" onchange="updateFieldInputs(this)">
+            <label>${field.name} (${field.remark || '無備註'}) - <a href="https://www.google.com/maps/search/?api=1&query=${query}&basemap=satellite" target="_blank" class="field-link">${field.addressText}</a></label>
+          `;
+          container.appendChild(div);
+        });
+      }
+    }
+
+    function updateFieldInputs(checkbox) {
+      const customer = document.getElementById('harvest-customer').value;
+      if (!customer || !checkbox.checked) return;
+      
+      const selectedField = farmersData[customer].fields.find(f => f.name === checkbox.value);
+      if (selectedField) {
+        document.getElementById('harvest-area').value = selectedField.area || '';
+        document.getElementById('harvest-unit').value = selectedField.unit || '分';
+      }
+    }
+
+    function saveHarvestField() {
+      const customer = document.getElementById('harvest-customer').value;
+      const checkedFields = Array.from(document.querySelectorAll('#harvest-field-checkboxes input:checked'));
+      const area = parseFloat(document.getElementById('harvest-area').value);
+      const unit = document.getElementById('harvest-unit').value;
+      const transport = document.getElementById('harvest-transport').value === 'true';
+      
+      if (!checkedFields.length) {
+        alert('請至少選擇一個田區');
+        return;
+      }
+      if (!customer) {
+        alert('請輸入客戶姓名');
+        return;
+      }
+      if (!area || area <= 0) {
+        alert('請輸入有效面積');
+        return;
+      }
+
+      checkedFields.forEach(field => {
+        const phone = farmersData[customer]?.phone || '';
+        const date = new Date().toISOString().split('T')[0];
+        
+        tempHarvestRecords.push({
+          type: 'harvest',
+          date,
+          customer,
+          phone,
+          farm: field.value,
+          area,
+          unit,
+          transport,
+          address: farmersData[customer].fields.find(f => f.name === field.value).addressText
+        });
+      });
+      
+      alert('已儲存所選田區');
+      checkedFields.forEach(cb => cb.checked = false);
+      document.getElementById('harvest-area').value = '';
+      document.getElementById('harvest-unit').value = '分';
+      document.getElementById('harvest-transport').value = 'true';
+    }
+
+    function renderRecords() {
+      const query = document.getElementById('search').value.toLowerCase();
+      const dateFilter = document.getElementById('date-filter').value;
+      const list = document.getElementById('record-list');
+      list.innerHTML = '';
+
+      let filteredRecords = records.filter(r => {
+        const matchesSearch = r.customer && r.customer.toLowerCase().includes(query);
+        const matchesDate = !dateFilter || (r.date && r.date === dateFilter);
+        return matchesSearch && matchesDate;
+      });
+
+      filteredRecords.forEach(r => {
+        const div = document.createElement('div');
+        div.className = 'record';
+        const dateStr = r.date || new Date().toLocaleDateString('zh-TW');
+        const field = farmersData[r.customer]?.fields.find(f => f.name === r.farm);
+        const query = field ? encodeURIComponent(`${field.coords.lat},${field.coords.lng}`) : '';
+        const farmLink = field ? `<a href="https://www.google.com/maps/search/?api=1&query=${query}&basemap=satellite" target="_blank" class="field-link">${r.farm}</a>` : r.farm;
+        div.innerHTML = `${dateStr} 👤 ${r.customer} (${r.phone}) - 📍 ${farmLink} - 📏 ${r.area}${r.unit} - 🚚 ${r.transport ? '是' : '否'}`;
+        list.appendChild(div);
+      });
+    }
+
+    document.getElementById('harvest-form').addEventListener('submit', e => {
+      e.preventDefault();
+      if (!tempHarvestRecords.length) {
+        alert('請先儲存至少一個田區');
+        return;
+      }
+      
+      records.push(...tempHarvestRecords);
+      tempHarvestRecords = [];
+      document.getElementById('harvest-form').reset();
+      document.getElementById('harvest-field-checkboxes').innerHTML = '';
+      renderRecords();
+      alert('所有記錄已提交');
+    });
+
+    function showTempRecords() {
+      const modal = document.getElementById('edit-modal');
+      const title = document.getElementById('edit-modal-title');
+      const list = document.getElementById('temp-records-list');
+      
+      title.textContent = '已儲存的收割田區記錄';
+      list.innerHTML = '';
+
+      tempHarvestRecords.forEach((record, index) => {
+        const div = document.createElement('div');
+        div.className = 'record-item';
+        const field = farmersData[record.customer]?.fields.find(f => f.name === record.farm);
+        const query = field ? encodeURIComponent(`${field.coords.lat},${field.coords.lng}`) : '';
+        const farmLink = field ? `<a href="https://www.google.com/maps/search/?api=1&query=${query}&basemap=satellite" target="_blank" class="field-link">${record.farm}</a>` : record.farm;
+        div.innerHTML = `
+          <p>客戶: ${record.customer}</p>
+          <p>田區: ${farmLink}</p>
+          <p>面積: ${record.area}${record.unit}</p>
+          <p>代運: ${record.transport ? '是' : '否'}</p>
+          <p>地址: ${record.address}</p>
+          <div class="flex space-x-2 mt-2">
+            <button class="btn btn-edit" onclick="editTempRecord(${index})">編輯</button>
+            <button class="btn btn-delete" onclick="deleteTempRecord(${index})">刪除</button>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+
+      if (!tempHarvestRecords.length) {
+        list.innerHTML = '<p>尚未儲存任何田區記錄</p>';
+      }
+
+      modal.classList.add('active');
+    }
+
+    function editTempRecord(index) {
+      const record = tempHarvestRecords[index];
+      
+      document.getElementById('harvest-customer').value = record.customer;
+      loadFieldCheckboxes(record.customer);
+      document.getElementById('harvest-area').value = record.area;
+      document.getElementById('harvest-unit').value = record.unit;
+      document.getElementById('harvest-transport').value = record.transport ? 'true' : 'false';
+      document.querySelector(`#harvest-field-checkboxes input[value="${record.farm}"]`).checked = true;
+
+      tempHarvestRecords.splice(index, 1);
+      closeEditModal();
+    }
+
+    function deleteTempRecord(index) {
+      if (confirm('確定要刪除此記錄嗎？')) {
+        tempHarvestRecords.splice(index, 1);
+        showTempRecords();
+      }
+    }
+
+    function closeEditModal() {
+      document.getElementById('edit-modal').classList.remove('active');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderRecords();
+      initializeCustomerAutocomplete();
+      document.getElementById('search').addEventListener('input', renderRecords);
+      document.getElementById('date-filter').addEventListener('change', renderRecords);
+    });
+  </script>
+</body>
+</html>
