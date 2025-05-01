@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>出貨工人儀表板 Demo（含電話搜尋與收據功能）</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(to right, #d4fc79, #96e6a1);
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #2e7d32;
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+    .input-group {
+      position: relative;
+      margin-bottom: 15px;
+    }
+    .input-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .input-group input,
+    .input-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    .suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-top: none;
+      max-height: 150px;
+      overflow-y: auto;
+      display: none;
+      z-index: 10;
+      border-radius: 0 0 6px 6px;
+    }
+    .suggestions div {
+      padding: 8px;
+      cursor: pointer;
+    }
+    .suggestions div:hover {
+      background: #f0f0f0;
+    }
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+      min-width: 100px;
+      text-align: center;
+    }
+    .btn-primary {
+      background: #34D399;
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: #059669;
+      transform: scale(1.05);
+    }
+    .btn-close {
+      background: #dc2626;
+      color: #fff;
+    }
+    .btn-close:hover {
+      background: #b91c1c;
+      transform: scale(1.05);
+    }
+    .btn-submit {
+      width: 100%;
+      background: #34D399;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+      padding: 12px;
+    }
+    .btn-submit:hover {
+      background: #059669;
+    }
+    .shipments-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    .shipments-table th,
+    .shipments-table td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+      font-size: 14px;
+    }
+    .shipments-table th {
+      background: #f2f2f2;
+    }
+    .shipments-table tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+    .btn-receipt {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+      background: #3b82f6;
+      transition: background 0.3s;
+      min-width: 100px;
+      margin: 4px; /* Added margin for spacing between buttons */
+    }
+    .btn-receipt:hover {
+      background: #1e40af;
+    }
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 20;
+    }
+    .modal {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 300px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal h2 {
+      margin-top: 0;
+      font-size: 18px;
+      text-align: center;
+    }
+    .receipt-container {
+      width: 100%;
+      max-width: 80mm;
+      border: 1px solid #000;
+      padding: 0.4rem;
+      margin: 0 auto;
+      background: #fff;
+      font-family: 'Arial', sans-serif;
+      page-break-inside: avoid;
+      aspect-ratio: 80 / 150;
+      height: auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .receipt-header {
+      text-align: center;
+      border-bottom: 1px solid #000;
+      padding-bottom: 0.3rem;
+      margin-bottom: 0.5rem;
+    }
+    .receipt-header h1 {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 0.3rem;
+      color: #000;
+    }
+    .receipt-header .vendor-name {
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 0.3rem;
+    }
+    .receipt-header p {
+      font-size: 0.8rem;
+      color: #555;
+      margin-top: 0.3rem;
+    }
+    .receipt-content {
+      font-size: 1.2rem;
+      color: #444;
+      line-height: 1.5;
+      text-align: center;
+    }
+    .receipt-content p {
+      margin: 0.2rem 0;
+      border-bottom: 1px dashed #ddd;
+      padding-bottom: 0.2rem;
+    }
+    .signature-area {
+      text-align: center;
+      margin: 0.5rem 0;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .signature-img {
+      max-width: 100%;
+      max-height: 200px;
+      width: auto;
+      height: auto;
+      margin: 0 auto;
+      display: block;
+    }
+    .signature-area p {
+      margin: 0 0 0.5rem 0;
+      font-size: 0.9rem;
+      font-weight: bold;
+    }
+    .receipt-buttons {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      padding: 0.3rem 0;
+      flex-wrap: wrap;
+    }
+    .receipt-buttons .print-copies-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .receipt-buttons label {
+      font-size: 14px;
+      color: #333;
+      font-weight: bold;
+    }
+    .receipt-buttons input {
+      width: 50px;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .btn-sign {
+      background: #34D399;
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 14px;
+      border-radius: 6px;
+      min-width: 100px;
+    }
+    .btn-sign:hover {
+      background: #059669;
+      transform: scale(1.05);
+    }
+    .fullscreen-signature-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      justify-content: center;
+      align-items: center;
+      z-index: 30;
+    }
+    .fullscreen-signature-modal .modal-content {
+      background: #fff;
+      width: 100%;
+      height: 100%;
+      padding: 10px;
+      border-radius: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .fullscreen-signature-canvas {
+      width: 100%;
+      height: calc(100vh - 100px);
+      border: 1px solid #ccc;
+      background: #f9fafb;
+    }
+    .receipt-image-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 20;
+    }
+    .receipt-image-modal .modal-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 500px;
+      text-align: center;
+    }
+    @media (max-width: 768px) {
+      .modal {
+        width: 100%;
+        height: 100%;
+        max-width: none;
+        max-height: none;
+        border-radius: 0;
+        padding: 10px;
+      }
+      .receipt-container {
+        max-height: 70vh;
+        padding: 0.3rem;
+      }
+      .receipt-header h1 {
+        font-size: 1rem;
+      }
+      .receipt-header .vendor-name {
+        font-size: 0.8rem;
+      }
+      .receipt-header p {
+        font-size: 0.7rem;
+      }
+      .receipt-content {
+        font-size: 1rem;
+      }
+      .signature-area {
+        min-height: 100px;
+      }
+      .signature-img {
+        max-height: 160px;
+      }
+      .btn {
+        font-size: 12px;
+        padding: 8px 16px;
+        min-width: 80px;
+        margin: 4px; /* Added margin for spacing */
+      }
+      .btn-sign {
+        padding: 8px 16px;
+        font-size: 12px;
+        min-width: 80px;
+        margin: 4px; /* Added margin for spacing */
+      }
+      .receipt-buttons {
+        gap: 12px; /* Increased gap for better spacing on mobile */
+      }
+      .receipt-buttons label,
+      .receipt-buttons input {
+        font-size: 12px;
+      }
+      .receipt-buttons input {
+        width: 40px;
+      }
+      .btn-receipt {
+        margin: 6px; /* Increased margin for table buttons on mobile */
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>出貨儀表板</h1>
+    <form id="form" onsubmit="onSubmit(event)">
+      <div class="input-group">
+        <label for="cust">客戶名稱/電話</label>
+        <input id="cust" type="text" placeholder="輸入客戶名稱/電話" autocomplete="off" />
+        <div id="cust-sugg" class="suggestions"></div>
+      </div>
+      <div class="input-group">
+        <label for="variety">品種</label>
+        <select id="variety">
+          <option>台南11號</option>
+          <option>品種A</option>
+          <option>品種B</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label for="date">日期</label>
+        <input id="date" type="date" />
+      </div>
+      <div class="input-group">
+        <label for="time">時段</label>
+        <select id="time">
+          <option value="">--</option>
+          <option value="早">早</option>
+          <option value="中">中</option>
+          <option value="晚">晚</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label for="qty">數量</label>
+        <input id="qty" type="number" min="1" placeholder="輸入正整數" />
+      </div>
+      <div class="input-group">
+        <label for="unit">單位</label>
+        <select id="unit">
+          <option value="箱">箱 (1箱=3粒)</option>
+          <option value="粒">粒</option>
+        </select>
+      </div>
+      <button class="btn-submit">送出並開立單據</button>
+    </form>
+
+    <table class="shipments-table" id="table">
+      <thead>
+        <tr>
+          <th>客戶</th>
+          <th>品種</th>
+          <th>日期</th>
+          <th>時段</th>
+          <th>數量</th>
+          <th>總粒數</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div id="receiptModal" class="modal-overlay">
+    <div class="modal">
+      <div id="receiptPrintArea" class="receipt-container">
+        <div class="receipt-header">
+          <h1>出貨單存根</h1>
+          <div class="vendor-name">麥寮秧苗場</div>
+          <p id="receiptDate"></p>
+        </div>
+        <div id="receiptContent" class="receipt-content">
+          <!-- 內容將由 JavaScript 動態生成 -->
+        </div>
+        <div class="signature-area">
+          <p>簽名：</p>
+          <button class="btn btn-sign" onclick="openSignatureModal('receipt')">簽名</button>
+          <img id="signature-receipt" class="signature-img" src="" style="display: none;">
+        </div>
+        <div id="receiptButtons" class="receipt-buttons">
+          <div class="print-copies-group">
+            <label>列印份數:</label>
+            <input type="number" id="printCopies" min="1" value="1">
+          </div>
+          <button class="btn btn-primary" onclick="downloadReceipt()">下載/列印收據</button>
+          <button class="btn btn-primary" onclick="shareToLine()">分享到LINE</button>
+          <button class="btn btn-close" onclick="closeReceiptModal()">關閉</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="signatureModal" class="fullscreen-signature-modal">
+    <div class="modal-content">
+      <canvas id="signatureCanvas" class="fullscreen-signature-canvas"></canvas>
+      <div style="text-align: center; margin-top: 10px;">
+        <button class="btn btn-primary" onclick="clearSignature()">清除</button>
+        <button class="btn btn-primary" onclick="saveSignature()">確認</button>
+        <button class="btn btn-close" onclick="closeSignatureModal()">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="receiptImageModal" class="receipt-image-modal">
+    <div class="modal-content">
+      <h2>查看收據</h2>
+      <img id="receiptImage" src="" alt="收據圖片" style="width: 100%; height: auto;" />
+      <button class="btn btn-close" onclick="closeReceiptImageModal()">關閉</button>
+    </div>
+  </div>
+
+  <script>
+    const customers = [
+      { name: "王小明", phone: "0912345678" },
+      { name: "李大華", phone: "0987654321" },
+      { name: "陳農", phone: "0927000000" },
+      { name: "林子怡", phone: "0955123456" },
+      { name: "張小明", phone: "0933001111" }
+    ];
+    const grainsPerBox = 3;
+    let shipments = [
+      { cust: "王小明", variety: "台南11號", date: "2025-04-20", time: "早", qty: 2, unit: "箱" },
+      { cust: "陳農", variety: "品種A", date: "2025-04-22", time: "中", qty: 10, unit: "粒" }
+    ];
+    let customerReceipts = {
+      "王小明": [{ date: "2025-04-20", image: "https://via.placeholder.com/300x200?text=Receipt+1" }],
+      "陳農": [{ date: "2025-04-22", image: "https://via.placeholder.com/300x200?text=Receipt+2" }]
+    };
+    let borrowedBoxes = {
+      "王小明": { borrowed: 2, returned: 0 },
+      "陳農": { borrowed: 4, returned: 0 }
+    };
+    let currentReceiptImageData = '';
+    let currentReceiptCustomer = '';
+    let currentReceiptId = '';
+
+    const custInput = document.getElementById('cust'),
+          sugg = document.getElementById('cust-sugg'),
+          tableBody = document.querySelector('#table tbody');
+
+    // 客戶輸入建議
+    custInput.addEventListener('input', () => {
+      const v = custInput.value.trim().toLowerCase();
+      sugg.innerHTML = '';
+      if (!v) { sugg.style.display = 'none'; return; }
+      const matches = customers.filter(c =>
+        c.name.toLowerCase().includes(v) || c.phone.includes(v)
+      );
+      if (!matches.length) { sugg.style.display = 'none'; return; }
+      matches.forEach(c => {
+        const d = document.createElement('div');
+        d.textContent = `${c.name} (${c.phone})`;
+        d.onclick = () => {
+          custInput.value = c.name;
+          sugg.style.display = 'none';
+        };
+        sugg.appendChild(d);
+      });
+      sugg.style.display = 'block';
+    });
+
+    // 點外部隱藏建議
+    document.addEventListener('click', e => {
+      if (!custInput.contains(e.target) && !sugg.contains(e.target)) sugg.style.display = 'none';
+    });
+
+    // 初始化
+    document.getElementById('date').value = new Date().toISOString().split('T')[0];
+    renderTable();
+
+    function renderTable() {
+      tableBody.innerHTML = '';
+      shipments.forEach((r, i) => {
+        const grainQty = r.unit === '箱' ? r.qty * grainsPerBox : r.qty;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${r.cust}</td>
+          <td>${r.variety}</td>
+          <td>${r.date}</td>
+          <td>${r.time}</td>
+          <td>${r.qty}${r.unit}</td>
+          <td>${grainQty} 粒</td>
+          <td>
+            <button class="btn-receipt" onclick="openReceiptModal(${i})">開立單據</button>
+            <button class="btn-receipt" onclick="viewReceipts('${r.cust}')">查看收據</button>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    function onSubmit(e) {
+      e.preventDefault();
+      const data = {
+        cust: custInput.value.trim(),
+        variety: document.getElementById('variety').value,
+        date: document.getElementById('date').value,
+        time: document.getElementById('time').value,
+        qty: parseInt(document.getElementById('qty').value),
+        unit: document.getElementById('unit').value
+      };
+      if (!data.cust || !data.variety || !data.date || !data.time || !data.qty) {
+        alert('請填寫所有欄位');
+        return;
+      }
+      if (!customers.some(c => c.name === data.cust)) {
+        alert('客戶名稱無效，請從建議清單中選擇');
+        return;
+      }
+      const boxQuantity = data.unit === '箱' ? data.qty : Math.ceil(data.qty / grainsPerBox);
+      if (!borrowedBoxes[data.cust]) {
+        borrowedBoxes[data.cust] = { borrowed: 0, returned: 0 };
+      }
+      borrowedBoxes[data.cust].borrowed += boxQuantity;
+      shipments.push(data);
+      renderTable();
+      openReceiptModal(shipments.length - 1);
+      e.target.reset();
+      document.getElementById('date').value = new Date().toISOString().split('T')[0];
+    }
+
+    function openReceiptModal(idx) {
+      const r = shipments[idx];
+      currentReceiptCustomer = r.cust;
+      const grainQty = r.unit === '箱' ? r.qty * grainsPerBox : r.qty;
+      const currentDateTime = new Date().toLocaleString('zh-TW', {
+        timeZone: 'Asia/Taipei',
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
+      document.getElementById('receiptDate').innerText = `開立日期：${currentDateTime}`;
+      document.getElementById('receiptContent').innerHTML = `
+        <p>客戶名稱：${r.cust}</p>
+        <p>品種：${r.variety}</p>
+        <p>出貨日期：${r.date}</p>
+        <p>時段：${r.time}</p>
+        <p>總粒數：${grainQty} 粒</p>
+      `;
+      currentReceiptId = `receipt_${Date.now()}`;
+      document.getElementById('signature-receipt').style.display = 'none';
+      document.getElementById('signature-receipt').src = '';
+      document.getElementById('receiptModal').style.display = 'flex';
+    }
+
+    function closeReceiptModal() {
+      document.getElementById('receiptModal').style.display = 'none';
+    }
+
+    async function downloadReceipt() {
+      const { jsPDF } = window.jspdf;
+      const receiptElement = document.getElementById('receiptPrintArea');
+      const copies = parseInt(document.getElementById('printCopies').value) || 1;
+      const buttons = document.getElementById('receiptButtons');
+      const signatureBtn = document.querySelector('#receiptPrintArea .btn-sign');
+      const originalButtonsDisplay = buttons.style.display;
+      const originalBtnDisplay = signatureBtn.style.display;
+
+      buttons.style.display = 'none';
+      signatureBtn.style.display = 'none';
+
+      const signatureImg = document.getElementById('signature-receipt');
+      if (signatureImg.src && signatureImg.style.display !== 'none') {
+        await new Promise(resolve => {
+          if (signatureImg.complete) resolve();
+          else signatureImg.onload = resolve;
+        });
+      }
+
+      receiptElement.style.height = 'auto';
+      receiptElement.style.maxHeight = 'none';
+      receiptElement.style.overflow = 'visible';
+
+      const scale = window.devicePixelRatio || 1;
+      const canvas = await html2canvas(receiptElement, {
+        scale: 3 * scale,
+        useCORS: true,
+        width: receiptElement.offsetWidth,
+        height: receiptElement.offsetHeight
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      currentReceiptImageData = imgData;
+
+      const pdfWidth = 80;
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pdf = new jsPDF('p', 'mm', [pdfWidth, pdfHeight]);
+      for (let i = 0; i < copies; i++) {
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        if (i < copies - 1) pdf.addPage();
+      }
+      pdf.save('shipment-receipt.pdf');
+
+      receiptElement.style.height = '';
+      receiptElement.style.maxHeight = '';
+      receiptElement.style.overflow = '';
+      buttons.style.display = originalButtonsDisplay;
+      signatureBtn.style.display = originalBtnDisplay;
+
+      const formattedDate = new Date().toLocaleDateString('zh-TW', {
+        timeZone: 'Asia/Taipei',
+        year: 'numeric', month: '2-digit', day: '2-digit'
+      }).split('/').join('-');
+      const newReceipt = { date: formattedDate, image: imgData };
+      if (!customerReceipts[currentReceiptCustomer]) customerReceipts[currentReceiptCustomer] = [];
+      customerReceipts[currentReceiptCustomer].push(newReceipt);
+      renderTable();
+      alert("收據已儲存並下載，可分享到LINE！");
+    }
+
+    async function shareToLine() {
+      if (!currentReceiptImageData) {
+        alert('請先下載收據以生成圖檔！');
+        return;
+      }
+      try {
+        const response = await fetch(currentReceiptImageData);
+        const blob = await response.blob();
+        const file = new File([blob], 'shipment-receipt.png', { type: 'image/png' });
+        if (navigator.share) {
+          await navigator.share({
+            files: [file],
+            title: '出貨單收據',
+            text: '以下是出貨單收據圖檔：'
+          });
+        } else {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'shipment-receipt.png';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          alert('您的設備不支援直接分享，請手動將下載的圖檔分享到LINE。');
+        }
+      } catch (error) {
+        console.error('分享失敗：', error);
+        alert('分享到LINE失敗，請手動分享圖檔。');
+      }
+    }
+
+    function openSignatureModal(receiptId) {
+      currentReceiptId = receiptId;
+      document.getElementById('signatureModal').style.display = 'flex';
+      initializeSignatureCanvas('signatureCanvas');
+    }
+
+    function closeSignatureModal() {
+      document.getElementById('signatureModal').style.display = 'none';
+    }
+
+    function saveSignature() {
+      const canvas = document.getElementById('signatureCanvas');
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = canvas.height * 3;
+      tempCanvas.height = canvas.width * 3;
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCtx.translate(0, canvas.width * 3);
+      tempCtx.rotate(-Math.PI / 2);
+      tempCtx.drawImage(canvas, 0, 0, canvas.width * 3, canvas.height * 3);
+      const signatureData = tempCanvas.toDataURL('image/png');
+      const signatureImg = document.getElementById('signature-receipt');
+      signatureImg.src = signatureData;
+      signatureImg.style.display = 'block';
+      closeSignatureModal();
+      const signatureArea = document.querySelector('.signature-area');
+      signatureArea.style.height = 'auto';
+      signatureArea.style.minHeight = '120px';
+    }
+
+    function clearSignature() {
+      const canvas = document.getElementById('signatureCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function initializeSignatureCanvas(canvasId) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      canvas.width = window.innerWidth * 0.9;
+      canvas.height = window.innerHeight * 0.6;
+      const ctx = canvas.getContext('2d');
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = '#000';
+      ctx.lineCap = 'round';
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      let isDrawing = false;
+      let lastX = 0;
+      let lastY = 0;
+
+      function getPosition(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        if (e.type.includes('touch')) {
+          return {
+            x: (e.touches[0].clientX - rect.left) * scaleX,
+            y: (e.touches[0].clientY - rect.top) * scaleY
+          };
+        }
+        return {
+          x: (e.clientX - rect.left) * scaleX,
+          y: (e.clientY - rect.top) * scaleY
+        };
+      }
+
+      function startDrawing(e) {
+        e.preventDefault();
+        isDrawing = true;
+        const pos = getPosition(e);
+        lastX = pos.x;
+        lastY = pos.y;
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+      }
+
+      function draw(e) {
+        if (!isDrawing) return;
+        e.preventDefault();
+        const pos = getPosition(e);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+        lastX = pos.x;
+        lastY = pos.y;
+      }
+
+      function stopDrawing() {
+        isDrawing = false;
+      }
+
+      canvas.removeEventListener('mousedown', startDrawing);
+      canvas.removeEventListener('mousemove', draw);
+      canvas.removeEventListener('mouseup', stopDrawing);
+      canvas.removeEventListener('touchstart', startDrawing);
+      canvas.removeEventListener('touchmove', draw);
+      canvas.removeEventListener('touchend', stopDrawing);
+
+      canvas.addEventListener('mousedown', startDrawing);
+      canvas.addEventListener('mousemove', draw);
+      canvas.addEventListener('mouseup', stopDrawing);
+      canvas.addEventListener('touchstart', startDrawing);
+      canvas.addEventListener('touchmove', draw);
+      canvas.addEventListener('touchend', stopDrawing);
+    }
+
+    function viewReceipts(customer) {
+      currentReceiptCustomer = customer;
+      const receipts = customerReceipts[customer] || [];
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.innerHTML = `
+        <div class="modal">
+          <h2>${customer} 的收據</h2>
+          <div id="receiptsContainer"></div>
+          <button class="btn btn-close" onclick="closeReceiptsModal()">關閉</button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      const container = modal.querySelector('#receiptsContainer');
+      if (receipts.length === 0) {
+        container.innerHTML = '<p>無收據記錄</p>';
+      } else {
+        receipts.forEach((receipt, index) => {
+          const div = document.createElement('div');
+          div.style.marginBottom = '10px';
+          div.style.display = 'flex';
+          div.style.alignItems = 'center';
+          div.style.gap = '8px'; /* Added gap for buttons in receipt list */
+          div.style.flexWrap = 'wrap';
+          const fileName = `收據_${receipt.date}_${index + 1}.png`;
+          div.innerHTML = `
+            <span>${fileName}</span>
+            <a href="${receipt.image}" download="${fileName}" class="btn btn-primary">下載</a>
+            <button class="btn btn-primary" onclick="openReceiptImageModal('${receipt.image}')">查看</button>
+            <button class="btn btn-close" onclick="voidReceipt('${receipt.date}')">廢單據</button>
+          `;
+          container.appendChild(div);
+        });
+      }
+      modal.style.display = 'flex';
+    }
+
+    function closeReceiptsModal() {
+      const modal = document.querySelector('.modal-overlay');
+      if (modal) modal.remove();
+    }
+
+    function openReceiptImageModal(imageUrl) {
+      document.getElementById('receiptImage').src = imageUrl;
+      document.getElementById('receiptImageModal').style.display = 'flex';
+    }
+
+    function closeReceiptImageModal() {
+      document.getElementById('receiptImageModal').style.display = 'none';
+    }
+
+    function voidReceipt(receiptDate) {
+      if (confirm('確定要廢除這筆單據？')) {
+        customerReceipts[currentReceiptCustomer] = customerReceipts[currentReceiptCustomer].filter(r => r.date !== receiptDate);
+        alert('單據已廢除');
+        viewReceipts(currentReceiptCustomer);
+      }
+    }
+  </script>
+</body>
+</html>
