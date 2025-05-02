@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html class="mainlight">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1.0">
+		<title>活動管理</title>
+		<link rel="stylesheet" href="index.css">
+		<link rel="stylesheet" href="index2.css">
+		<link rel="stylesheet" href="https://chrisplugin.pages.dev/css/chrisplugin.css">
+		<script src="https://chrisplugin.pages.dev/js/chrisplugin.js"></script>
+		<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+		<script src="https://unpkg.com/@zxing/library@latest"></script>
+		<style>
+			/* 彈出式視窗樣式 */
+			.modal {
+				display: none;
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background-color: rgba(0, 0, 0, 0.5);
+				z-index: 1000;
+				justify-content: center;
+				align-items: center;
+			}
+
+			.combo-modal-content {
+				background-color: white;
+				color: black;
+				padding: 20px;
+				border-radius: 10px;
+				box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+				text-align: left;
+				width: 90%;
+				max-width: 500px;
+				max-height: 80vh;
+				overflow-y: auto;
+				box-sizing: border-box;
+			}
+
+			.combo-modal-content h3 {
+				margin: 0 0 15px 0;
+				font-size: 20px;
+				font-weight: bold;
+				text-align: center;
+			}
+
+			.combo-item {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				padding: 10px;
+				border-bottom: 1px solid #ddd;
+				cursor: pointer;
+			}
+
+			.combo-item:last-child {
+				border-bottom: none;
+			}
+
+			.combo-item:hover {
+				background-color: #f5f5f5;
+			}
+
+			.combo-item button {
+				background-color: #004D8F;
+				color: white;
+				border: none;
+				border-radius: 5px;
+				padding: 5px 10px;
+				cursor: pointer;
+				margin-left: 5px;
+			}
+
+			.close-modal {
+				background-color: #ff4444;
+				color: white;
+				border: none;
+				border-radius: 5px;
+				padding: 10px;
+				cursor: pointer;
+				width: 100%;
+				margin-top: 20px;
+				text-align: center;
+			}
+
+			/* 農藥清單樣式（在組合詳情中） */
+			.pesticide-list {
+				display: none;
+				background-color: #f9f9f9;
+				padding: 10px;
+				border-radius: 5px;
+				margin-top: 5px;
+				border: 1px solid #ddd;
+			}
+
+			.pesticide-item {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				padding: 5px 0;
+				border-bottom: 1px solid #eee;
+			}
+
+			.pesticide-item:last-child {
+				border-bottom: none;
+			}
+
+			/* 藥品清單樣式（在主頁面中） */
+			.barcode-item {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				padding: 5px 0;
+				border-bottom: 1px solid #ddd;
+			}
+
+			.barcode-item:last-child {
+				border-bottom: none;
+			}
+
+			.barcode-item button {
+				background-color: #ff4444;
+				color: white;
+				border: none;
+				border-radius: 5px;
+				padding: 5px 10px;
+				cursor: pointer;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="navigationbar flexcenter">
+			<input type="button" class="button light secondary" id="back" value="返回">
+		</div>
+
+		<div class="eventmain" id="eventconnect">
+			<div class="text big bold textcenter">藥物回傳</div>
+
+			<div class="inputdiv">
+				<div class="label">無人機註冊號碼</div>
+				<div class="input big underline endicon">
+					<input type="text" id="droneno">
+					<div class="icon cursor-pointer" id="droneqrcodeicon"><img src="../material/icon/qrcodeicon.svg" class="iconinputicon" draggable="false"></div>
+				</div>
+			</div>
+
+			<!-- Modified section with 作物名稱, 面積 input, and unit dropdown -->
+			<div class="pb-1 flex">
+				<div class="inputdiv nameinputdiv">
+					<div class="label">作物名稱</div>
+					<div class="input big underline" id="namediv">
+						<input type="text" id="cropname" autocomplete="off">
+					</div>
+				</div>
+				<div class="inputdiv areainputdiv">
+					<div class="label">面積</div>
+					<div class="input big underline" id="areadiv">
+						<input type="number" id="area" placeholder="面積">
+					</div>
+				</div>
+				<div class="inputdiv">
+					<div class="label">單位</div>
+					<div class="select unitselect">
+						<select id="unit">
+							<option value="1">分</option>
+							<option value="10">甲</option>
+						</select>
+					</div>
+				</div>
+			</div>
+			<div class="tagdivdiv" id="tagdiv" style="display: none;"></div>
+
+			<div class="inputdiv">
+				<div class="label">🧑‍🌾客戶名稱</div>
+				<div class="input big underline">
+					<input type="text" id="customername" data-id="null" autocomplete="off">
+				</div>
+				<div id="customernametagdiv"></div>
+			</div>
+
+			<div class="inputdiv">
+				<div class="label">客戶類型</div>
+				<div class="select fill">
+					<select class="fill textcenter" id="usertype">
+						<option value="普通客戶">普通顧客</option>
+						<!-- <option value="產履客戶">產履顧客</option> -->
+					</select>
+				</div>
+			</div>
+
+			<!-- 新增的 radio 欄位 -->
+			<div class="inputdiv">
+				<div class="label">代工類型</div>
+				<div>
+					<label class="radio">
+						<input type="radio" name="oemed" value="01">
+						代工帶料
+					</label>
+					<label class="radio">
+						<input type="radio" name="oemed" value="02" checked>
+						代工不帶料
+					</label>
+				</div>
+
+				<input type="button" class="button oemedfileuploadbutton" id="oemedfileuploadbutton" value="代工代料圖片上傳">
+			</div>
+		</div>
+
+		<div class="eventmain" id="eventselection">
+			<div class="textright">
+				<input type="button" class="button outline display-none" id="plantdoctor" value="免登照片回傳">
+			</div>
+			<div class="text big bold textcenter">藥品清單</div>
+			<label class="flex main secondary square dense margin-10px_0px cursor-pointer userSelect-none">
+				<div class="text normal bold">本次作業使用免登資材</div>
+				<input type="checkbox" class="checkbox big" id="usebindingmaterial">
+			</label>
+			<div class="inputdiv" id="materialdiv">
+				<div class="label">藥品條碼</div>
+				<div class="input big underline endicon">
+					<input type="text" id="barcode">
+					<div class="icon cursor-pointer" id="barcodeicon"><img src="../material/icon/qrcodeicon.svg" class="iconinputicon" draggable="false"></div>
+				</div>
+				<input type="button" class="button outline" id="barcodesubmit" value="送出">
+				<!-- 新增查看農藥組合按鈕 -->
+				<input type="button" class="button outline" id="view-combos" value="查看預設農藥組合">
+				<div id="barcodelist"></div>
+			</div>
+		</div>
+
+		<!-- 農藥組合彈出視窗 -->
+		<div class="modal" id="combo-modal">
+			<div class="combo-modal-content">
+				<h3>選擇農藥組合</h3>
+				<div id="combo-list-modal"></div>
+				<button class="close-modal" onclick="closeComboModal()">關閉</button>
+			</div>
+		</div>
+
+		<div class="eventmain">
+			<div class="text big bold textcenter">飛行紀錄</div>
+			<div class="textcenter">
+				<input type="button" class="button outline" id="startflight" value="開始飛行">
+				<input type="button" class="button outline" id="endflight" value="結束飛行">
+			</div>
+		</div>
+
+		<br>
+
+		<div class="eventmain">
+			<input type="button" class="button secondary fill" id="submit" value="上傳">
+		</div>
+
+		<input type="file" class="display-none" id="qrcodecapture" capture="environment" accept="image/*">
+		<input type="file" class="display-none" id="capture" capture="environment" accept="image/*">
+		<input type="file" class="display-none" id="oemedfileupload" capture="environment" accept="image/*">
+
+		<div id="lightbox"></div>
+
+		<script>
+			// 假設的條碼-名稱映射表
+			const pesticideMap = {
+				"4711234567890": "殺蟲劑A",
+				"4719876543210": "除草劑B",
+				"4715556667778": "殺菌劑C",
+				"4712223334445": "肥料D"
+			};
+
+			// 假資料：農藥組合
+			const combos = [
+				{
+					name: "水稻組合",
+					pesticides: [
+						{ code: "4711234567890", name: pesticideMap["4711234567890"] },
+						{ code: "4719876543210", name: pesticideMap["4719876543210"] }
+					]
+				},
+				{
+					name: "蔬菜組合",
+					pesticides: [
+						{ code: "4715556667778", name: pesticideMap["4715556667778"] },
+						{ code: "4712223334445", name: pesticideMap["4712223334445"] }
+					]
+				}
+			];
+
+			// 儲存當前藥品清單
+			let barcodeList = [];
+
+			// 頁面載入時初始化
+			window.onload = function() {
+				// 綁定「查看農藥組合」按鈕事件
+				const viewCombosButton = document.getElementById('view-combos');
+				if (viewCombosButton) {
+					viewCombosButton.addEventListener('click', showComboModal);
+				} else {
+					console.error("未找到 'view-combos' 按鈕");
+				}
+
+				// 綁定「送出」按鈕事件（手動輸入條碼）
+				const barcodeSubmitButton = document.getElementById('barcodesubmit');
+				if (barcodeSubmitButton) {
+					barcodeSubmitButton.addEventListener('click', addBarcode);
+				} else {
+					console.error("未找到 'barcodesubmit' 按鈕");
+				}
+			};
+
+			// 顯示農藥組合彈出視窗
+			function showComboModal() {
+				const comboListModal = document.getElementById('combo-list-modal');
+				if (!comboListModal) {
+					console.error("未找到 'combo-list-modal' 元素");
+					return;
+				}
+
+				comboListModal.innerHTML = '';
+
+				combos.forEach((combo, index) => {
+					const comboItem = document.createElement('div');
+					comboItem.className = 'combo-item';
+					comboItem.innerHTML = `
+						<span>${combo.name} (${combo.pesticides.length} 種農藥)</span>
+						<div>
+							<button onclick="togglePesticideList(${index})">查看</button>
+							<button onclick="applyCombo(${index})">套用</button>
+						</div>
+					`;
+
+					// 添加農藥清單（初始隱藏）
+					const pesticideList = document.createElement('div');
+					pesticideList.className = 'pesticide-list';
+					pesticideList.id = `pesticide-list-${index}`;
+					pesticideList.style.display = 'none'; // 確保初始隱藏
+
+					if (combo.pesticides && combo.pesticides.length > 0) {
+						combo.pesticides.forEach(pesticide => {
+							const pesticideItem = document.createElement('div');
+							pesticideItem.className = 'pesticide-item';
+							pesticideItem.innerHTML = `
+								<span>${pesticide.code} - ${pesticide.name}</span>
+							`;
+							pesticideList.appendChild(pesticideItem);
+						});
+					} else {
+						pesticideList.innerHTML = '<span>無農藥資料</span>';
+					}
+
+					comboItem.appendChild(pesticideList);
+					comboListModal.appendChild(comboItem);
+				});
+
+				const comboModal = document.getElementById('combo-modal');
+				if (comboModal) {
+					comboModal.style.display = 'flex';
+				} else {
+					console.error("未找到 'combo-modal' 元素");
+				}
+			}
+
+			// 關閉農藥組合彈出視窗
+			function closeComboModal() {
+				const comboModal = document.getElementById('combo-modal');
+				if (comboModal) {
+					comboModal.style.display = 'none';
+				}
+			}
+
+			// 切換顯示/隱藏農藥清單
+			function togglePesticideList(index) {
+				const pesticideList = document.getElementById(`pesticide-list-${index}`);
+				if (!pesticideList) {
+					console.error(`未找到 pesticide-list-${index} 元素`);
+					return;
+				}
+
+				// 切換顯示狀態
+				if (pesticideList.style.display === 'block') {
+					pesticideList.style.display = 'none';
+				} else {
+					// 隱藏其他農藥清單
+					const allPesticideLists = document.querySelectorAll('.pesticide-list');
+					allPesticideLists.forEach(list => {
+						list.style.display = 'none';
+					});
+					// 顯示當前農藥清單
+					pesticideList.style.display = 'block';
+				}
+			}
+
+			// 套用選中的農藥組合
+			function applyCombo(comboIndex) {
+				const selectedCombo = combos[comboIndex];
+				if (selectedCombo && selectedCombo.pesticides) {
+					// 將組合中的農藥添加到藥品清單
+					selectedCombo.pesticides.forEach(pesticide => {
+						if (!barcodeList.some(item => item.code === pesticide.code)) {
+							barcodeList.push(pesticide);
+						}
+					});
+					updateBarcodeList();
+				}
+				closeComboModal();
+			}
+
+			// 手動輸入條碼並添加
+			function addBarcode() {
+				const barcodeInput = document.getElementById('barcode');
+				if (!barcodeInput) {
+					console.error("未找到 'barcode' 輸入框");
+					return;
+				}
+
+				const barcode = barcodeInput.value.trim();
+				if (!barcode) {
+					alert("請輸入藥品條碼！");
+					return;
+				}
+
+				const pesticideName = pesticideMap[barcode] || "未知農藥";
+				if (!barcodeList.some(item => item.code === barcode)) {
+					barcodeList.push({ code: barcode, name: pesticideName });
+					updateBarcodeList();
+				}
+				barcodeInput.value = ''; // 清空輸入框
+			}
+
+			// 更新藥品清單顯示
+			function updateBarcodeList() {
+				const barcodeListDiv = document.getElementById('barcodelist');
+				if (!barcodeListDiv) {
+					console.error("未找到 'barcodelist' 元素");
+					return;
+				}
+
+				barcodeListDiv.innerHTML = '';
+
+				barcodeList.forEach((item, index) => {
+					const barcodeItem = document.createElement('div');
+					barcodeItem.className = 'barcode-item';
+					barcodeItem.innerHTML = `
+						<span>${item.code} - ${item.name}</span>
+						<button onclick="deleteBarcode(${index})">刪除</button>
+					`;
+					barcodeListDiv.appendChild(barcodeItem);
+				});
+			}
+
+			// 刪除藥品條碼
+			function deleteBarcode(index) {
+				if (confirm("確定要刪除這個藥品嗎？")) {
+					barcodeList.splice(index, 1);
+					updateBarcodeList();
+				}
+			}
+		</script>
+
+		<script src="initialize.js"></script>
+		<script src="event.js"></script>
+		<script src="search.js"></script>
+	</body>
+</html>

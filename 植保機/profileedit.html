@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>個人檔案設定</title>
+        <link rel="stylesheet" href="index2.css">
+        <style>
+            .navigationbar {
+                background-color: rgba(255, 255, 255, 0.1);
+                padding: 10px 0px;
+                margin-bottom: 20px;
+                display: flex;
+                justify-content: center;
+                flex-wrap: wrap;
+                height: initial;
+                width: 100%;
+            }
+
+            .button {
+                background-color: #ffffff;
+                color: rgb(0, 0, 0);
+                border: none;
+                border-radius: 5px;
+                padding: 10px 20px;
+                font-size: 12px;
+                cursor: pointer;
+                transition: background-color 0.3s ease;
+                width: 95%;
+                height: 37px;
+                font-weight: 800;
+            }
+
+            .plan-number-item {
+                display: flex;
+                align-items: center;
+                margin: 10px 0;
+                gap: 10px; /* 元素之間的間距 */
+                flex-wrap: wrap; /* 允許長內容換行 */
+            }
+
+            .plan-number-item input[type="radio"] {
+                margin: 0;
+                width: 20px;
+                height: 20px;
+            }
+
+            .plan-input {
+                flex: 1; /* 讓輸入框佔據剩餘空間 */
+                padding: 8px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 14px;
+                min-width: 150px; /* 確保輸入框有最小寬度 */
+            }
+
+            .business-input {
+                flex: 2; /* 事業描述輸入框更寬 */
+                padding: 8px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 14px;
+                min-width: 200px; /* 確保事業描述輸入框適合長文字 */
+            }
+
+            .add-button, .delete-button {
+                padding: 8px 12px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 14px;
+                transition: background-color 0.3s ease;
+            }
+
+            .add-button {
+                background-color: #4CAF50;
+                color: white;
+            }
+
+            .add-button:hover {
+                background-color: #45a049;
+            }
+
+            .delete-button {
+                background-color: #ff4444;
+                color: white;
+            }
+
+            .delete-button:hover {
+                background-color: #e03e3e;
+            }
+
+            /* 確保標籤和輸入框對齊 */
+            .formgroup {
+                margin-bottom: 15px;
+            }
+
+            .formgroup .label {
+                margin-bottom: 5px;
+                font-weight: bold;
+            }
+
+            /* 調整整體表單的間距 */
+            .profilemain {
+                max-width: 800px; /* 增加最大寬度以適應長文字 */
+                margin: 0 auto;
+                padding: 20px;
+            }
+
+            .profilemain input[type="text"],
+            .profilemain select {
+                width: 100%;
+                padding: 8px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 14px;
+                box-sizing: border-box;
+            }
+
+            .submitbutton {
+                background-color: #007bff;
+                color: white;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size:16px;
+                width: 100%;
+                margin-top: 20px;
+            }
+
+            .submitbutton:hover {
+                background-color: #0056b3;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="navigationbar flexcenter">
+            <input type="button" class="button light secondary" id="back" value="返回">
+        </div>
+        <div class="profiletitle">個人檔案設定</div>
+
+        <div class="profilemain">
+            <div>
+                <h2>1. 設定照片頭像</h2>
+                <div class="avatar-container">
+                    <img src="defult.jpg" class="profileimage" id="profileimage">
+                    <div class="file-input-wrapper">
+                        <label for="profileimagefile">選擇新頭像</label>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h2>2. 設定名稱</h2>
+                <input type="text" id="name" placeholder="請輸入您的名稱">
+            </div>
+
+            <div>
+                <h2>3. 設定可服務的地區（多選）</h2>
+                <select id="area" multiple>
+                    <option value="taipei">台北市</option>
+                    <option value="newtaipei">新北市</option>
+                    <option value="taoyuan">桃園市</option>
+                    <option value="taichung">台中市</option>
+                    <option value="tainan">台南市</option>
+                    <option value="kaohsiung">高雄市</option>
+                    <option value="keelung">基隆市</option>
+                    <option value="hsinchucity">新竹市</option>
+                    <option value="chiayicity">嘉義市</option>
+                    <option value="hsinchu">新竹縣</option>
+                    <option value="miaoli">苗栗縣</option>
+                    <option value="changhua">彰化縣</option>
+                    <option value="nantou">南投縣</option>
+                    <option value="yunlin">雲林縣</option>
+                    <option value="chiayi">嘉義縣</option>
+                    <option value="pingtung">屏東縣</option>
+                    <option value="yilan">宜蘭縣</option>
+                    <option value="hualien">花蓮縣</option>
+                    <option value="taitung">台東縣</option>
+                    <option value="penghu">澎湖縣</option>
+                    <option value="kinmen">金門縣</option>
+                    <option value="lienchiang">連江縣</option>
+                </select>
+            </div>
+
+            <div>
+                <h2>4. 設定無人機註冊編號（必填）</h2>
+                <input type="text" id="droneno" placeholder="請輸入無人機註冊編號">
+            </div>
+
+            <div>
+                <h2>5. 設定選擇噴嘴類型（必填）</h2>
+                <select id="nozzletype">
+                    <option value="fan">扇形</option>
+                    <option value="hollowcone">空心錐形</option>
+                    <option value="solidcone">實心錐形</option>
+                    <option value="offcenter">偏心錐形</option>
+                </select>
+            </div>
+
+            <div>
+                <h2>6. 設定擅長噴灑之作物（非必填）</h2>
+                <input type="text" id="crop" placeholder="請輸入擅長噴灑的作物，用逗號分隔">
+            </div>
+
+            <div class="formgroup">
+                <div class="label">電話</div>
+                <input type="text" id="phone">
+            </div>
+            <div class="formgroup">
+                <div class="label">所靠航之團體/公司統一編號</div>
+                <input type="text" id="groupno">
+            </div>
+            <div class="formgroup">
+                <div class="label">民航局活動計畫編號</div>
+                <div id="planNumbersContainer">
+                    <!-- 這裡將動態插入 radio buttons -->
+                </div>
+                <button type="button" id="addPlanNo" class="add-button">新增計畫編號</button>
+            </div>
+            <div class="formgroup">
+                <div class="label">所靠航之團體/公司名稱</div>
+                <input type="text" id="groupname">
+            </div>
+            <div class="formgroup">
+                <div class="label">身份證號碼</div>
+                <input type="text" id="idcard">
+            </div>
+            <div class="formgroup">
+                <div class="label">防檢局法人系統組織識別碼</div>
+                <input type="text" id="checkcode">
+            </div>
+            <div class="formgroup">
+                <div class="label">gps序號</div>
+                <input type="text" id="gpsno">
+            </div>
+
+            <input type="button" class="submitbutton" id="submit" value="保存設定">
+        </div>
+
+        <input type="file" accept="image/*" id="profileimagefile" class="display-none">
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const container = document.getElementById('planNumbersContainer');
+                const addButton = document.getElementById('addPlanNo');
+                let planCount = 0;
+
+                // 預設的計畫編號和事業描述陣列（可以從後端或本地儲存載入）
+                let planData = [
+                    { number: "PLAN-001", business: "農業無人機噴灑服務 - 北部地區" },
+                    { number: "PLAN-002", business: "農藥噴灑與作物監測 - 中部地區" },
+                    { number: "PLAN-003", business: "精准農業解決方案 - 南部地區" }
+                ];
+
+                // 初始化時載入計畫編號和事業描述
+                function loadInitialPlans() {
+                    if (planData.length === 0) {
+                        addPlanNumber(); // 至少有一個空白選項
+                    } else {
+                        planData.forEach((plan, index) => addPlanNumber(plan.number, plan.business, index === 0));
+                    }
+                }
+
+                // 新增計畫編號和事業描述的函數
+                function addPlanNumber(number = '', business = '', isChecked = false) {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'plan-number-item';
+                    
+                    const radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = 'planNumber';
+                    radio.value = number;
+                    radio.id = `plan_${planCount}`;
+                    if (isChecked) radio.checked = true;
+
+                    const numberInput = document.createElement('input');
+                    numberInput.type = 'text';
+                    numberInput.value = number;
+                    numberInput.placeholder = '請輸入活動計畫編號';
+                    numberInput.className = 'plan-input';
+                    
+                    const numberLabel = document.createElement('label');
+                    numberLabel.htmlFor = `plan_${planCount}`;
+                    numberLabel.appendChild(numberInput);
+
+                    const businessInput = document.createElement('input');
+                    businessInput.type = 'text';
+                    businessInput.value = business;
+                    businessInput.placeholder = '請輸入空域描述';
+                    businessInput.className = 'business-input';
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = '刪除';
+                    deleteBtn.className = 'delete-button';
+                    deleteBtn.onclick = () => {
+                        if (container.children.length > 1) {
+                            itemDiv.remove();
+                        }
+                    };
+
+                    itemDiv.appendChild(radio);
+                    itemDiv.appendChild(numberLabel);
+                    itemDiv.appendChild(businessInput);
+                    itemDiv.appendChild(deleteBtn);
+                    
+                    container.appendChild(itemDiv);
+                    
+                    planCount++;
+                    
+                    // 當計畫編號輸入框改變時更新 radio 的值
+                    numberInput.addEventListener('input', () => {
+                        radio.value = numberInput.value;
+                    });
+                }
+
+                // 點擊新增按鈕
+                addButton.addEventListener('click', () => {
+                    addPlanNumber();
+                });
+
+                // 儲存時獲取選中的值和所有計畫資料
+                document.getElementById('submit').addEventListener('click', () => {
+                    const selectedPlan = document.querySelector('input[name="planNumber"]:checked');
+                    if (selectedPlan) {
+                        console.log('選中的計畫編號:', selectedPlan.value);
+                    }
+                    const allPlans = Array.from(container.querySelectorAll('.plan-number-item')).map(item => ({
+                        number: item.querySelector('.plan-input').value,
+                        business: item.querySelector('.business-input').value
+                    }));
+                    console.log('所有計畫資料:', allPlans);
+                });
+
+                // 初始化
+                loadInitialPlans();
+            });
+        </script>
+    </body>
+</html>

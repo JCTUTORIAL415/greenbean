@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>預設農藥組合</title>
+        <link rel="stylesheet" href="https://chrisplugin.pages.dev/css/chrisplugin.css">
+        <script src="https://chrisplugin.pages.dev/js/chrisplugin.js"></script>
+        <style>
+            body {
+                background-color: #004D8F;
+                color: white;
+                font-family: Arial, sans-serif;
+                display: flex;
+                justify-content: center;
+                height: 100vh;
+                margin: 0;
+                width: 100%;
+            }
+
+            .setting-contain {
+                text-align: center;
+                width: 90%;
+                max-width: 600px;
+                margin: 120px auto;
+                z-index: 0;
+            }
+
+            .navigationbar {
+                background-color: rgba(255, 255, 255, 0.1);
+                padding: 10px;
+                margin-bottom: 20px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: initial;
+                position: fixed;
+                top: 0;
+                width: 100%;
+                z-index: 1;
+            }
+
+            .button {
+                background-color: #ffffff;
+                color: rgb(0, 0, 0);
+                border: none;
+                border-radius: 5px;
+                padding: 10px 20px;
+                font-size: 12px;
+                cursor: pointer;
+                transition: background-color 0.3s ease;
+                width: 95%;
+                height: 37px;
+                font-weight: 800;
+            }
+
+            .create-button-container {
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                z-index: 1;
+            }
+
+            .create-button {
+                background-color: #ffffff;
+                color: rgb(0, 0, 0);
+                border: none;
+                border-radius: 5px;
+                padding: 8px 15px;
+                font-size: 14px;
+                cursor: pointer;
+                transition: background-color 0.3s ease;
+                font-weight: 800;
+            }
+
+            /* 創建組合表單（改為彈出式） */
+            .modal {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 1000;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .create-section {
+                background-color: white;
+                color: black;
+                padding: 25px;
+                border-radius: 10px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                text-align: left;
+                width: 90%;
+                max-width: 500px;
+                max-height: 80vh;
+                overflow-y: auto;
+                box-sizing: border-box;
+            }
+
+            .create-section h3 {
+                margin: 0 0 15px 0;
+                font-size: 20px;
+                font-weight: bold;
+            }
+
+            .create-section .combo-header {
+                margin-bottom: 15px;
+            }
+
+            .create-section .combo-header input[type="text"] {
+                width: 100%;
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                box-sizing: border-box;
+                height: 45px;
+                font-size: 16px;
+            }
+
+            .create-section .pesticide-list {
+                background-color: #f5f5f5;
+                padding: 10px;
+                border-radius: 5px;
+                margin-bottom: 15px;
+            }
+
+            .create-section .pesticide-list p {
+                margin: 5px 0;
+            }
+
+            .create-section .pesticide-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 5px 0;
+                border-bottom: 1px solid #ddd;
+            }
+
+            .create-section .pesticide-item:last-child {
+                border-bottom: none;
+            }
+
+            .create-section .pesticide-item button {
+                background-color: #ff4444;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                padding: 5px 10px;
+                cursor: pointer;
+            }
+
+            .create-section .input-with-qr {
+                display: flex;
+                align-items: center;
+                margin-top: 10px;
+                position: relative;
+            }
+
+            .create-section .input-with-qr input {
+                width: 100%;
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                box-sizing: border-box;
+                margin-bottom: 10px;
+                height: 45px;
+                font-size: 16px;
+            }
+
+            .create-section .input-with-qr .qr-icon {
+                font-size: 24px;
+                position: absolute;
+                right: 10px;
+                top: 30%;
+                transform: translateY(-50%);
+            }
+
+            .create-section .submit-pesticide {
+                margin-top: 10px;
+                text-align: center;
+            }
+
+            .create-section .submit-pesticide button {
+                background-color: #004D8F;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                padding: 10px 20px;
+                cursor: pointer;
+            }
+
+            .create-section .actions {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: 20px;
+            }
+
+            .create-section .actions button {
+                background-color: #004D8F;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                padding: 10px;
+                cursor: pointer;
+                width: 48%;
+                text-align: center;
+            }
+
+            /* 搜尋欄 */
+            .search-bar {
+                margin-bottom: 20px;
+                text-align: center;
+            }
+
+            .search-bar input {
+                width: 100%;
+                padding: 12px;
+                border-radius: 25px;
+                border: 2px solid #ffffff;
+                font-size: 16px;
+                background-color: rgba(255, 255, 255, 0.1);
+                color: white;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+                transition: all 0.3s ease;
+                box-sizing: border-box;
+            }
+
+            .search-bar input::placeholder {
+                color: rgba(255, 255, 255, 0.7);
+            }
+
+            .search-bar input:focus {
+                outline: none;
+                background-color: rgba(255, 255, 255, 0.2);
+                border-color: #00aaff;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            }
+
+            /* 顯示組合的表格 */
+            .combo-table {
+                margin-top: 20px;
+                background-color: white;
+                color: black;
+                padding: 20px;
+                border-radius: 10px;
+                text-align: left;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            .combo-table h3 {
+                margin: 0 0 10px 0;
+                font-size: 18px;
+                font-weight: bold;
+            }
+
+            .combo-table table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            .combo-table th, .combo-table td {
+                padding: 10px;
+                border-bottom: 1px solid #ddd;
+                text-align: left;
+            }
+
+            .combo-table th {
+                background-color: #f5f5f5;
+                font-weight: bold;
+            }
+
+            .combo-table td button {
+                background-color: #ff4444;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                padding: 5px 10px;
+                cursor: pointer;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="navigationbar flexcenter">
+            <input type="button" class="button" id="back" value="返回" onclick="href('record.html')">
+        </div>
+        <div class="create-button-container">
+            <input type="button" class="create-button" onclick="showCreateSection()" value="創建組合➕">
+        </div>
+        <div class="setting-contain">
+            <h2>預設農藥組合</h2>
+
+            <!-- 創建組合表單（改為彈出式） -->
+            <div class="modal" id="create-modal">
+                <div class="create-section">
+                    <h3>農藥清單</h3>
+                    <div class="combo-header">
+                        <input type="text" id="combo-name-input" placeholder="輸入組合名稱（例如：水稻組合）">
+                    </div>
+                    <div class="pesticide-list">
+                        <p>藥品條碼</p>
+                        <div id="pesticide-list">
+                            <!-- 動態生成農藥清單 -->
+                        </div>
+                        <div class="input-with-qr">
+                            <input type="text" id="pesticide-code-input" placeholder="輸入農藥條碼">
+                            <span class="qr-icon">📷</span>
+                        </div>
+                        <div class="submit-pesticide">
+                            <button onclick="addPesticide()">送出</button>
+                        </div>
+                    </div>
+                    <div class="actions">
+                        <button onclick="saveCombo()">送出</button>
+                        <button onclick="document.getElementById('create-modal').style.display = 'none';">取消</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 搜尋欄 -->
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="搜尋組合...">
+            </div>
+
+            <!-- 顯示組合的表格 -->
+            <div class="combo-table" id="combo-table">
+                <h3>農藥清單</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>組合名稱</th>
+                            <th>農藥名稱</th>
+                            <th>農藥條碼</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="combo-list">
+                        <!-- 動態生成組合清單 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <script>
+            let currentCombo = { name: "", pesticides: [] }; // 包含農藥名稱和條碼
+            let combos = []; // 儲存所有組合
+
+            // 假設的條碼-名稱映射表
+            const pesticideMap = {
+                "4711234567890": "殺蟲劑A",
+                "4719876543210": "除草劑B",
+                "4715556667778": "殺菌劑C",
+                "4712223334445": "肥料D"
+            };
+
+            // 頁面載入時添加假資料
+            window.onload = function() {
+                combos = [
+                    {
+                        name: "水稻組合",
+                        pesticides: [
+                            { code: "4711234567890", name: pesticideMap["4711234567890"] },
+                            { code: "4719876543210", name: pesticideMap["4719876543210"] }
+                        ]
+                    },
+                    {
+                        name: "蔬菜組合",
+                        pesticides: [
+                            { code: "4715556667778", name: pesticideMap["4715556667778"] },
+                            { code: "4712223334445", name: pesticideMap["4712223334445"] }
+                        ]
+                    }
+                ];
+                updateComboTable();
+
+                // 綁定搜尋欄的輸入事件
+                document.getElementById('search-input').addEventListener('input', searchCombos);
+            };
+
+            // 顯示創建組合表單
+            function showCreateSection() {
+                document.getElementById('create-modal').style.display = 'flex';
+                currentCombo = { name: "", pesticides: [] };
+                document.getElementById('combo-name-input').value = '';
+                document.getElementById('pesticide-code-input').value = '';
+                updatePesticideList();
+            }
+
+            // 新增農藥到清單
+            function addPesticide() {
+                const pesticideCode = document.getElementById('pesticide-code-input').value;
+                if (!pesticideCode) {
+                    alert("請輸入農藥條碼！");
+                    return;
+                }
+                const pesticideName = pesticideMap[pesticideCode] || "未知農藥";
+                currentCombo.pesticides.push({ code: pesticideCode, name: pesticideName });
+                document.getElementById('pesticide-code-input').value = ''; // 清空農藥條碼輸入框
+                updatePesticideList();
+            }
+
+            // 更新農藥清單顯示（創建表單）
+            function updatePesticideList() {
+                const pesticideList = document.getElementById('pesticide-list');
+                pesticideList.innerHTML = '';
+
+                currentCombo.pesticides.forEach((pesticide, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'pesticide-item';
+                    item.innerHTML = `
+                        <span>${pesticide.code} - ${pesticide.name}</span>
+                        <button onclick="deletePesticide(${index})">刪除</button>
+                    `;
+                    pesticideList.appendChild(item);
+                });
+            }
+
+            // 刪除農藥
+            function deletePesticide(index) {
+                if (confirm("確定要刪除這個農藥嗎？")) {
+                    currentCombo.pesticides.splice(index, 1);
+                    updatePesticideList();
+                }
+            }
+
+            // 儲存組合
+            function saveCombo() {
+                const comboName = document.getElementById('combo-name-input').value;
+                if (!comboName) {
+                    alert("請輸入組合名稱！");
+                    return;
+                }
+                if (currentCombo.pesticides.length === 0) {
+                    alert("請至少新增一種農藥！");
+                    return;
+                }
+
+                combos.push({ name: comboName, pesticides: [...currentCombo.pesticides] });
+                updateComboTable();
+                document.getElementById('create-modal').style.display = 'none';
+            }
+
+            // 更新顯示組合的表格
+            function updateComboTable(filteredCombos = combos) {
+                const comboList = document.getElementById('combo-list');
+                comboList.innerHTML = '';
+
+                filteredCombos.forEach((combo, comboIndex) => {
+                    combo.pesticides.forEach((pesticide, pesticideIndex) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${pesticideIndex === 0 ? combo.name : ''}</td>
+                            <td>${pesticide.name}</td>
+                            <td>${pesticide.code}</td>
+                            <td>${pesticideIndex === 0 ? `<button onclick="deleteCombo(${comboIndex})">刪除</button>` : ''}</td>
+                        `;
+                        comboList.appendChild(row);
+                    });
+                });
+            }
+
+            // 刪除組合
+            function deleteCombo(index) {
+                if (confirm("確定要刪除這個組合嗎？")) {
+                    combos.splice(index, 1);
+                    updateComboTable();
+                    searchCombos(); // 刪除後重新執行搜尋以更新顯示
+                }
+            }
+
+            // 搜尋組合（包含農藥名稱和條碼）
+            function searchCombos() {
+                const searchTerm = document.getElementById('search-input').value.toLowerCase();
+                
+                // 過濾組合：匹配組合名稱或組合內的農藥名稱/條碼
+                const filteredCombos = combos.filter(combo => {
+                    const matchesComboName = combo.name.toLowerCase().includes(searchTerm);
+                    const matchesPesticide = combo.pesticides.some(pesticide =>
+                        pesticide.name.toLowerCase().includes(searchTerm) ||
+                        pesticide.code.toLowerCase().includes(searchTerm)
+                    );
+                    return matchesComboName || matchesPesticide;
+                });
+
+                updateComboTable(filteredCombos);
+            }
+        </script>
+
+        <script src="initialize.js"></script>
+        <script src="setting.js"></script>
+    </body>
+</html>
