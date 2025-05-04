@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>耕地列表</title>
+    <link rel="stylesheet" href="FarmList.html">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background-color: #fafafa;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #ddd;
+        }
+        .back-button {
+            font-size: 24px;
+            color: #333;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .title {
+            font-size: 24px;
+            color: #333;
+            margin: 0;
+            flex: 1;
+            text-align: left;
+        }
+        .add-button {
+            font-size: 24px;
+            color: #007bff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .container {
+            padding: 20px;
+        }
+        .search-box {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .search-box input {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px 0 0 4px;
+            outline: none;
+        }
+        .search-box button {
+            padding: 10px 15px;
+            font-size: 16px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            border-radius: 0 4px 4px 0;
+        }
+        .land-list {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+        }
+        .land-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .land-item:last-child {
+            border-bottom: none;
+        }
+        .land-item .name {
+            font-size: 18px;
+            color: #333;
+        }
+        .land-item .area {
+            font-size: 16px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <a href="Setting.html" class="back-button">⬅</a>
+    <h1 class="title">耕地列表</h1>
+    <a href="#" class="add-button">➕</a>
+</div>
+
+<div class="container">
+    <div class="search-box">
+        <input type="text" placeholder="搜尋耕地">
+        <button>🔍</button>
+    </div>
+    
+    <div class="land-list">
+        <div class="land-item">
+            <div class="name">五福段 0337-0000 自有</div>
+            <div class="area">0.3196 公頃</div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

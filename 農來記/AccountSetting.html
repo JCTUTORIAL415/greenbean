@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>個人帳號</title>
+    <link rel="stylesheet" href="AccountSetting.css">
+    
+   
+</head>
+<body>
+    <div class="container">
+        <a href="Setting.html" class="back-button">⬅</a>
+        <h2>個人帳號</h2>
+
+        <label for="name">姓名</label>
+        <input type="text" id="name" placeholder="請輸入姓名">
+
+        <label for="phone">手機號碼 (帳號)</label>
+        <input type="text" id="phone" placeholder="請輸入手機號碼">
+
+        <label>性別</label>
+        <div class="gender">
+            <label><input type="radio" name="gender" value="male"> 男</label>
+            <label><input type="radio" name="gender" value="female"> 女</label>
+        </div>
+
+        <label for="password">密碼</label>
+        <input type="password" id="password" placeholder="請輸入密碼">
+
+        <label for="confirm-password">確認密碼</label>
+        <input type="password" id="confirm-password" placeholder="請再次輸入密碼">
+
+        <div class="section-toggle">聯絡資訊</div>
+        <div class="additional-section">
+            <label for="birth-year">出生年次</label>
+            <input type="text" id="birth-year" placeholder="請輸入出生年次">
+
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="請輸入email">
+
+            <label>聯絡地址</label>
+            <div class="address-section">
+                <input type="text" placeholder="郵遞區號">
+                <select>
+                    <option>新竹縣</option>
+                    <option>台北市</option>
+                    <option>台中市</option>
+                    <!-- Add other locations here -->
+                </select>
+                <select>
+                    <option>寶山鄉</option>
+                    <option>竹北市</option>
+                    <!-- Add townships or districts here -->
+                </select>
+            </div>
+
+            <label for="note">備註</label>
+            <input type="text" id="note" placeholder="請輸入備註">
+        </div>
+
+        <button class="save-btn">儲存</button>
+    </div>
+    <script src="AccountSetting.js"></script>
+</body>
+</html>

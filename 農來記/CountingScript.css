@@ -1,0 +1,264 @@
+        /* 基本樣式 */
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #f5f5f5;
+        }
+
+        main {
+            flex: 1;
+            padding: 20px;
+            padding-top: 120px; /* 確保內容不被 Navbar 遮擋 */
+        }
+
+        /* Navbar 樣式 */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: #ccc; /* 灰色背景 */
+            color: black;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+            padding: 10px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* 標題與按鈕組之間的距離 */
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: left; /* 標題靠左 */
+        }
+
+        /* 按鈕組容器 */
+        .button-group {
+            display: flex;
+            justify-content: flex-start;
+            gap: 10px;
+            margin-right: 40px;
+        }
+
+        .button-group button {
+            padding: 15px 30px;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+            border-radius: 30px;
+            color: white;
+            background-color: #2196F3;
+            flex: 1; /* 讓按鈕填滿剩餘空間 */
+            
+        }
+        .button-group :active{
+            opacity: 0.5;
+        }
+        .button-group :hover{
+            opacity: 0.5;
+        }
+
+        .button-group button:last-child {
+            background-color: #FF9800;
+        }
+
+        /* 日期範圍選擇 */
+        .date-range {
+            display: flex;
+            justify-content: center;
+            align-items: center; /* 垂直置中 */
+            gap: 10px;
+            margin-top: 20px;
+            width: 85%; /* 確保佔用 85% 的寬度 */
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .date-range input {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 25px;
+            width: 100%; /* 固定寬度 */
+            text-align: center;
+            cursor: pointer;
+            flex: 1; /* 讓日期輸入框填滿剩餘空間 */
+        }
+
+        /* 記帳帳本名稱輸入欄樣式 */
+        .account-name {
+            display: flex;
+            align-items: center;
+            margin-top: 20px; /* 上方間距 */
+            width: 85%; /* 確保佔用 85% 的寬度 */
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .account-name img {
+            width: 24px; /* 圖標大小 */
+            height: 24px; /* 圖標大小 */
+            margin-right: 10px; /* 圖標與輸入框之間的間距 */
+        }
+
+        .account-name input {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 25px;
+            width: 100%; /* 固定寬度 */
+            text-align: center;
+            cursor: text;
+        }
+
+        /* 支出、收入和損益容器 */
+  /* 支出、收入和損益容器 */
+.financial-summary {
+    display: flex; /* 使用 flex 佈局 */
+    justify-content: space-between; /* 在容器中均勻分配項目 */
+    margin-top: 20px; /* 上方間距 */
+    width: 85%; /* 確保佔用 85% 的寬度 */
+    margin-left: auto;
+    margin-right: auto;
+    border-top: 1px solid #ccc; /* 上方邊框 */
+    border-bottom: 1px solid #ccc; /* 下方邊框 */
+    padding: 10px 0;
+    flex-direction: row; /* 強制保持為橫向排列 */
+    overflow-x: auto; /* 如果內容過多，允許橫向滾動 */
+    font-size: larger;
+}
+
+
+.summary-box {
+    flex: 1;
+    text-align: center;
+    position: relative;
+}
+
+.summary-box:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 10px;
+    width: 1px; /* 直線寬度 */
+    height: 50%; /* 直線高度 */
+    background-color: #ccc; /* 直線顏色 */
+}
+
+        .summary-box p {
+            margin: 5px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 20px; /* 調整標題字體大小 */
+            }
+
+            .button-group button {
+                font-size: 16px;
+                padding: 12px 24px;
+            }
+
+            .date-range {
+                flex-direction: row; /* 確保在小螢幕上保持水平顯示 */
+                gap: 5px; /* 按鈕和輸入框之間的間距 */
+            }
+
+            .date-range input {
+                width: auto; /* 根據內容自動調整寬度 */
+            }
+
+            .account-name {
+                flex-direction: row; /* 確保在小螢幕上保持水平顯示 */
+            }
+
+            .financial-summary {
+                flex-direction: row; /* 小螢幕上顯示為垂直排列 */
+                gap: 10px; /* 每個項目之間的間距 */
+            }
+
+            /* .summary-box:not(:last-child)::after {
+               
+            } */
+        }
+        .navbar {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        display: flex;
+        justify-content: space-around;
+        background-color: #ebebeb;
+        padding: 10px 0;
+        box-shadow: 0 -2px 5px rgba(0,0,0,0.3);
+    }
+    .navbar a {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: rgb(45, 44, 44);
+        text-decoration: none;
+        font-weight: 600;
+        flex: 1;
+        padding: 10px;
+        font-size: 12px;
+        background-color: #ebebeb;
+        margin: 0 5px;
+        border-radius: 8px;
+    }
+    .navbar a img {
+        width: 24px;
+        height: 24px;
+        margin-bottom: 4px;
+    }
+    /* 中間按鈕樣式 */
+    .navbar a#main-button {
+        width: 80px;
+        height: 80px;
+        font-size: 14px;
+        flex: none;
+        background-color: #d55de8;
+        border-radius: 12px;
+        color: azure;
+        margin-top: -40px; /* 將中間按鈕向上移動 */
+    }
+    .navbar a#main-button img {
+        width: 32px;
+        height: 32px;
+    }
+
+    /* 響應式設計 */
+    @media (max-width: 600px) {
+        .navbar a {
+            font-size: 10px;
+            padding: 5px;
+        }
+        .navbar a img {
+            width: 20px;
+            height: 20px;
+        }
+        header .add-button {
+        font-size: 28px;
+        color: white;
+        text-decoration: none;
+        font-weight: bold;
+        padding: 5px;
+        width: 40px; /* 固定寬度 */
+        height: 40px; /* 固定高度 */
+        background-color: #4CAF50;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px; /* 減少左邊距 */
+        cursor: pointer;
+    }
+    }

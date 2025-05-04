@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="index.css">
+    <title>農業記帳系統</title>
+</head>
+<body>
+
+    <!-- 頂部標題區域 -->
+    <header>
+        <h2>帳本管理</h2>
+        <a href="#add" class="add-button" onclick="openModal()">+</a>
+    </header>
+
+    <main>
+        <!-- 搜尋欄和篩選按鈕 -->
+        <div class="search-filter">
+            <input type="text" placeholder="搜尋...">
+            <button>篩選條件</button>
+        </div>
+        
+        <p>這裡是您的記帳內容。</p>
+    </main>
+
+ <!-- 模擬視窗 -->
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h3>新增帳簿</h3>
+        <form>
+            <div class="form-group">
+                <label>帳本名稱：</label>
+                <input type="text" name="帳本名稱" required>
+            </div>
+
+            <div class="form-group">
+                <label>帳本狀態：</label>
+                <select name="帳本狀態">
+                    <option>記帳中</option>
+                    <option>結束記帳</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>作物名稱：</label>
+                <input type="text" name="作物名稱">
+            </div>
+
+            <div class="form-group">
+                <label>品種：</label>
+                <input type="text" name="品種">
+            </div>
+
+            <div class="form-group">
+                <label>開始種植日期：</label>
+                <input type="date" name="開始種植日期">
+            </div>
+
+            <div class="form-group">
+                <label>選擇耕地：</label>
+                <input type="text" name="耕地">
+            </div>
+
+            <div class="form-group">
+                <label>種植總面積：</label>
+                <div class="area-input">
+                    <input type="number" name="面積" placeholder="輸入面積">
+                    <select name="面積單位">
+                        <option>公頃</option>
+                        <option>甲</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit">新增</button>
+            <button type="button" onclick="closeModal()">取消</button>
+        </form>
+    </div>
+</div>
+
+
+    <!-- 底部導航列 -->
+    <div class="navbar">
+        <a href="index.html">
+            <img src="img/notes.png" alt="帳本管理">
+            帳本管理
+        </a>
+        <a href="CountingScript.html">
+            <img src="img/document.png" alt="記帳明細">
+            記帳明細 
+        </a>
+        <a href="AddcountingScript.html" id="main-button">
+            <img src="img/plus.png" alt="開始記帳">
+            開始記帳
+        </a>
+        <a href="reportManagement.html">
+            <img src="img/manage.png" alt="報表管理">
+            報表管理
+        </a>
+        <a href="Setting.html">
+            <img src="img/settings.png" alt="設定管理">
+            設定管理
+        </a>
+    </div>
+
+    <script src="index.js"></script>
+</body>
+</html>

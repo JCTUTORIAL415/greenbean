@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新增記帳</title>
+    <link rel="stylesheet" href="AddcountingScript.css">
+    <script>
+        // JavaScript函數用於獲取當前日期
+        function displayCurrentDate() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0'); // 月份從0開始
+            const day = String(today.getDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`;
+            document.getElementById('current-date').textContent = formattedDate;
+            return formattedDate; // 返回當前日期
+        }
+        
+        // 當頁面加載完成時顯示當前日期
+        window.onload = displayCurrentDate;
+
+        // 切換顯示支出或收入表單
+        function toggleForm(type) {
+            const expenseForm = document.getElementById('expense-form');
+            const incomeForm = document.getElementById('income-form');
+            if (type === 'expense') {
+                expenseForm.style.display = 'block';
+                incomeForm.style.display = 'none';
+                document.getElementById('expense-button').classList.add('active');
+                document.getElementById('income-button').classList.remove('active');
+            } else {
+                expenseForm.style.display = 'none';
+                incomeForm.style.display = 'block';
+                document.getElementById('income-button').classList.add('active');
+                document.getElementById('expense-button').classList.remove('active');
+            }
+        }
+    </script>
+</head>
+<body>
+    <!-- Navbar 標題和按鈕組 -->
+    <header>
+        <h1>新增記帳</h1>
+        <div class="button-group">
+            <button id="expense-button" onclick="toggleForm('expense')" class="active">支出</button>
+            <button id="income-button" onclick="toggleForm('income')">收入</button>
+        </div>
+    </header>
+
+    <main>
+        <!-- 日期 -->
+        <span id="current-date" style="margin-bottom: 20px;"></span> <!-- 動態顯示日期 -->
+
+        <!-- 支出表單 -->
+        <div id="expense-form">
+            <div class="photo-date">
+                <button id="take-photo">拍攝照片📸</button>
+            </div>
+
+            <div class="account-name">
+                <input type="text" placeholder="帳本名稱" id="account-name" readonly onclick="openAccountModal()">
+            </div>
+
+            <div class="expense-category">
+                <input type="text" id="expense-category" placeholder="選擇費用類別" readonly onclick="openModal()">
+            </div>
+
+            <div class="amount-quantity">
+                <input type="number" placeholder="金額" id="amount">
+                <div class="quantity-container">
+                    <input type="number" placeholder="數量" id="quantity">
+                    <select id="unit">
+                        <option value="個">個</option>
+                        <option value="包">包</option>
+                        <option value="瓶">瓶</option>
+                    </select>
+                </div>
+                <div class="total-amount">
+                    <input type="text" placeholder="總金額" id="total-amount" readonly>
+                </div>
+            </div>
+
+            <div class="product">
+                <input type="text" placeholder="商品庫存（批號）" id="productNum" readonly onclick="openProductModal()">
+            </div>
+
+            <div class="remarks">
+                <textarea placeholder="備註"></textarea>
+            </div>
+
+            <div class="submit-buttons">
+                <button id="cancel-button">取消</button>
+                <button id="submit-button">送出</button>
+            </div>
+        </div>
+
+        <!-- 收入表單 -->
+        <div id="income-form" style="display: none;">
+            <div class="photo-date">
+                <button id="take-photo">拍攝照片📸</button>
+            </div>
+
+            <div class="account-name">
+                <input type="text" placeholder="帳本名稱" id="account-name-income" readonly onclick="openAccountModal()">
+            </div>
+
+            <div class="expense-category">
+                <input type="text" id="income-category" placeholder="選擇收入類別" readonly onclick="openIncomeModal()">
+            </div>
+
+            <div class="amount-quantity">
+                <input type="number" placeholder="金額" id="income-amount">
+                <div class="quantity-container">
+                    <input type="number" placeholder="數量" id="income-quantity">
+                    <select id="unit-income">
+                        <option value="個">個</option>
+                        <option value="包">包</option>
+                        <option value="瓶">瓶</option>
+                    </select>
+                </div>
+                <div class="total-amount">
+                    <input type="text" placeholder="總金額" id="total-income" readonly>
+                </div>
+            </div>
+
+            <div class="product">
+                <input type="text" placeholder="商品庫存（批號）" id="productNum-income" readonly onclick="openProductModal()">
+            </div>
+
+            <div class="collection-status">
+                <input type="text" placeholder="收款狀態(日期):" id="collection-status" >
+                <select id="collection-status-select">
+                    <option value="未收款">未收款</option>
+                    <option value="已收款">已收款</option>
+                </select>
+            </div>
+            
+            <div class="remarks">
+                <textarea placeholder="備註"></textarea>
+            </div>
+
+            <div class="submit-buttons">
+                <button id="cancel-button">取消</button>
+                <button id="submit-button">送出</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- 模態對話框代碼保持不變 -->
+    <div id="accountModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAccountModal()">&times;</span>
+            <h2>選擇帳本名稱</h2>
+            <input type="text" id="note-search" placeholder="輸入或搜尋帳本名稱" oninput="">
+            <label><input type="radio" name="account" value="帳本A"> 帳本A</label>
+            <label><input type="radio" name="account" value="帳本B"> 帳本B</label>
+            <label><input type="radio" name="account" value="帳本C"> 帳本C</label>
+            <button class="selectbutton" onclick="confirmAccountSelection()">確認選擇</button>
+        </div>
+    </div>
+
+    <div id="expenseModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>選擇費用類別</h2>
+            <input type="text" id="expense-search" placeholder="搜尋費用類別" oninput="">
+            <label><img src="img/plant.png" alt="seedlings icon" class="icon"><input type="radio" name="expense" value="種苗費"> 種苗費</label>
+            <label><img src="img/fertilizer.png" alt="pesticide icon" class="icon"><input type="radio" name="expense" value="農藥費"> 農藥費</label>
+            <label><img src="img/fertilizer (1).png" alt="fertilizer icon" class="icon"><input type="radio" name="expense" value="肥料費"> 肥料費</label>
+            <label><img src="img/fuse-box.png" alt="electric icon" class="icon"><input type="radio" name="expense" value="能源費"> 能源費</label>
+            <label><img src="img/material.png" alt="material icon" class="icon"><input type="radio" name="expense" value="材料費"> 材料費</label>
+            <label><img src="img/salary.png" alt="salery icon" class="icon"><input type="radio" name="expense" value="工資費"> 工資費</label>
+            <label><img src="img/land.png" alt="rent icon" class="icon"><input type="radio" name="expense" value="地租"> 地租</label>
+            <label><img src="img/repair-tools.png" alt="repair icon" class="icon"><input type="radio" name="expense" value="維修費"> 維修費</label>
+            <label><img src="img/more.png" alt="other icon" class="icon"><input type="radio" name="expense" value="其他"> 其他</label>
+            <label><img src="img/water.png" alt="water icon" class="icon"><input type="radio" name="expense" value="購水費"> 購水費</label>
+            <button class="selectbutton" onclick="confirmSelection()">確認選擇</button>
+        </div>
+    </div>
+    <div id="secondaryModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSecondaryModal()">&times;</span>
+            <h2>選擇費用子項目</h2>
+            <input type="text" id="secondary-search" placeholder="搜尋次要選項">
+            <label><input type="radio" name="secondary-option" value="選項A"> 選項A</label>
+            <label><input type="radio" name="secondary-option" value="選項B"> 選項B</label>
+            <label><input type="radio" name="secondary-option" value="選項C"> 選項C</label>
+            <button class="selectbutton" onclick="confirmSecondarySelection()">確認選擇</button>
+        </div>
+    </div>
+    
+
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeProductModal()">&times;</span>
+            <h2>選擇商品批號</h2>
+            <input type="text" id="product-search" placeholder="輸入或搜尋商品批號">
+            <label><input type="radio" name="product" value="無" checked> 無</label>
+            <label><input type="radio" name="product" value="批號A"> 批號A</label>
+            <label><input type="radio" name="product" value="批號B"> 批號B</label>
+            <label><input type="radio" name="product" value="批號C"> 批號C</label>
+            <button class="selectbutton" onclick="confirmProductSelection()">確認選擇</button>
+        </div>
+    </div>
+    <div id="incomeModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeIncomeModal()">&times;</span>
+            <h2>選擇費用類別</h2>
+            <input type="text" id="expense-search" placeholder="搜尋收入類別" oninput="">
+            <label><img src="img/wheat-plant.png" alt="wheat icon" class="icon"><input type="radio" name="income" value="作物銷售"> 作物銷售</label>
+            <label><img src="img/vegetables.png" alt="SecondaryProduct icon" class="icon"><input type="radio" name="income" value="副產品銷售"> 副產品銷售</label>
+            <label><img src="img/coin.png" alt="coin icon" class="icon"><input type="radio" name="income" value="其他"> 其他</label>
+            <button class="selectbutton" onclick="confirmIncomeSelection()">確認選擇</button>
+        </div>
+    </div>
+    <div id="IncomesecondaryModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeIncomeSecondaryModal()">&times;</span>
+            <h2>選擇費用子項目</h2>
+            <input type="text" id="secondary-search" placeholder="搜尋次要選項">
+            <label><input type="radio" name="Incomesecondary-option" value="選項A"> 選項A</label>
+            <label><input type="radio" name="Incomesecondary-option" value="選項B"> 選項B</label>
+            <label><input type="radio" name="Incomesecondary-option" value="選項C"> 選項C</label>
+            <button class="selectbutton" onclick="confirmIncomeSecondarySelection()">確認選擇</button>
+        </div>
+    </div>
+    <script src="Addcounting.js"></script>
+</body>
+</html>

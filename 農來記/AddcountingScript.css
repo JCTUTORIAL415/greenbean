@@ -1,0 +1,406 @@
+/* Reset 一些預設樣式 */
+body, h1, h2, h3, p, button {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 整體樣式 */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    padding: 20px;
+}
+
+/* Header 樣式 */
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #ccc;
+    color: black;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+    padding: 15px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+/* 標題樣式 */
+header h1 {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: left;
+}
+
+.button-group {
+    position: relative;
+    margin-left: 30px;
+    display: flex;
+    gap: 10px;
+    width: 90%; 
+    justify-content: flex-start;
+    flex-wrap: nowrap; /* 保持在同一行 */
+    overflow-x: auto; /* 超出時可滑動 */
+}
+
+/* 按鈕樣式 */
+.button-group button {
+    padding: 15px 30px;
+    font-size: 18px;
+    border: none;
+    cursor: pointer;
+    border-radius: 30px;
+    color: white;
+    background-color: #2196F3;
+    flex: 1 0 auto;
+    max-width: 700px;
+    transition: opacity 0.3s;
+    
+ 
+}
+
+.button-group button:hover {
+    opacity: 0.8;
+}
+
+.button-group button:last-child {
+    background-color: #FF9800;
+}
+
+
+/* Main 內容與 Header 間距 */
+main {
+    margin-top: 130px;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    min-height: calc(100vh - 200px);
+    padding-bottom: 80px; /* 增加底部內邊距以避免內容與導航列重疊 */
+}
+
+/* 照相按鈕和日期區域 */
+.photo-date {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#current-date {
+    font-size: 18px;
+}
+
+/* 帳本名稱輸入欄 */
+.account-name {
+    margin-bottom: 20px;
+}
+
+/* 表單元件通用樣式 */
+input[type="text"],
+input[type="number"],
+textarea,
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-top: 5px;
+}
+
+/* 費用類別與金額 */
+.expense-category,
+.amount-quantity {
+    margin-bottom: 20px;
+}
+
+.quantity-container {
+    display: flex;
+    gap: 10px;
+}
+
+/* 總金額輸入欄 */
+.total-amount {
+    margin-bottom: 20px;
+}
+
+/* 備註欄 */
+.remarks {
+    margin-bottom: 20px;
+}
+
+/* 取消和送出按鈕區域 */
+.submit-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+#cancel-button, 
+#submit-button {
+    width: 48%;
+    padding: 15px;
+    border: none;
+    border-radius: 25px;
+    color: white;
+    cursor: pointer;
+    transition: opacity 0.3s;
+}
+
+#cancel-button {
+    background-color: #f44336;
+}
+
+
+#cancel-button:hover, 
+#cancel-button:active {
+    opacity: 0.8;
+}
+
+#submit-button {
+    background-color: #4CAF50;
+}
+
+#submit-button:hover, 
+#submit-button:active {
+    opacity: 0.8;
+}
+
+/* 響應式設計 - 小螢幕優化 */
+@media (max-width: 768px) {
+    .button-group {
+        position: relative;
+        right: 3px;
+        overflow-x: hidden; /* 防止小螢幕時橫向滾動 */
+        flex-wrap: nowrap; /* 仍保持按鈕同排 */
+        justify-content: space-between;
+        max-width: 400px;
+        right: 5%;
+        
+    }
+
+    .submit-buttons {
+        flex-direction: column;
+    }
+
+    #cancel-button, #submit-button {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
+.modal {
+    display: none; /* 隱藏模態對話框 */
+    position: fixed; 
+    z-index: 1; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgba(0, 0, 0, 0.5); 
+    padding-top: 60px;
+    /* margin-top: 50px; */ /* 不需要這一行 */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto; /* 使模態居中 */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 90%; /* 基本寬度 */
+    max-width: 500px; 
+    /* 這裡增加內邊距以避免內容緊貼邊緣 */
+    padding: 20px; /* 確保內容不緊貼邊緣 */
+    box-sizing: border-box; /* 包括 padding 在內 */
+}
+
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: flex;
+            align-items: center; /* 垂直對齊 */
+            margin: 10px 0;
+        }
+
+        .icon {
+            width: 25px; /* 圖標寬度 */
+            height: 25px; /* 圖標高度 */
+            margin-right: 8px; /* 圖標與文字的間距 */
+        }
+
+        .selectbutton {
+            background-color: #E98080; /* 按鈕背景色 */
+            color: white; /* 按鈕文字顏色 */
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            width: 100%; /* 按鈕寬度 */
+            font-size: 16px;
+            border-radius: 25px;
+        }
+        #take-photo{
+            background-color: #f5f5f5; /* 按鈕背景色 */
+            color: rgb(0, 0, 0); /* 按鈕文字顏色 */
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            width: 100%; /* 按鈕寬度 */
+         
+            border: solid;
+        }
+
+        .selectbutton:hover {
+            background-color: #d56d6d; /* 鼠標懸停效果 */
+        }
+        label{
+            margin-bottom: 10px;
+        }
+        /* 響應式設計 */
+        @media (max-width: 600px) {
+            .modal-content {
+                width: 95%; /* 小螢幕上寬度 */
+                padding: 10px; /* 減少內邊距 */
+            }
+
+            h2 {
+                font-size: 1.5em; /* 標題字體大小 */
+            }
+
+            .selectbutton {
+                padding: 8px; /* 減少按鈕填充 */
+                font-size: 14px; /* 調整字體大小 */
+            }
+            .modal{
+                margin-top: 150px;
+               
+            }
+        }
+        #account-search,#expense-search,#expenseSecondary-search,#product-search,#note-search,#secondary-search{
+            width: 90%;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+           margin-left: 5%;
+            
+        }
+         /* 新增CSS樣式 */
+         .collection-status {
+            display: flex;
+            align-items: center;
+            margin-top: 10px; /* 可根據需要調整 */
+        }
+
+        .collection-status input {
+            margin-right: 10px; /* 調整文字框與下拉選單之間的距離 */
+            flex: 1; /* 使文字框填滿剩餘空間 */
+        }
+
+        .collection-status select {
+            flex: 0; /* 保持下拉選單的原始大小 */
+            width: 90px;
+        }
+
+
+ /* 表單外框樣式 */
+#expense-form, #income-form {
+    border: 1px solid #b5a6a6; /* 表單邊框顏色 */
+    border-radius: 8px; /* 邊框圓角 */
+    padding: 20px; /* 內邊距 */
+    margin: 20px auto; /* 外邊距，置中 */
+    max-width: 600px; /* 最大寬度 */
+    background-color: #f9f9f9; /* 背景顏色 */
+}
+
+/* 文字輸入框樣式 */
+input[type="text"], input[type="number"], textarea, select {
+    width: 100%; /* 寬度 100% */
+    padding: 10px; /* 內邊距 */
+    margin: 3px 0; /* 上下外邊距 */
+    border: 1px solid #ccc; /* 邊框顏色 */
+    border-radius: 4px; /* 邊框圓角 */
+    font-size: 16px; /* 字體大小 */
+    box-sizing: border-box; /* 包括內邊距和邊框在內的寬度計算 */
+}
+
+/* 對齊輸入框和下拉選單 */
+.account-name, .expense-category, .amount-quantity, .product, .collection-status, .remarks {
+    text-align: center; /* 中央對齊 */
+}
+
+/* 調整文本區和選單的對齊 */
+textarea {
+    resize: vertical; /* 垂直可調整大小 */
+}
+
+/* 按鈕樣式 */
+.submit-buttons button, .cancel-button {
+    background-color: #E98080; /* 按鈕背景顏色 */
+    color: white; /* 文字顏色 */
+    border: none; /* 無邊框 */
+    border-radius: 4px; /* 邊框圓角 */
+    padding: 10px 20px; /* 內邊距 */
+
+    cursor: pointer; /* 鼠標樣式 */
+    font-size: 16px; /* 字體大小 */
+}
+
+/* 按鈕懸停效果 */
+.submit-buttons button:hover {
+    background-color: #d47373; /* 懸停時的背景顏色 */
+}
+
+/* 照相按鈕樣式 */
+#take-photo {
+    background-color: #8e928e; /* 綠色背景 */
+    color: white; /* 文字顏色 */
+    border: none; /* 無邊框 */
+    border-radius: 4px; /* 邊框圓角 */
+    padding: 10px; /* 內邊距 */
+    cursor: pointer; /* 鼠標樣式 */
+    font-size: 16px; /* 字體大小 */
+}
+
+/* 照相按鈕懸停效果 */
+#take-photo:hover {
+    background-color: #b2b4b2; /* 懸停時的背景顏色 */
+}
+
+/* 隱藏下拉選單 */
+.collection-status select {
+    display: inline-block; /* 使下拉選單與文字在同一行 */
+    margin-left: 10px; /* 左邊距 */
+    vertical-align: middle; /* 垂直對齊 */
+}
+#incomeModal{
+    margin-top: 30px;
+
+}

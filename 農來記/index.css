@@ -1,0 +1,246 @@
+       /* 基本樣式 */
+       body, html {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+    main {
+        flex: 1;
+        padding: 20px;
+        padding-top: 30px; /* 確保內容不被頂部區域遮擋 */
+    }
+    /* 頂部標題樣式 */
+    header {
+        position: relative;
+        top: 0;
+        width: 100%;
+        background-color: #4CAF50;
+        color: white;
+        display: flex;
+        align-items: center;
+        padding: 10px 20px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        z-index: 10;
+    }
+    header h2 {
+        margin: 0;
+        font-size: 18px;
+        flex-grow: 1;
+        white-space: nowrap; /* 確保標題不換行 */
+    }
+    header .add-button {
+        font-size: 28px;
+        color: white;
+        text-decoration: none;
+        font-weight: bold;
+        padding: 5px;
+        width: 40px; /* 固定寬度 */
+        height: 40px; /* 固定高度 */
+        background-color: #4CAF50;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 30px; /* 減少左邊距 */
+        cursor: pointer;
+    }
+    /* 搜尋欄和篩選按鈕樣式 */
+    .search-filter {
+        display: flex;
+        align-items: center;
+        margin: 10px 0;
+    }
+    .search-filter input[type="text"] {
+        flex: 1;
+        padding: 8px;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    .search-filter button {
+        padding: 8px 12px;
+        margin-left: 10px;
+        font-size: 14px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    /* 底部導航列樣式 */
+    .navbar {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        display: flex;
+        justify-content: space-around;
+        background-color: #ebebeb;
+        padding: 10px 0;
+        box-shadow: 0 -2px 5px rgba(0,0,0,0.3);
+    }
+    .navbar a {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: rgb(45, 44, 44);
+        text-decoration: none;
+        font-weight: 600;
+        flex: 1;
+        padding: 10px;
+        font-size: 12px;
+        background-color: #ebebeb;
+        margin: 0 5px;
+        border-radius: 8px;
+    }
+    .navbar a img {
+        width: 24px;
+        height: 24px;
+        margin-bottom: 4px;
+    }
+    /* 中間按鈕樣式 */
+    .navbar a#main-button {
+        width: 80px;
+        height: 80px;
+        font-size: 14px;
+        flex: none;
+        background-color: #d55de8;
+        border-radius: 12px;
+        color: azure;
+        margin-top: -40px; /* 將中間按鈕向上移動 */
+    }
+    .navbar a#main-button img {
+        width: 32px;
+        height: 32px;
+    }
+
+    /* 響應式設計 */
+    @media (max-width: 600px) {
+        .navbar a {
+            font-size: 10px;
+            padding: 5px;
+        }
+        .navbar a img {
+            width: 20px;
+            height: 20px;
+        }
+        header .add-button {
+        font-size: 28px;
+        color: white;
+        text-decoration: none;
+        font-weight: bold;
+        padding: 5px;
+        width: 40px; /* 固定寬度 */
+        height: 40px; /* 固定高度 */
+        background-color: #4CAF50;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px; /* 減少左邊距 */
+        cursor: pointer;
+    }
+    }
+
+    /* Modal Background */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+   
+}
+
+/* Modal Content */
+.modal-content {
+    background-color: #fff;
+    padding: 20px;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 8px;
+    position: relative;
+  
+}
+
+/* Close Button */
+.close {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+/* Form styles */
+form label {
+    display: block;
+    margin-top: 10px;
+}
+form input, form select, form button {
+    width: 100%;
+    margin: 5px 0;
+    padding: 8px;
+    box-sizing: content-box;
+    border-radius: 5px;
+}
+form button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+form button[type="button"] {
+    background-color: #f44336;
+}
+/* 種植總面積的排版 */
+/* 表單欄位整齊排列 */
+.form-group {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 5px;
+}
+
+/* 種植總面積的排版 */
+.area-input {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* 控制兩個欄位之間的間距 */
+}
+
+.area-input input {
+    flex: 1;
+}
+
+.area-input select {
+    width: auto;
+}
+
+/* 表單按鈕樣式 */
+form button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+form button[type="button"] {
+    background-color: #f44336;
+}
+
+

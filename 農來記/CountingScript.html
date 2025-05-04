@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>記帳明細</title>
+    <link rel="stylesheet" href="CountingScript.css">
+</head>
+<body>
+
+    <!-- Navbar 標題和按鈕組 -->
+    <header>
+        <h1>記帳明細</h1>
+        <div class="button-group">
+            <button id="ledger-button">流水帳</button>
+            <button id="record-button">出入庫紀錄</button>
+        </div>
+    </header>
+
+    <main>
+        <!-- 日期範圍選擇 -->
+        <div class="date-range">
+            <input type="date" id="start-date" placeholder="開始日期" value="<?php echo date('Y-m-d'); ?>">
+            <span>～</span>
+            <input type="date" id="end-date" placeholder="結束日期" value="<?php echo date('Y-m-d'); ?>">
+        </div>
+
+        <!-- 記帳帳本名稱輸入欄 -->
+        <div class="account-name">
+            <img src="img/notes.png" alt="帳本圖標"> <!-- 替換為你的圖標路徑 -->
+            <input type="text" placeholder="記帳帳本名稱">
+        </div>
+
+        <!-- 支出、收入和損益容器 -->
+        <div class="financial-summary">
+            <div class="summary-box">
+                <p style="color: red;">支出</p>
+                <p style="color: red;">0</p> <!-- 這裡可以替換為實際數字 -->
+            </div>
+            <div class="summary-box">
+                <p style="color: green;">收入</p>
+                <p style="color: green;">0</p> <!-- 這裡可以替換為實際數字 -->
+            </div>
+            <div class="summary-box">
+                <p>損益</p>
+                <p>0</p> <!-- 這裡可以替換為實際數字 -->
+            </div>
+        </div>
+
+        <p>這裡是您的記帳明細內容。</p>
+    </main>
+    <div class="navbar">
+        <a href="index.html">
+            <img src="img/notes.png" alt="帳本管理">
+            帳本管理
+        </a>
+        <a href="CountingScript.html">
+            <img src="img/document.png" alt="記帳明細">
+            記帳明細 
+        </a>
+        <a href="AddcountingScript.html" id="main-button">
+            <img src="img/plus.png" alt="開始記帳">
+            開始記帳
+        </a>
+        <a href="reportManagement.html">
+            <img src="img/manage.png" alt="報表管理">
+            報表管理
+        </a>
+        <a href="Setting.html">
+            <img src="img/settings.png" alt="設定管理">
+            設定管理
+        </a>
+    </div>
+
+    <script>
+        // 確保選擇的結束日期不早於開始日期
+        const startDateInput = document.getElementById('start-date');
+        const endDateInput = document.getElementById('end-date');
+
+        startDateInput.addEventListener('change', () => {
+            endDateInput.min = startDateInput.value; // 更新結束日期的最小值
+        });
+
+        endDateInput.addEventListener('change', () => {
+            startDateInput.max = endDateInput.value; // 更新開始日期的最大值
+        });
+    </script>
+    <script>
+const originalMainContent = `
+    <!-- 日期範圍選擇 -->
+    <div class="date-range">
+        <input type="date" id="start-date" placeholder="開始日期" value="<?php echo date('Y-m-d'); ?>">
+        <span>～</span>
+        <input type="date" id="end-date" placeholder="結束日期" value="<?php echo date('Y-m-d'); ?>">
+    </div>
+
+    <div class="account-name">
+        <img src="img/notes.png" alt="帳本圖標"> <!-- 替換為你的圖標路徑 -->
+        <input type="text" placeholder="記帳帳本名稱">
+    </div>
+
+    <div class="financial-summary">
+        <div class="summary-box">
+            <p style="color: red;">支出</p>
+            <p style="color: red;">0</p>
+        </div>
+        <div class="summary-box">
+            <p style="color: green;">收入</p>
+            <p style="color: green;">0</p>
+        </div>
+        <div class="summary-box">
+            <p>損益</p>
+            <p>0</p>
+        </div>
+    </div>
+
+    <p>這裡是您的記帳明細內容。</p>
+`;
+
+document.getElementById('record-button').addEventListener('click', function() {
+    const main = document.querySelector('main');
+    main.innerHTML = `
+        <!-- 日期範圍選擇 -->
+        <div class="date-range">
+            <input type="date" id="start-date" placeholder="開始日期" value="<?php echo date('Y-m-d'); ?>">
+            <span>～</span>
+            <input type="date" id="end-date" placeholder="結束日期" value="<?php echo date('Y-m-d'); ?>">
+        </div>
+
+        <!-- 記帳帳本名稱輸入欄 -->
+        <div class="account-name">
+            <img src="img/store.png" alt="帳本圖標"> <!-- 替換為你的圖標路徑 -->
+            <input type="text" placeholder="商品名稱">
+        </div>
+
+        <div class="financial-summary">
+            <div class="summary-box">
+                <p>總庫存</p>
+                <p>-</p> <!-- 這裡可以替換為實際數字 -->
+            </div>
+        </div>
+
+        <p>這裡是您的記帳明細內容。</p>
+    `;
+});
+
+document.getElementById('ledger-button').addEventListener('click', function() {
+    const main = document.querySelector('main');
+    main.innerHTML = originalMainContent; // 恢復原本的內容
+});
+
+
+    </script>
+</body>
+</html>

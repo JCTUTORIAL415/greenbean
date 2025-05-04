@@ -1,0 +1,143 @@
+   /* General Styles */
+   body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f5f5;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* Header */
+.header {
+    background-color: #ccc;
+    color: rgb(24, 23, 23);
+    padding: 20px;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 24px; /* 調大標題字體 */
+    margin-left: 15px; /* 將標題靠左對齊 */
+}
+
+.header a {
+    color: #ff2567;
+    position: absolute;
+    font-weight: 600;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    text-decoration: none;
+}
+
+/* Main Content Section */
+.content {
+    flex: 1; /* 使內容區域填滿剩餘空間 */
+    overflow-y: auto; /* 啟用垂直滾動 */
+    padding-bottom: 60px; /* 預留空間避免內容被底部導航欄擋住 */
+}
+
+.section {
+    background-color: #e0e7ff;
+    margin: 10px;
+    padding: 15px;
+    border-radius: 8px;
+    color: #333;
+    font-weight: bold;
+}
+
+/* Submenu items */
+.submenu {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: white;
+    border-radius: 5px;
+    list-style: none;
+    color: #333;
+}
+
+.submenu li {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.submenu li:last-child {
+    border-bottom: none;
+}
+
+.submenu a {
+    text-decoration: none;
+    color: inherit; /* 繼承父元素顏色 */
+    display: block; /* 使整個區域可點擊 */
+}
+
+/* 底部導航列樣式 */
+.navbar {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    background-color: #ebebeb; /* 灰色背景 */
+    padding: 10px 0;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.navbar a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: rgb(45, 44, 44);
+    text-decoration: none;
+    font-weight: 600;
+    flex: 1;
+    padding: 10px;
+    font-size: 12px;
+    background-color: #ebebeb;
+    margin: 0 5px;
+    border-radius: 8px;
+}
+
+.navbar a img {
+    width: 24px;
+    height: 24px;
+    margin-bottom: 4px;
+}
+
+/* 中間按鈕樣式 */
+.navbar a#main-button {
+    width: 80px;
+    height: 80px;
+    font-size: 14px;
+    flex: none;
+    background-color: #d55de8;
+    border-radius: 12px;
+    color: azure;
+    margin-top: -40px; /* 將中間按鈕向上移動 */
+}
+
+.navbar a#main-button img {
+    width: 32px;
+    height: 32px;
+}
+
+/* 響應式設計 */
+@media (max-width: 600px) {
+    .navbar a {
+        font-size: 10px;
+        padding: 5px;
+    }
+    .navbar a img {
+        width: 20px;
+        height: 20px;
+    }
+    .header h1 {
+        font-size: 20px;
+    }
+}

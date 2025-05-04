@@ -1,0 +1,658 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+.header {
+    background-color: #f0f0f0;
+    color: #333;
+    padding: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: left;
+    position: sticky; /* 固定在顶部 */
+    top: 0; /* 顶部位置 */
+    z-index: 1000; /* 确保在其他元素之上 */
+}
+.sub-header {
+    display: flex;
+    color: #888;
+    font-size: 18px;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 10px 0;
+    padding-left: 10px;
+    background-color: #f0f0f0;
+}
+.sub-header span {
+    flex: 1;
+    text-align: center;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+.sub-header .active {
+    color: #6a9afc;
+    font-weight: bold;
+}
+.button-container {
+    text-align: center;
+    margin: 20px;
+}
+.button {
+    background-color: #6a9afc;
+    color: #fff;
+    padding: 15px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 18px;
+    cursor: pointer;
+    width: 750px;
+    max-width: 100%;
+}
+.filter-buttons {
+    display: flex; /* 使用 Flexbox 进行横排 */
+    justify-content: space-around; /* 平均分配空间 */
+    margin: 10px 0; /* 上下外边距 */
+}
+.filter-button {
+    background-color: #f0f0f0;
+    color: #6a9afc;
+    padding: 5px 10px;
+    border: 1px solid #6a9afc;
+    border-radius: 15px;
+    font-size: 14px;
+    cursor: pointer;
+    text-align: center;
+    flex-grow: 1; /* 使按钮在横向上均匀分布 */
+    margin: 0 5px; /* 按钮之间的间距 */
+}
+.filter-button.selected {
+    background-color: #6a9afc;
+    color: #fff;
+}
+.item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    font-size: 16px;
+}
+.income {
+    background-color: #d8f3d4;
+}
+.expense {
+    background-color: #f9d7d7;
+    color: #d40000;
+}
+.profit {
+    text-align: right;
+    font-size: 24px;
+    color: #28a745;
+    margin: 20px;
+}
+.pie-chart {
+    width: 200px;
+    height: 200px;
+    background-color: #c2a3fc;
+    border-radius: 50%;
+    margin: 20px auto;
+    position: relative;
+    animation: grow 1s ease; /* 添加动画效果 */
+}
+.inner-circle {
+    width: 100px;
+    height: 100px;
+    background-color: #fff;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+.percentage {
+    font-size: 24px;
+    color: #ff4da6;
+    position: absolute;
+    bottom: -20px;
+    left: 20px;
+}
+
+hr {
+    border: none;
+    height: 1px;
+    background-color: #6a9afc; /* 横线颜色 */
+    margin: 20px 0; /* 上下外边距 */
+}
+
+/* 动画效果 */
+@keyframes grow {
+    from {
+        transform: scale(0); /* 从0大小开始 */
+    }
+    to {
+        transform: scale(1); /* 到达原大小 */
+    }
+}
+
+/* 模态窗口样式 */
+.modal {
+    display: none; /* 默认隐藏 */
+    position: fixed; /* 固定定位 */
+    z-index: 1001; /* 确保在内容之上 */
+    left: 0;
+    top: 0;
+    width: 100%; /* 全屏宽度 */
+    height: 100%; /* 全屏高度 */
+    overflow: auto; /* 启用滚动 */
+    background-color: rgb(0,0,0); /* 背景颜色 */
+    background-color: rgba(0,0,0,0.4); /* 背景透明度 */
+}
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; /* 使模态内容居中 */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* 宽度 */
+    max-width: 600px; /* 最大宽度 */
+}
+.close {
+    color: #aaa;
+    float: right; /* 右上角 */
+    font-size: 28px;
+    font-weight: bold;
+}
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+.modal-row {
+position: relative;
+display: flex;
+align-items: center;
+margin-bottom: 20px; /* 增加上下间距 */
+top: 50px;
+}
+
+.modal-row label {
+flex: 1.5; /* 增加 label 的宽度 */
+margin-right: 10px;
+font-size: 16px; /* 增大字体 */
+}
+
+.modal-row select,
+.modal-row input {
+flex: 2; /* 保持输入框宽度 */
+padding: 8px; /* 增加内边距 */
+border: 1px solid #ccc;
+border-radius: 6px; /* 增大圆角 */
+font-size: 16px; /* 增大字体 */
+}
+
+.status-button,
+.amountBut {
+background-color: white; /* 默认背景为白色 */
+color: #6a9afc; /* 默认字体颜色 */
+border: 1px solid #6a9afc; /* 边框颜色 */
+border-radius: 6px; /* 增大圆角 */
+padding: 10px 15px; /* 增加内边距 */
+margin-right: 5px;
+cursor: pointer;
+font-size: 16px; /* 增大字体 */
+transition: background-color 0.3s; /* 添加平滑过渡效果 */
+}
+
+.status-button.active,
+.amountBut.active {
+background-color: #6a9afc; /* 选中时背景颜色为紫色 */
+color: white; /* 选中时字体颜色为白色 */
+}
+
+.status-button:hover,
+.amountBut:hover {
+background-color: #f0f0f0; /* 鼠标悬停时背景颜色 */
+}
+
+/* 确认按钮样式 */
+.CheckBut {
+background-color: #6a9afc; /* 确认按钮背景为紫色 */
+color: white; /* 确认按钮字体颜色 */
+border: none; /* 去掉边框 */
+border-radius: 6px; /* 增大圆角 */
+padding: 10px 15px; /* 增加内边距 */
+cursor: pointer;
+font-size: 16px; /* 增大字体 */
+transition: background-color 0.3s; /* 添加平滑过渡效果 */
+margin-top: 50px;
+}
+
+.CheckBut:hover {
+background-color: #5b8fd2; /* 确认按钮悬停时背景颜色 */
+}
+
+.modal-row:last-child input {
+flex: 2; /* 使金额输入框宽度和其他输入框一致 */
+padding: 8px; /* 增加内边距 */
+border: 1px solid #ccc;
+border-radius: 6px; /* 增大圆角 */
+font-size: 16px; /* 增大字体 */
+}
+
+
+
+/* 支出、收入和損益容器 */
+.financial-summary {
+    display: flex; /* 使用 flex 佈局 */
+    justify-content: space-between; /* 在容器中均勻分配項目 */
+    margin-top: 20px; /* 上方間距 */
+    width: 85%; /* 確保佔用 85% 的寬度 */
+    margin-left: auto;
+    margin-right: auto;
+    border-top: 1px solid #ccc; /* 上方邊框 */
+    border-bottom: 1px solid #ccc; /* 下方邊框 */
+    padding: 10px 0;
+    flex-direction: row; /* 強制保持為橫向排列 */
+    overflow-x: auto; /* 如果內容過多，允許橫向滾動 */
+}
+
+
+.summary-box {
+    flex: 1;
+    text-align: center;
+    position: relative;
+}
+
+.summary-box:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 10px;
+    width: 1px; /* 直線寬度 */
+    height: 50%; /* 直線高度 */
+    background-color: #ccc; /* 直線顏色 */
+}
+
+        .summary-box p {
+            margin: 5px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 20px; /* 調整標題字體大小 */
+            }
+
+            .button-group button {
+                font-size: 16px;
+                padding: 12px 24px;
+            }
+
+            .date-range {
+                flex-direction: row; /* 確保在小螢幕上保持水平顯示 */
+                gap: 5px; /* 按鈕和輸入框之間的間距 */
+            }
+
+            .date-range input {
+                width: auto; /* 根據內容自動調整寬度 */
+            }
+
+            .account-name {
+                flex-direction: row; /* 確保在小螢幕上保持水平顯示 */
+            }
+
+            .financial-summary {
+                flex-direction: row; /* 小螢幕上顯示為垂直排列 */
+                gap: 10px; /* 每個項目之間的間距 */
+            }
+
+        }
+
+        .table-container {
+            position: relative;
+            top: 30px;
+            width: 100%;
+            max-width: 90%;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            background-color: #ff7f7f;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            font-size: 1em;
+        }
+        .total-row {
+            font-weight: bold;
+            border-top: 2px solid black;
+        }
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            th, td {
+                padding: 10px;
+                font-size: 1em;
+            }
+        }
+        @media (max-width: 480px) {
+            .table-container {
+                width: 90%;
+            }
+            th, td {
+                padding: 8px;
+                font-size: 0.9em;
+            }
+        }
+        .container {
+            width: 90%;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 16px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            font-size: 1.1em;
+        }
+        .item-number {
+            font-weight: bold;
+            color: #555;
+            font-size: 1.3em;
+        }
+        .item-name {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            margin-left: 8px;
+        }
+        .item-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 4px;
+        }
+        .item-name span {
+            color: #555;
+            font-weight: bold;
+        }
+        .item-value {
+            color: #333;
+            font-weight: bold;
+        }
+        .progress-bar {
+            margin-top: 8px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            height: 16px;
+            position: relative;
+        }
+        .progress {
+            width: 100%;
+            height: 100%;
+            background-color: #7baaf7;
+            text-align: center;
+            color: white;
+            font-size: 0.9em;
+            line-height: 16px;
+            font-weight: bold;
+        }
+        .total {
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            padding: 16px 0;
+            font-size: 1.2em;
+            color: #333;
+        }
+        .total-value {
+            color: #7baaf7;
+            font-weight: bold;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 8px;
+            }
+            .item {
+                font-size: 1em;
+            }
+            .progress {
+                font-size: 0.8em;
+            }
+        }
+
+    
+    .main-content {
+        width: 90%; /* 使用百分比寬度 */
+        max-width: 100%; /* 最大寬度限制 */
+        background-color: #ffffff;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+        margin-top: 20px;
+        margin-left: 50px;
+    }
+    .title {
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
+        color: #333;
+        margin-bottom: 20px;
+    }
+    .button {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        background-color: #6c9eff;
+        color: #ffffff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    .button:hover {
+        background-color: #5a86e0;
+    }
+    .date-range {
+        text-align: center;
+        font-size: 16px;
+        margin-bottom: 20px;
+    }
+    .section-header, .expenditure-header {
+        background-color: #d4f8d4;
+        color: #333;
+        padding: 10px;
+        font-size: 18px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .expenditure-header {
+        background-color: #f8d4d4;
+    }
+    .item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+        background-color: #ffffff;
+        margin-bottom: 5px;
+        border-radius: 5px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    .item:last-child {
+        margin-bottom: 0;
+    }
+    .profit {
+        text-align: right;
+        font-size: 24px;
+        color: #4CAF50;
+        margin-top: 20px;
+        font-weight: bold;
+    }
+    .bottom-nav {
+        display: flex;
+        justify-content: space-around;
+        background-color: #ffffff;
+        width: 90%; /* 使用百分比寬度 */
+        max-width: 600px; /* 最大寬度限制 */
+        padding: 10px 0;
+        position: fixed;
+        bottom: 0;
+        border-top: 1px solid #ddd;
+    }
+    .bottom-nav div {
+        text-align: center;
+        font-size: 14px;
+        color: #666;
+    }
+    .start-record {
+        background-color: #ff91a4;
+        color: white;
+        padding: 10px 15px;
+        border-radius: 50%;
+        font-weight: bold;
+    }
+    .content {
+        display: none; /* 初始隱藏內容 */
+    }
+    .triangle {
+        transition: transform 0.3s ease;
+    }
+    .rotated {
+        transform: rotate(90deg); /* 展開時旋轉 */
+    }
+
+    /* 響應式樣式 */
+    @media (max-width: 768px) {
+        .title {
+            font-size: 20px; /* 手機上縮小標題字體 */
+        }
+        .button {
+            font-size: 14px; /* 按鈕字體更小 */
+        }
+        .section-header, .expenditure-header {
+            font-size: 16px; /* 手機上縮小標題字體 */
+        }
+        .profit {
+            font-size: 20px; /* 手機上縮小損益字體 */
+        }
+        .main-content{
+            margin-left: 0px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .button {
+            padding: 8px; /* 按鈕減少內邊距 */
+        }
+        .bottom-nav {
+            flex-direction: column; /* 垂直排列底部導航 */
+            padding: 5px; /* 調整內邊距 */
+        }
+        .bottom-nav div {
+            font-size: 12px; /* 縮小底部導航字體 */
+            padding: 5px 0; /* 增加底部導航按鈕上下邊距 */
+        }
+        .main-content{
+            margin-left: 0px;
+        }
+    }
+
+       /* 底部導航列樣式 */
+       .navbar {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        display: flex;
+        justify-content: space-around;
+        background-color: #ebebeb;
+        padding: 10px 0;
+        box-shadow: 0 -2px 5px rgba(0,0,0,0.3);
+        z-index: 20;
+    }
+    .navbar a {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: rgb(45, 44, 44);
+        text-decoration: none;
+        font-weight: 600;
+        flex: 1;
+        padding: 10px;
+        font-size: 12px;
+        background-color: #ebebeb;
+        margin: 0 5px;
+        border-radius: 8px;
+    }
+    .navbar a img {
+        width: 24px;
+        height: 24px;
+        margin-bottom: 4px;
+    }
+    /* 中間按鈕樣式 */
+    .navbar a#main-button {
+        width: 80px;
+        height: 80px;
+        font-size: 14px;
+        flex: none;
+        background-color: #d55de8;
+        border-radius: 12px;
+        color: azure;
+        margin-top: -40px; /* 將中間按鈕向上移動 */
+    }
+    .navbar a#main-button img {
+        width: 32px;
+        height: 32px;
+    }
+
+    /* 響應式設計 */
+    @media (max-width: 600px) {
+        .navbar a {
+            font-size: 10px;
+            padding: 5px;
+        }
+        .navbar a img {
+            width: 20px;
+            height: 20px;
+        }
+        header .add-button {
+        font-size: 28px;
+        color: white;
+        text-decoration: none;
+        font-weight: bold;
+        padding: 5px;
+        width: 40px; /* 固定寬度 */
+        height: 40px; /* 固定高度 */
+        background-color: #4CAF50;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px; /* 減少左邊距 */
+        cursor: pointer;
+    }
+    }

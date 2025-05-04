@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>農場基本資料</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background-color: #fafafa;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+        }
+        .back-button {
+            font-size: 24px;
+            color: #333;
+            text-decoration: none;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .title {
+            font-size: 24px;
+            color: #333;
+            margin: 0;
+        }
+        .container {
+            position: relative;
+            padding: 20px;
+            max-width: 900px; /* Set a max width */
+            margin: 0 auto; /* Center container */
+            background-color: white;
+            border-radius: 8px; /* Rounded corners for aesthetics */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Soft shadow */
+            margin-top: 80px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            font-size: 16px;
+            color: #333;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            outline: none;
+            box-sizing: border-box; /* Add box-sizing */
+            transition: border-color 0.3s; /* Smooth transition */
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #6495ED;
+        }
+        .radio-group {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+        }
+        .radio-item {
+            margin-right: 15px; /* Spacing between radio items */
+            display: flex; /* Flexbox to align radio button and label */
+            align-items: center; /* Center items vertically */
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #f5f5f5;
+            width: 100%;
+            position: relative;
+        }
+        .save-button {
+            padding: 15px;
+            font-size: 18px;
+            border: none;
+            background-color: #6495ED;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s, transform 0.3s; /* Added transform for effect */
+            width: 100%;
+            max-width: 400px; /* Limit button width */
+            margin: 0 auto; /* Center button */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Soft shadow */
+        }
+        .save-button:hover {
+            background-color: #4169E1;
+            transform: translateY(-2px); /* Button hover effect */
+        }
+        .collapsible {
+            cursor: pointer;
+            font-size: 16px;
+            color: #007bff;
+            display: flex;
+            align-items: center;
+        }
+        .collapsible span {
+            margin-left: 5px;
+        }
+        .content {
+            display: none;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        @media (max-width: 600px) {
+            .title {
+                font-size: 20px; /* Smaller title on mobile */
+            }
+            .form-group label {
+                font-size: 14px; /* Smaller labels on mobile */
+            }
+            .footer {
+                padding: 15px; /* Reduce footer padding on mobile */
+            }
+            .save-button {
+                font-size: 16px; /* Smaller button text on mobile */
+            }
+            .container {
+                padding: 20px;
+                max-width: 90%; /* Adjust max width for mobile */
+                margin-top: 30px; /* Adjust margin for mobile */
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <a href="Setting.html" class="back-button">⬅</a>
+    <h1 class="title">農場基本資料</h1>
+</div>
+
+<div class="container">
+    <!-- 農場名稱 -->
+    <div class="form-group">
+        <label for="farm-name">農場名稱</label>
+        <input type="text" id="farm-name" placeholder="蓋亞營運">
+    </div>
+
+    <!-- 面積單位 -->
+    <div class="form-group">
+        <label for="area-unit">面積單位</label>
+        <select id="area-unit">
+            <option>公頃</option>
+            <option>平方米</option>
+            <option>畝</option>
+        </select>
+    </div>
+
+    <!-- 聯絡資訊展開/收起按鈕 -->
+    <div class="collapsible" onclick="toggleContent()">
+        農場負責人聯絡資訊 <span id="arrow">▼</span>
+    </div>
+
+    <!-- 聯絡資訊內容 -->
+    <div id="contact-info" class="content">
+        <div class="form-group">
+            <label for="contact-name">姓名</label>
+            <input type="text" id="contact-name" placeholder="陳上謙">
+        </div>
+
+        <div class="form-group">
+            <label>性別</label>
+            <div class="radio-group">
+                <div class="radio-item">
+                    <input type="radio" id="male" name="gender" value="male">
+                    <label for="male">男</label>
+                </div>
+                <div class="radio-item">
+                    <input type="radio" id="female" name="gender" value="female">
+                    <label for="female">女</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="birth-year">出生年次</label>
+            <input type="text" id="birth-year" placeholder="76 民國年">
+        </div>
+
+        <div class="form-group">
+            <label for="education">學歷</label>
+            <select id="education">
+                <option>大學</option>
+                <option>高中</option>
+                <option>碩士</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="phone">手機號碼 (帳號)</label>
+            <input type="text" id="phone" placeholder="0986669586">
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="請輸入email">
+        </div>
+
+        <div class="form-group">
+            <label for="county">縣市</label>
+            <select id="county">
+                <option>新竹縣</option>
+                <option>台北市</option>
+                <option>台中市</option>
+                <!-- Add more counties as needed -->
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="township">鄉鎮</label>
+            <select id="township">
+                <option>寶山鄉</option>
+                <option>東區</option>
+                <option>南區</option>
+                <!-- Add more townships as needed -->
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="detailed-address">詳細地址</label>
+            <input type="text" id="detailed-address" placeholder="請輸入詳細地址">
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+    <button class="save-button">儲存</button>
+</div>
+
+<script>
+    function toggleContent() {
+        var content = document.getElementById("contact-info");
+        var arrow = document.getElementById("arrow");
+        if (content.style.display === "block") {
+            content.style.display = "none";
+            arrow.textContent = "▼";
+        } else {
+            content.style.display = "block";
+            arrow.textContent = "▲";
+        }
+    }
+</script>
+
+</body>
+</html>

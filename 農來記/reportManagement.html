@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>報表管理</title>
+    <link rel="stylesheet" href="reportManagement.css">
+</head>
+<body>
+
+    <div class="header">報表管理</div>
+
+    <div class="sub-header">
+        <span onclick="switchPage('page1', this)">帳本別收支統計</span>
+        <span onclick="switchPage('page2', this)">帳本收支比較</span>
+        <!-- <span onclick="switchPage('page3', this)">耕地別收支統計</span> -->
+        <span onclick="switchPage('page4', this)">農場年度損益</span>
+        <span onclick="switchPage('page5', this)">商品銷售統計</span>
+    </div>
+
+    <div class="button-container">
+        <button class="button" onclick="openModal()">查詢條件</button>
+        <div class="filter-buttons">
+            <div class="filter-button selected">支出</div>
+            <div class="filter-button">2024/01/01~2024/12/31</div>
+            <div class="filter-button">總金額</div>
+        </div>
+    </div>
+
+    <div id="pageContent"></div>
+    
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>查詢條件</h2>
+            
+            <div class="modal-row">
+                <label for="cropName">作物名稱:</label>
+                <select id="cropName">
+                    <option value="作物1">作物1</option>
+                    <option value="作物2">作物2</option>
+                    <option value="作物3">作物3</option>
+                </select>
+            </div>
+            
+            <div class="modal-row">
+                <label for="startDate">開始種植日期:</label>
+                <input type="date" id="startDate">
+            </div>
+            
+            <div class="modal-row">
+                <label for="endDate">結束種植日期:</label>
+                <input type="date" id="endDate">
+            </div>
+            
+            <div class="modal-row">
+                <label>損益狀態:</label>
+                <button class="status-button active" onclick="setActiveStatus(this)">支出</button>
+                <button class="status-button" onclick="setActiveStatus(this)">收入</button>
+                <button class="status-button" onclick="setActiveStatus(this)">損益</button>
+            </div>
+            
+            <div class="modal-row">
+                <label>金額:</label>
+                <button class="amountBut" onclick="setActiveAmount(this)">總金額</button>
+                <button class="amountBut" onclick="setActiveAmount(this)">每單位平均金額</button>
+            </div>
+    
+            <button class="CheckBut" onclick="applyFilters()">確認</button>
+        </div>
+    </div>
+
+     <!-- 底部導航列 -->
+     <div class="navbar">
+        <a href="index.html">
+            <img src="img/notes.png" alt="帳本管理">
+            帳本管理
+        </a>
+        <a href="CountingScript.html">
+            <img src="img/document.png" alt="記帳明細">
+            記帳明細 
+        </a>
+        <a href="AddcountingScript.html" id="main-button">
+            <img src="img/plus.png" alt="開始記帳">
+            開始記帳
+        </a>
+        <a href="reportManagement.html">
+            <img src="img/manage.png" alt="報表管理">
+            報表管理
+        </a>
+        <a href="Setting.html">
+            <img src="img/settings.png" alt="設定管理">
+            設定管理
+        </a>
+    </div>
+    <script src="reportManagement.js"></script>
+    
+
+</body>
+</html>

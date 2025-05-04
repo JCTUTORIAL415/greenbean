@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>農場基本資料</title>
+    <link rel="stylesheet" href="Selfinformation.css">
+</head>
+<body>
+
+<div class="header">
+    <a href="Setting.html" class="back-button">⬅</a>
+    <h1 class="title">農場基本資料</h1>
+</div>
+
+<div class="container">
+    <!-- 農場名稱 -->
+    <div class="form-group">
+        <label for="farm-name">農場名稱</label>
+        <input type="text" id="farm-name" placeholder="蓋亞營運">
+    </div>
+
+    <!-- 面積單位 -->
+    <div class="form-group">
+        <label for="area-unit">面積單位</label>
+        <select id="area-unit">
+            <option>公頃</option>
+            <option>平方米</option>
+            <option>畝</option>
+        </select>
+    </div>
+
+    <!-- 聯絡資訊展開/收起按鈕 -->
+    <div class="collapsible" onclick="toggleContent()">
+        農場負責人聯絡資訊 <span id="arrow">▼</span>
+    </div>
+
+    <!-- 聯絡資訊內容 -->
+    <div id="contact-info" class="content">
+        <div class="form-group">
+            <label for="contact-name">姓名</label>
+            <input type="text" id="contact-name" placeholder="陳上謙">
+        </div>
+
+        <div class="form-group">
+            <label>性別</label>
+            <div class="radio-group">
+                <div class="radio-item">
+                    <input type="radio" id="male" name="gender" value="male">
+                    <label for="male">男</label>
+                </div>
+                <div class="radio-item">
+                    <input type="radio" id="female" name="gender" value="female">
+                    <label for="female">女</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="birth-year">出生年次</label>
+            <input type="text" id="birth-year" placeholder="76 民國年">
+        </div>
+
+        <div class="form-group">
+            <label for="education">學歷</label>
+            <select id="education">
+                <option>大學</option>
+                <option>高中</option>
+                <option>碩士</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="phone">手機號碼 (帳號)</label>
+            <input type="text" id="phone" placeholder="0986669586">
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="請輸入email">
+        </div>
+
+        <div class="form-group address-group">
+            <div class="form-group" style="flex: 1;">
+                <label for="county">縣市</label>
+                <select id="county">
+                    <option>新竹縣</option>
+                    <option>台北市</option>
+                    <option>台中市</option>
+                    <!-- Add more counties as needed -->
+                </select>
+            </div>
+
+            <div class="form-group" style="flex: 1;">
+                <label for="township">鄉鎮</label>
+                <select id="township">
+                    <option>寶山鄉</option>
+                    <option>東區</option>
+                    <option>南區</option>
+                    <!-- Add more townships as needed -->
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="detailed-address">詳細地址</label>
+            <input type="text" id="detailed-address" placeholder="請輸入詳細地址">
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+    <button class="save-button">儲存</button>
+</div>
+
+<script>
+    function toggleContent() {
+        var content = document.getElementById("contact-info");
+        var arrow = document.getElementById("arrow");
+        if (content.style.display === "block") {
+            content.style.display = "none";
+            arrow.textContent = "▼";
+        } else {
+            content.style.display = "block";
+            arrow.textContent = "▲";
+        }
+    }
+</script>
+
+</body>
+</html>
