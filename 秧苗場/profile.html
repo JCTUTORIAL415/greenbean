@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>秧苗場個人檔案設定 - 響應式表單</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
+  <style>
+    /* 重置樣式 */
+    html, body, div, span, applet, object, iframe,
+    h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+    a, abbr, acronym, address, big, cite, code,
+    del, dfn, em, img, ins, kbd, q, s, samp,
+    small, strike, strong, sub, sup, tt, var,
+    b, u, i, center,
+    dl, dt, dd, ol, ul, li,
+    fieldset, form, label, legend,
+    table, caption, tbody, tfoot, thead, tr, th, td,
+    article, aside, canvas, details, embed, 
+    figure, figcaption, footer, header, hgroup, 
+    menu, nav, output, ruby, section, summary,
+    time, mark, audio, video {
+      margin: 0;
+      padding: 0;
+      border: 0;
+      font-size: 100%;
+      font: inherit;
+      vertical-align: baseline;
+    }
+    article, aside, details, figcaption, figure, 
+    footer, header, hgroup, menu, nav, section {
+      display: block;
+    }
+    body {
+      line-height: 1;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+    ol, ul {
+      list-style: none;
+    }
+    blockquote, q {
+      quotes: none;
+    }
+    blockquote:before, blockquote:after,
+    q:before, q:after {
+      content: '';
+      content: none;
+    }
+    table {
+      border-collapse: collapse;
+      border-spacing: 0;
+    }
+
+    /* 側邊欄樣式（原始樣式完整保留） */
+    .sidebar {
+      width: 250px;
+      height: 100vh;
+      background-color: #34D399;
+      color: white;
+      position: fixed;
+      left: 0;
+      top: 0;
+      transition: transform 0.3s ease-in-out;
+      z-index: 50;
+    }
+    .sidebar a {
+      display: block;
+      padding: 1rem 1.25rem;
+      color: white;
+      text-decoration: none;
+      font-size: 1rem;
+      transition: background-color 0.3s;
+    }
+    .sidebar a:hover,
+    .sidebar a.active {
+      background-color: #059669;
+    }
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 40;
+      display: none;
+    }
+    .sidebar-overlay.show {
+      display: block;
+    }
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .sidebar-toggle {
+        margin-top: 2px;
+        width: 40px;
+      }
+    }
+
+    /* 表單容器與分隔樣式 */
+    .form-container {
+      background-color: #ffffff;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+    }
+    .form-section {
+      padding: 1.5rem 0;
+      position: relative;
+    }
+    .form-section:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      border-bottom: 2px dashed #e2e8f0;
+    }
+    .form-section h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 1rem;
+    }
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: #4a5568;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.375rem;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #34D399;
+      box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.3);
+    }
+    .btn-group {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 0.75rem 1.5rem;
+      background-color: #34D399;
+      color: white;
+      border: none;
+      border-radius: 0.375rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .btn:hover {
+      background-color: #059669;
+    }
+    .btn-add, .btn-delete, .btn-view {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 0.375rem;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .btn-add { background-color: #4299e1; }
+    .btn-add:hover { background-color: #3182ce; }
+    .btn-delete { background-color: #e53e3e; }
+    .btn-delete:hover { background-color: #c53030; }
+    .btn-view { background-color: #6b7280; }
+    .btn-view:hover { background-color: #4b5563; }
+    #stampPreview {
+      max-width: 200px;
+      margin-top: 0.5rem;
+      display: none;
+    }
+    button {
+      height: 45px;
+    }
+    @media (max-width: 768px) {
+      .form-container {
+        padding: 1.5rem;
+      }
+      .form-section h2 {
+        font-size: 1.25rem;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100">
+  <!-- 手機版側邊欄 Toggle 按鈕 -->
+  <button onclick="toggleSidebar()" class="sidebar-toggle w-12 fixed top-4 left-4 bg-green-500 text-white p-2 rounded lg:hidden z-1000">☰</button>
+
+  <!-- 側邊欄（完整還原） -->
+  <div class="sidebar" id="sidebar">
+    <div class="text-center py-6 font-bold text-2xl">秧苗場管理</div>
+    <nav>
+      <a href="index.html">首頁</a>
+      <a href="seedling.html">秧苗製成與管理</a>
+      <a href="calender.html">插秧排程</a>
+      <a href="Shipment.html">出貨單</a>
+      <a href="TransplantingList.html">插秧單</a>
+      <a href="harvest.html">割稻單</a>
+      <a href="customer.html">客戶管理</a>
+      <a href="workerManage.html">師傅管理</a>
+      <a href="payment.html">收錢管理</a>
+      <a href="profile.html" class="active">秧苗場個人檔案設定</a>
+      <a href="#">登出</a>
+    </nav>
+  </div>
+
+  <!-- 側邊欄遮罩 (手機版) -->
+  <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- 密碼金鑰驗證表單 -->
+  <div id="authModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+      <h2 class="text-xl font-bold mb-4">請輸入系統密碼金鑰</h2>
+      <form id="authForm">
+        <div class="form-group">
+          <label for="authKey" class="block mb-2">密碼金鑰</label>
+          <input type="password" id="authKey" name="authKey" class="w-full p-2 border rounded" placeholder="請輸入系統密碼金鑰" required>
+        </div>
+        <div class="flex justify-end mt-4">
+          <button type="submit" class="btn">驗證</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 主要內容 -->
+  <div class="md:ml-64 p-4 sm:p-6 md:p-10" id="mainContent" style="display: none;">
+    <div class="max-w-2xl mx-auto">
+      <div class="form-container">
+        <h1 class="text-2xl font-bold mb-6 text-gray-800">秧苗場個人檔案設定</h1>
+        <form id="profileForm">
+          <!-- 基本資訊 -->
+          <div class="form-section">
+            <h2>基本資訊</h2>
+            <div class="form-group">
+              <label for="nurseryName">苗場名字</label>
+              <input type="text" id="nurseryName" name="nurseryName" placeholder="請輸入苗場名字" />
+            </div>
+            <div class="form-group">
+              <label for="nurseryPhone">苗場電話</label>
+              <input type="tel" id="nurseryPhone" name="nurseryPhone" placeholder="請輸入苗場電話" />
+            </div>
+            <div class="form-group">
+              <label for="mobilePhone">行動電話</label>
+              <input type="tel" id="mobilePhone" name="mobilePhone" placeholder="請輸入行動電話" />
+            </div>
+            <div class="form-group">
+              <label for="nurseryAddress">地址</label>
+              <input type="text" id="nurseryAddress" name="nurseryAddress" placeholder="請輸入苗場地址" />
+            </div>
+          </div>
+
+          <!-- 價格設定 -->
+          <div class="form-section">
+            <h2>價格設定</h2>
+            <div class="form-group">
+              <label for="seedlingPrice">秧苗價格 (顆)</label>
+              <input type="number" id="seedlingPrice" name="seedlingPrice" placeholder="請輸入秧苗價格" />
+            </div>
+            <div class="form-group">
+              <label for="harvestPrice">收割每分的價格</label>
+              <input type="number" id="harvestPrice" name="harvestPrice" placeholder="請輸入收割每分的價格" />
+            </div>
+            <div class="form-group">
+              <label for="transportPrice">代運的價格</label>
+              <input type="number" id="transportPrice" name="transportPrice" placeholder="請輸入代運的價格" />
+            </div>
+            <div class="form-group">
+              <label for="selfTransportDiscount">自運扣除的價格</label>
+              <input type="number" id="selfTransportDiscount" name="selfTransportDiscount" placeholder="請輸入自運扣除的價格" />
+            </div>
+            <div class="form-group">
+              <label for="contractorWage">代工每分收割師傅工資</label>
+              <input type="number" id="contractorWage" name="contractorWage" placeholder="請輸入代工每分師傅工資" />
+            </div>
+          </div>
+
+          <!-- 秧苗品種管理 -->
+          <div class="form-section">
+            <h2>秧苗品種管理</h2>
+            <div class="form-group">
+              <label for="seedlingTypes">秧苗品種</label>
+              <select id="seedlingTypes" name="seedlingType" class="form-group mb-2">
+                <option value="">請選擇品種</option>
+                <option value="台農71號">台農71號</option>
+              </select>
+              <div class="btn-group">
+                <button type="button" onclick="openModal()" class="btn-add">新增品種</button>
+                <button type="button" onclick="removeSelectedSeedling()" class="btn-delete">刪除所選品種</button>
+                <button type="button" onclick="viewAllSeedlings()" class="btn-view">查看全部品種</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 收錢人管理 -->
+          <div class="form-section">
+            <h2>收錢人管理</h2>
+            <div class="form-group">
+              <label>收錢人管理</label>
+              <div class="btn-group">
+                <button type="button" onclick="openReceiverModal()" class="btn-add">新增收錢人</button>
+                <button type="button" onclick="viewAllReceivers()" class="btn-view">查看所有收錢人</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 其他設定 -->
+          <div class="form-section">
+            <h2>其他設定</h2>
+            <div class="form-group">
+              <label for="stampImage">秧苗場印章圖檔 (用於收據)</label>
+              <input type="file" id="stampImage" name="stampImage" accept="image/*" />
+              <img id="stampPreview" alt="印章預覽" class="max-w-200 mt-2 hidden" />
+            </div>
+          </div>
+
+          <!-- 儲存設定 -->
+          <div class="flex justify-end mt-6">
+            <button type="submit" class="btn">儲存設定</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 彈出表單（保持不變） -->
+  <div id="seedlingModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+      <h2 class="text-xl font-bold mb-4">新增秧苗品種</h2>
+      <form id="seedlingForm">
+        <div class="form-group">
+          <label for="newSeedlingType" class="block mb-2">品種名稱</label>
+          <input type="text" id="newSeedlingType" name="newSeedlingType" class="w-full p-2 border rounded" placeholder="請輸入品種名稱" required>
+        </div>
+        <div class="flex justify-end mt-4">
+          <button type="button" onclick="closeModal()" class="btn bg-gray-500 mr-2">取消</button>
+          <button type="submit" class="btn">確認新增</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="viewSeedlingModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+      <h2 class="text-xl font-bold mb-4">所有秧苗品種</h2>
+      <ul id="seedlingList" class="list-disc pl-5 mb-4"></ul>
+      <div class="flex justify-end">
+        <button type="button" onclick="closeViewModal()" class="btn">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="receiverModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+      <h2 class="text-xl font-bold mb-4">新增收錢人</h2>
+      <form id="receiverForm">
+        <div class="form-group">
+          <label for="receiverName" class="block mb-2">收錢人名稱</label>
+          <input type="text" id="receiverName" name="receiverName" class="w-full p-2 border rounded" placeholder="請輸入收錢人名稱" required>
+        </div>
+        <div class="form-group">
+          <label for="receiverPassword" class="block mb-2">收錢密碼</label>
+          <input type="password" id="receiverPassword" name="receiverPassword" class="w-full p-2 border rounded" placeholder="請輸入收錢密碼" required>
+        </div>
+        <div class="flex justify-end mt-4">
+          <button type="button" onclick="closeReceiverModal()" class="btn bg-gray-500 mr-2">取消</button>
+          <button type="submit" class="btn">確認新增</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="viewReceiverModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+      <h2 class="text-xl font-bold mb-4">所有收錢人</h2>
+      <ul id="receiverList" class="list-disc pl-5 mb-4"></ul>
+      <div class="flex justify-end">
+        <button type="button" onclick="closeViewReceiverModal()" class="btn">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="editReceiverModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+      <h2 class="text-xl font-bold mb-4">編輯收錢人密碼</h2>
+      <form id="editReceiverForm">
+        <div class="form-group">
+          <label for="editReceiverPassword" class="block mb-2">新收錢密碼</label>
+          <input type="password" id="editReceiverPassword" name="editReceiverPassword" class="w-full p-2 border rounded" placeholder="請輸入新收錢密碼" required>
+        </div>
+        <div class="flex justify-end mt-4">
+          <button type="button" onclick="closeEditReceiverModal()" class="btn bg-gray-500 mr-2">取消</button>
+          <button type="submit" class="btn">確認修改</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // 系統密碼金鑰
+    const SYSTEM_KEY = 'xai-system-key-2025';
+
+    // 驗證密碼金鑰
+    document.getElementById('authForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const authKey = document.getElementById('authKey').value.trim();
+      if (authKey === SYSTEM_KEY) {
+        document.getElementById('authModal').classList.add('hidden');
+        document.getElementById('mainContent').style.display = 'block';
+        document.getElementById('sidebar').style.display = 'block';
+        document.querySelector('.sidebar-toggle').style.display = 'block';
+      } else {
+        alert('密碼金鑰錯誤，請重新輸入！');
+      }
+    });
+
+    // 側邊欄 toggle 功能（原始邏輯完整保留）
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('show');
+      const toggleButtons = document.querySelectorAll('.sidebar-toggle');
+      if (sidebar.classList.contains('open')) {
+        toggleButtons.forEach(btn => { btn.style.display = 'none'; });
+      } else {
+        toggleButtons.forEach(btn => { btn.style.display = 'block'; });
+      }
+    }
+
+    // 打開新增品種彈出表單
+    function openModal() {
+      const select = document.getElementById('seedlingTypes');
+      if (select.options.length > 5) {
+        alert('品種數量已達上限 (5 個)，請先刪除不需要的品種！');
+        return;
+      }
+      document.getElementById('seedlingModal').classList.remove('hidden');
+    }
+
+    // 關閉新增品種彈出表單
+    function closeModal() {
+      document.getElementById('seedlingModal').classList.add('hidden');
+      document.getElementById('seedlingForm').reset();
+    }
+
+    // 處理新增品種表單提交
+    document.getElementById('seedlingForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const seedlingType = document.getElementById('newSeedlingType').value.trim();
+      const select = document.getElementById('seedlingTypes');
+
+      if (seedlingType && !Array.from(select.options).some(opt => opt.value === seedlingType)) {
+        if (select.options.length <= 5) {
+          const option = document.createElement('option');
+          option.value = seedlingType;
+          option.text = seedlingType;
+          select.appendChild(option);
+          closeModal();
+        } else {
+          alert('品種數量已達上限 (5 個)！');
+        }
+      } else if (!seedlingType) {
+        alert('請輸入品種名稱！');
+      } else {
+        alert('此品種已存在！');
+      }
+    });
+
+    // 刪除所選品種
+    function removeSelectedSeedling() {
+      const select = document.getElementById('seedlingTypes');
+      const selectedOption = select.options[select.selectedIndex];
+      if (selectedOption && selectedOption.value !== '' && confirm(`確定要刪除品種 "${selectedOption.text}" 嗎？`)) {
+        select.remove(select.selectedIndex);
+      } else if (!selectedOption || selectedOption.value === '') {
+        alert('請先選擇要刪除的品種！');
+      }
+    }
+
+    // 查看全部品種
+    function viewAllSeedlings() {
+      const select = document.getElementById('seedlingTypes');
+      const seedlingList = document.getElementById('seedlingList');
+      seedlingList.innerHTML = ''; // 清空列表
+      const options = Array.from(select.options).filter(opt => opt.value !== '');
+      
+      if (options.length > 0) {
+        options.forEach(option => {
+          const li = document.createElement('li');
+          li.textContent = option.text;
+          seedlingList.appendChild(li);
+        });
+      } else {
+        const li = document.createElement('li');
+        li.textContent = '目前沒有品種';
+        seedlingList.appendChild(li);
+      }
+      document.getElementById('viewSeedlingModal').classList.remove('hidden');
+    }
+
+    // 關閉查看全部品種窗口
+    function closeViewModal() {
+      document.getElementById('viewSeedlingModal').classList.add('hidden');
+    }
+
+    // 處理印章圖片上傳預覽
+    document.getElementById('stampImage').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      const preview = document.getElementById('stampPreview');
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          preview.src = event.target.result;
+          preview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      } else {
+        preview.style.display = 'none';
+      }
+    });
+
+    // 表單提交處理（簡單示例）
+    document.getElementById('profileForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      alert('設定已儲存！');
+    });
+
+    // 收錢人管理功能
+    let paymentReceivers = []; // 儲存收錢人資料（僅記憶體，無持久化）
+    let editingReceiverIndex = null; // 儲存當前編輯的收錢人索引
+
+    // 打開新增收錢人彈出表單
+    function openReceiverModal() {
+      if (paymentReceivers.length >= 5) {
+        alert('收錢人數量已達上限 (5 個)，請先刪除不需要的收錢人！');
+        return;
+      }
+      document.getElementById('receiverModal').classList.remove('hidden');
+    }
+
+    // 關閉新增收錢人彈出表單
+    function closeReceiverModal() {
+      document.getElementById('receiverModal').classList.add('hidden');
+      document.getElementById('receiverForm').reset();
+    }
+
+    // 處理新增收錢人表單提交
+    document.getElementById('receiverForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const receiverName = document.getElementById('receiverName').value.trim();
+      const receiverPassword = document.getElementById('receiverPassword').value.trim();
+
+      if (receiverName && receiverPassword) {
+        if (!paymentReceivers.some(receiver => receiver.name === receiverName)) {
+          if (paymentReceivers.length < 5) {
+            paymentReceivers.push({ name: receiverName, password: receiverPassword });
+            closeReceiverModal();
+            alert('收錢人已新增！');
+          } else {
+            alert('收錢人數量已達上限 (5 個)！');
+          }
+        } else {
+          alert('此收錢人名稱已存在！');
+        }
+      } else {
+        alert('請輸入收錢人名稱和密碼！');
+      }
+    });
+
+    // 打開編輯收錢人密碼彈出表單
+    function openEditReceiverModal() {
+      document.getElementById('editReceiverModal').classList.remove('hidden');
+    }
+
+    // 關閉編輯收錢人密碼彈出表單
+    function closeEditReceiverModal() {
+      document.getElementById('editReceiverModal').classList.add('hidden');
+      document.getElementById('editReceiverForm').reset();
+    }
+
+    // 處理編輯收錢人密碼表單提交
+    document.getElementById('editReceiverForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const newPassword = document.getElementById('editReceiverPassword').value.trim();
+
+      if (newPassword) {
+        if (editingReceiverIndex !== null && editingReceiverIndex >= 0 && editingReceiverIndex < paymentReceivers.length) {
+          paymentReceivers[editingReceiverIndex].password = newPassword;
+          closeEditReceiverModal();
+          alert('收錢人密碼已更新！');
+          viewAllReceivers(); // 刷新列表
+        } else {
+          alert('編輯錯誤，請重試！');
+        }
+      } else {
+        alert('請輸入新收錢密碼！');
+      }
+    });
+
+    // 查看所有收錢人
+    function viewAllReceivers() {
+      const receiverList = document.getElementById('receiverList');
+      receiverList.innerHTML = ''; // 清空列表
+
+      if (paymentReceivers.length > 0) {
+        paymentReceivers.forEach((receiver, index) => {
+          const li = document.createElement('li');
+          li.textContent = receiver.name;
+          const buttonContainer = document.createElement('span');
+          buttonContainer.className = 'ml-2';
+
+          // 編輯按鈕
+          const editBtn = document.createElement('button');
+          editBtn.textContent = '編輯密碼';
+          editBtn.className = 'text-sm text-blue-600 hover:text-blue-800 mr-2';
+          editBtn.onclick = () => openEditReceiverModal(index);
+          buttonContainer.appendChild(editBtn);
+
+          // 刪除按鈕
+          const deleteBtn = document.createElement('button');
+          deleteBtn.textContent = '刪除';
+          deleteBtn.className = 'text-sm text-red-600 hover:text-red-800';
+          deleteBtn.onclick = () => {
+            if (confirm(`確定要刪除收錢人 "${receiver.name}" 嗎？`)) {
+              paymentReceivers.splice(index, 1);
+              viewAllReceivers(); // 刷新列表
+            }
+          };
+          buttonContainer.appendChild(deleteBtn);
+
+          li.appendChild(buttonContainer);
+          receiverList.appendChild(li);
+        });
+      } else {
+        const li = document.createElement('li');
+        li.textContent = '目前沒有收錢人';
+        receiverList.appendChild(li);
+      }
+      document.getElementById('viewReceiverModal').classList.remove('hidden');
+    }
+
+    // 關閉查看所有收錢人窗口
+    function closeViewReceiverModal() {
+      document.getElementById('viewReceiverModal').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
