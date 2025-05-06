@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓋亞星蹤-農用 | 農機GPS追蹤平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 自訂動畫效果 */
+        .hover-scale { transition: transform 0.3s ease; }
+        .hover-scale:hover { transform: scale(1.05); }
+        .fade-in { animation: fadeIn 1s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100">
+    <!-- 頁首 -->
+    <header class="bg-gray-800 py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl font-bold text-white">蓋亞星蹤-農用</h1>
+            <p class="mt-2 text-xl text-gray-300">農機業者的GPS追蹤利器，輕鬆管理設備，提升服務效率</p>
+        </div>
+    </header>
+
+    <!-- 主要內容 -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- GPS功能介紹 -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-semibold text-white text-center mb-8">蓋亞星蹤的核心功能</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- 功能卡片 1：定位與軌跡 -->
+                <div class="bg-white text-gray-900 rounded-lg shadow-lg p-6 hover-scale fade-in">
+                    <h3 class="text-xl font-bold mb-4">精準GPS定位與軌跡</h3>
+                    <p>高精度定位，隨時追蹤農機位置，記錄作業路徑，方便客戶確認作業進度。</p>
+                </div>
+                <!-- 功能卡片 2：面積換算 -->
+                <div class="bg-white text-gray-900 rounded-lg shadow-lg p-6 hover-scale fade-in">
+                    <h3 class="text-xl font-bold mb-4">自動面積計算</h3>
+                    <p>透過GPS軌跡自動計算田區耕作面積，生成報告供結算或補助申請。</p>
+                </div>
+                <!-- 功能卡片 3：後台監控 -->
+                <div class="bg-white text-gray-900 rounded-lg shadow-lg p-6 hover-scale fade-in">
+                    <h3 class="text-xl font-bold mb-4">後台設備監控</h3>
+                    <p>即時查看農機的作業與待機狀態，輕鬆管理多台設備，提升調度效率。</p>
+                </div>
+                <!-- 功能卡片 4：資料回傳 -->
+                <div class="bg-white text-gray-900 rounded-lg shadow-lg p-6 hover-scale fade-in">
+                    <h3 class="text-xl font-bold mb-4">農業缺工好幫手APP對接</h3>
+                    <p>自動回傳耕作面積至APP，簡化農民補助申請，省時省力。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 平台後台截圖 -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-semibold text-white text-center mb-8">後台介面一覽</h2>
+            <div class="bg-gray-700 rounded-lg p-6 text-center hover-scale fade-in max-w-2xl mx-auto">
+                <img src="img/img.png" alt="後台介面截圖" class="w-full h-64 object-cover rounded-lg mb-4">
+                <p class="text-gray-300">後台介面：即時監控農機位置與狀態</p>
+                <p class="text-sm text-gray-400">（請替換為實際後台截圖，建議尺寸600x400）</p>
+            </div>
+        </section>
+
+
+        <!-- 行動號召 -->
+        <section class="text-center">
+            <h2 class="text-3xl font-semibold text-white mb-6">立即體驗蓋亞星蹤-農用</h2>
+            <p class="text-xl text-gray-300 mb-8">用GPS追蹤提升您的農機業務，吸引更多客戶！</p>
+            <a href="#contact" class="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 hover-scale">聯繫我們</a>
+        </section>
+    </main>
+
+    <!-- 頁尾 -->
+    <footer class="bg-gray-800 py-8" id="contact">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h3 class="text-2xl font-semibold text-white mb-4">聯繫蓋亞科技</h3>
+            <p class="text-gray-300 mb-2">網站：www.gaia-tech.com（請提供真實網址）</p>
+            <p class="text-gray-300 mb-2">電話：(02) 1234-5678（請提供真實電話）</p>
+            <p class="text-gray-300">電子郵件：support@gaia-tech.com（請提供真實郵件）</p>
+        </div>
+    </footer>
+
+    <script>
+        // 滾動平滑效果
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>
