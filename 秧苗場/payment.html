@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>收錢管理</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    /* Reset and Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    input, select, button, textarea {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      border-radius: 0;
+      outline: none;
+    }
+    input[type="checkbox"] {
+      -webkit-appearance: checkbox;
+      -moz-appearance: checkbox;
+      appearance: checkbox;
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+    select::-ms-expand { display: none; }
+    html, body {
+      -webkit-text-size-adjust: 100%;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: none;
+    }
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #d1d5db;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    /* Sidebar Styles */
+    .sidebar {
+      width: 250px;
+      height: 100vh;
+      background-color: #34D399;
+      color: white;
+      position: fixed;
+      left: 0;
+      top: 0;
+      transition: transform 0.3s ease-in-out;
+      z-index: 50;
+    }
+    .sidebar a {
+      display: block;
+      padding: 0.75rem 1.25rem;
+      color: white;
+      text-decoration: none;
+      font-size: 1rem;
+      transition: background-color 0.3s;
+    }
+    .sidebar a:hover {
+      background-color: #059669;
+    }
+    .sidebar .active {
+      background-color: #059669;
+    }
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 40;
+      display: none;
+    }
+    .sidebar-overlay.show {
+      display: block;
+    }
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+    }
+
+    /* Sidebar Toggle Button */
+    .sidebar-toggle {
+      width: 3rem;
+      height: 3rem;
+      position: fixed;
+      top: 0.9rem;
+      left: 1rem;
+      background-color: #10b981;
+      color: white;
+      border-radius: 0.25rem;
+      z-index: 50;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+    }
+    @media (min-width: 1024px) {
+      .sidebar-toggle {
+        display: none;
+      }
+    }
+    @media (max-width: 768px) {
+      .sidebar-toggle {
+        display: flex;
+      }
+    }
+
+    /* Main Content */
+    .main-content {
+      margin-left: 250px;
+      padding: 2rem;
+      min-height: 100vh;
+      background-color: #f9fafb;
+    }
+    @media (max-width: 768px) {
+      .main-content {
+        margin-left: 0;
+        padding: 1rem;
+      }
+    }
+
+    /* Filter Section */
+    .filter-section {
+      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    .filter-section input,
+    .filter-section select {
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      min-width: 120px;
+      background-color: white;
+    }
+    .filter-section button {
+      padding: 0.5rem 1rem;
+      font-size: 0.95rem;
+    }
+
+    /* Table Styles */
+    .table-responsive {
+      overflow-x: auto;
+      max-height: 600px;
+      overflow-y: auto;
+      margin-bottom: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+    }
+    th, td {
+      padding: 1rem;
+      border: 1px solid #e5e7eb;
+      text-align: center;
+      font-size: 0.95rem;
+      white-space: nowrap;
+    }
+    th {
+      background-color: #34D399;
+      color: white;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    /* Modal Styles */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+    .modal.active {
+      display: flex;
+    }
+    .modal-content {
+      background: white;
+      padding: 1rem;
+      border-radius: 12px;
+      max-width: 700px;
+      max-height: 90vh;
+      overflow-y: auto;
+      width: 90%;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+
+    /* Receipt Container (Screen Preview) */
+    .receipt-container {
+      border: 4px double #000;
+      padding: 1rem;
+      font-size: 1rem;
+      width: 100%;
+      word-wrap: break-word;
+      font-family: 'Courier New', Courier, monospace;
+      background: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .receipt-header {
+      text-align: center;
+      border-bottom: 3px double #000;
+      padding-bottom: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .receipt-details p,
+    .receipt-total p {
+      margin: 0.2rem 0;
+      line-height: 1.5;
+    }
+    .receipt-divider {
+      border-top: 1px dashed #000;
+      margin: 0.3rem 0;
+    }
+    .receipt-total {
+      margin-top: 0.3rem;
+      padding-top: 0.3rem;
+    }
+
+    /* Receipt Container (A4 PDF) */
+    .receipt-container-a4 {
+      width: 190mm;
+      min-height: 277mm;
+      padding: 10mm;
+      font-size: 16px;
+      font-family: 'Courier New', Courier, monospace;
+      background: #fff;
+      border: 1px solid #000;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin: 0 auto;
+      box-sizing: border-box;
+      max-width: 100%;
+      text-align: left;
+    }
+    .receipt-header-a4 {
+      text-align: left;
+      border-bottom: 2px double #000;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+    }
+    .receipt-details-a4 p,
+    .receipt-total-a4 p {
+      margin: 8px 0;
+      line-height: 1.8;
+      font-size: 16px;
+      text-align: left;
+    }
+    .receipt-divider-a4 {
+      border-top: 1px dashed #000;
+      margin: 10px 0;
+    }
+    .receipt-total-a4 {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 2px double #000;
+      text-align: left;
+      font-size: 18px;
+    }
+    .receipt-stamp-a4 {
+      position: absolute;
+      bottom: 10mm;
+      right: 10mm;
+      text-align: right;
+    }
+    #stampImage-a4 {
+      width: 150px;
+      height: 150px;
+    }
+    .receipt-footer-a4 {
+      position: absolute;
+      bottom: 10mm;
+      left: 10mm;
+      font-size: 14px;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 640px) {
+      .filter-section {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .filter-section input,
+      .filter-section select,
+      .filter-section button {
+        width: 100%;
+        min-width: unset;
+      }
+      th, td {
+        padding: 0.75rem;
+        font-size: 0.85rem;
+      }
+      .modal-content {
+        padding: 0.5rem;
+      }
+      .receipt-container {
+        padding: 0.5rem;
+        font-size: 0.7rem;
+      }
+      #title {
+        margin-left: 60px;
+        margin-top: 6px;
+      }
+      #receipts-tab td button {
+        display: block;
+        width: 100%;
+        margin: 0.5rem 0;
+        padding: 0.5rem;
+        font-size: 0.9rem;
+      }
+      #receipts-tab td {
+        padding: 0.5rem;
+      }
+    }
+    .tab-button.active {
+  background-color: #10b981 !important; /* 綠色 */
+  color: white !important;
+}
+
+
+@media print {
+  th, td {
+    text-align: center !important;
+    vertical-align: middle !important;
+  }
+}
+
+
+  </style>
+</head>
+<body class="bg-gray-50 font-sans">
+  <!-- Sidebar Toggle Button -->
+  <button onclick="toggleSidebar()" class="sidebar-toggle w-12 fixed top-6 left-4 bg-green-500 text-white p-2 rounded lg:hidden z-50">☰</button>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="text-center py-6 font-bold text-2xl">秧苗場管理</div>
+    <a href="index.html">首頁</a>
+    <a href="seedling.html">秧苗製成與管理</a>
+    <a href="calender.html">插秧排程</a>
+    <a href="Shipment.html">出貨單</a>
+    <a href="TransplantingList.html">插秧單</a>
+    <a href="harvest.html">割稻單</a>
+    <a href="customer.html">客戶管理</a>
+    <a href="workerManage.html">師傅管理</a>
+    <a href="payment.html" class="active">收錢管理</a>
+    <a href="profile.html">秧苗場個人檔案設定</a>
+    <a href="#">登出</a>
+  </div>
+  <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <h1 class="text-3xl font-bold mb-6" id="title">收錢管理</h1>
+
+<!-- Tab Buttons -->
+<div class="tab-buttons flex gap-3 mb-8 flex-wrap">
+  <button 
+    class="tab-button bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-medium min-w-[120px] text-center hover:bg-gray-300 transition-colors" 
+    data-tab="shipment"
+    onclick="switchTab('shipment')">
+    出貨單收錢
+  </button>
+  <button 
+    class="tab-button bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-medium min-w-[120px] text-center hover:bg-gray-300 transition-colors" 
+    data-tab="transplant-harvest"
+    onclick="switchTab('transplant-harvest')">
+    插秧與收割收錢
+  </button>
+  <button 
+    class="tab-button bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-medium min-w-[120px] text-center hover:bg-gray-300 transition-colors" 
+    data-tab="receipts"
+    onclick="switchTab('receipts')">
+    已開總收據
+  </button>
+</div>
+
+
+    <!-- Shipment Tab -->
+    <div id="shipment-tab" class="tab-content">
+      <div class="filter-section">
+        <div class="flex items-center gap-3 flex-wrap">
+          <input type="text" id="shipmentSearch" placeholder="搜尋客戶名稱或電話..." class="p-2 border rounded" onkeyup="filterRecords('shipment')">
+          <select id="shipmentFilterYear" onchange="filterRecords('shipment')">
+            <option value="">所有年份</option>
+          </select>
+          <select id="shipmentFilterMonth" onchange="filterRecords('shipment')">
+            <option value="">所有月份</option>
+            <option value="01">1月</option>
+            <option value="02">2月</option>
+            <option value="03">3月</option>
+            <option value="04">4月</option>
+            <option value="05">5月</option>
+            <option value="06">6月</option>
+            <option value="07">7月</option>
+            <option value="08">8月</option>
+            <option value="09">9月</option>
+            <option value="10">10月</option>
+            <option value="11">11月</option>
+            <option value="12">12月</option>
+          </select>
+          <select id="shipmentFilterPayment" onchange="filterRecords('shipment')">
+            <option value="">所有付款狀態</option>
+            <option value="paid">已付款</option>
+            <option value="unpaid">未付款</option>
+          </select>
+        </div>
+        <div class="flex gap-3">
+          <button class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700" onclick="generateReceipt('shipment')">產生總收據</button>
+          <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="printPage('shipment')">列印明細</button>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="shipmentSelectAll" onclick="toggleSelectAll('shipment')"></th>
+              <th>日期</th>
+              <th>客戶名稱</th>
+              <th>電話</th>
+              <th>品種</th>
+              <th>時段</th>
+              <th>數量</th>
+              <th>總粒數</th>
+              <th>退粒數</th>
+              <th>費用</th>
+              <th>付款狀態</th>
+              <th>已付款</th>
+              <th>未付款</th>
+            </tr>
+          </thead>
+          <tbody id="shipmentRecords"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Transplant/Harvest Tab -->
+    <div id="transplant-harvest-tab" class="tab-content" style="display: none;">
+      <div class="filter-section">
+        <div class="flex items-center gap-3 flex-wrap">
+          <input type="text" id="thSearch" placeholder="搜尋客戶名稱或電話..." class="p-2 border rounded" onkeyup="filterRecords('transplant-harvest')">
+          <select id="thFilterYear" onchange="filterRecords('transplant-harvest')">
+            <option value="">所有年份</option>
+          </select>
+          <select id="thFilterMonth" onchange="filterRecords('transplant-harvest')">
+            <option value="">所有月份</option>
+            <option value="01">1月</option>
+            <option value="02">2月</option>
+            <option value="03">3月</option>
+            <option value="04">4月</option>
+            <option value="05">5月</option>
+            <option value="06">6月</option>
+            <option value="07">7月</option>
+            <option value="08">8月</option>
+            <option value="09">9月</option>
+            <option value="10">10月</option>
+            <option value="11">11月</option>
+            <option value="12">12月</option>
+          </select>
+          <select id="thFilterPayment" onchange="filterRecords('transplant-harvest')">
+            <option value="">所有付款狀態</option>
+            <option value="paid">已付款</option>
+            <option value="unpaid">未付款</option>
+          </select>
+        </div>
+        <div class="flex gap-3">
+          <button class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700" onclick="generateReceipt('transplant-harvest')">產生總收據</button>
+          <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="printPage('transplant-harvest')">列印明細</button>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="thSelectAll" onclick="toggleSelectAll('transplant-harvest')"></th>
+              <th>類型</th>
+              <th>日期</th>
+              <th>客戶名稱</th>
+              <th>電話</th>
+              <th>代插師傅</th>
+              <th>收割師傅</th>
+              <th>面積</th>
+              <th>單買</th>
+              <th>總插秧粒數</th>
+              <th>載穀司機</th>
+              <th>小工</th>
+              <th>是否自運</th>
+              <th>費用</th>
+              <th>付款狀態</th>
+              <th>已付款</th>
+              <th>未付款</th>
+            </tr>
+          </thead>
+          <tbody id="thRecords"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Receipts Tab -->
+    <div id="receipts-tab" class="tab-content" style="display: none;">
+      <div class="filter-section">
+        <div class="flex items-center gap-3 flex-wrap">
+          <select id="receiptFilterYear" onchange="filterReceipts()">
+            <option value="">所有年份</option>
+          </select>
+          <select id="receiptFilterMonth" onchange="filterReceipts()">
+            <option value="">所有月份</option>
+            <option value="01">1月</option>
+            <option value="02">2月</option>
+            <option value="03">3月</option>
+            <option value="04">4月</option>
+            <option value="05">5月</option>
+            <option value="06">6月</option>
+            <option value="07">7月</option>
+            <option value="08">8月</option>
+            <option value="09">9月</option>
+            <option value="10">10月</option>
+            <option value="11">11月</option>
+            <option value="12">12月</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>類型</th>
+              <th>開立日期</th>
+              <th>客戶名稱</th>
+              <th>收款人</th>
+              <th>總費用</th>
+              <th>已付款</th>
+              <th>未付款</th>
+              <th>狀態</th>
+              <th colspan="2">操作</th>
+            </tr>
+          </thead>
+          <tbody id="receiptRecords"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div id="receiptModal" class="modal">
+      <div class="modal-content">
+        <div id="receiptPrintArea">
+          <h2 class="text-xl font-bold mb-2 text-center">麥寮秧苗場</h2>
+          <div id="receiptContent"></div>
+        </div>
+        <div class="mt-4">
+          <label for="actualReceived" class="block mb-2">實收金額:</label>
+          <input type="number" id="actualReceived" class="w-full p-2 border rounded mb-4" placeholder="請輸入實收金額">
+        </div>
+        <div class="mt-4 flex justify-end space-x-2">
+          <button onclick="openDownloadPasswordModal()" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">下載收據</button>
+          <button onclick="closeReceiptModal()" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">關閉</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Download Password Modal -->
+    <div id="downloadPasswordModal" class="modal">
+      <div class="modal-content">
+        <h2 class="text-xl font-bold mb-2 text-center">輸入下載密碼</h2>
+        <input type="password" id="downloadPassword" class="w-full p-2 border rounded mb-4" placeholder="請輸入密碼">
+        <div class="flex justify-end space-x-2">
+          <button onclick="confirmDownloadPassword()" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">確認</button>
+          <button onclick="closeDownloadPasswordModal()" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">取消</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Receipt View Modal -->
+    <div id="receiptViewModal" class="modal">
+      <div class="modal-content">
+        <h2 class="text-xl font-bold mb-2 text-center">麥寮秧苗場</h2>
+        <div id="receiptViewContent"></div>
+        <div class="mt-6 flex justify-end">
+          <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600" onclick="closeReceiptViewModal()">關閉</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+// Dummy Data with corrected outstanding and actualReceived
+const shipmentRecords = [
+  { date: "2025-01-01", customer: "王小明", phone: "0922345678", variety: "台南11號", time: "早", quantity: 10, unit: "箱", totalGrains: 30, refundGrains: 0, fee: 300, paid: false, signed: false, actualReceived: 0, outstanding: 300 },
+  { date: "2025-01-15", customer: "王小明", phone: "0922345678", variety: "品種A", time: "中", quantity: 5, unit: "箱", totalGrains: 15, refundGrains: 0, fee: 150, paid: false, signed: false, actualReceived: 0, outstanding: 150 },
+  { date: "2025-02-10", customer: "李大華", phone: "0987654321", variety: "品種B", time: "晚", quantity: 20, unit: "粒", totalGrains: 20, refundGrains: 5, fee: 150, paid: false, signed: false, actualReceived: 0, outstanding: 150 },
+  { date: "2025-03-15", customer: "張三", phone: "0911111111", variety: "品種C", time: "早", quantity: 15, unit: "粒", totalGrains: 15, refundGrains: 0, fee: 150, paid: false, signed: false, actualReceived: 0, outstanding: 150 }
+];
+const thRecords = [
+  { type: "插秧單", date: "2025-02-13", customer: "王大哥", phone: "0922345678", transplantWorker: "老李", harvestWorker: "", area: 50, singlePurchase: 0, totalGrains: 50, driver: [], assistant: "", selfTransport: "否", fee: 1500, paid: false, signed: false, actualReceived: 0, outstanding: 1500 },
+  { type: "收割單", date: "2025-02-15", customer: "王大哥", phone: "0922345678", transplantWorker: "", harvestWorker: "張師傅、李師傅", area: 20, singlePurchase: 0, totalGrains: 0, driver: ["林司機"], assistant: "小工A", selfTransport: "否", fee: 2000, paid: false, signed: false, actualReceived: 0, outstanding: 2000 },
+  { type: "插秧單", date: "2025-02-17", customer: "王大哥", phone: "0922345678", transplantWorker: "老李", harvestWorker: "", area: 50, singlePurchase: 0, totalGrains: 50, driver: [], assistant: "", selfTransport: "否", fee: 1500, paid: false, signed: false, actualReceived: 0, outstanding: 1500 },
+  { type: "收割單", date: "2025-02-19", customer: "王大哥", phone: "0922345678", transplantWorker: "", harvestWorker: "張師傅、李師傅", area: 20, singlePurchase: 0, totalGrains: 0, driver: ["林司機"], assistant: "小工A", selfTransport: "否", fee: 2000, paid: false, signed: false, actualReceived: 0, outstanding: 2000 },
+  { type: "插秧單", date: "2025-03-01", customer: "李大華", phone: "0987654321", transplantWorker: "老王", harvestWorker: "", area: 30, singlePurchase: 50, totalGrains: 30, driver: [], assistant: "", selfTransport: "是", fee: 900, paid: false, signed: false, actualReceived: 0, outstanding: 900 }
+];
+let receipts = JSON.parse(localStorage.getItem("receipts")) || [];
+
+// 密碼與收款人姓名的映射
+const collectorMap = {
+  "default123": "陳上千",
+  "password456": "李小華"
+};
+
+let currentTab = "shipment";
+let currentReceiptIndices = [];
+let totalFee = 0;
+let actualReceived = 0;
+let outstanding = 0;
+let collectorName = "系統生成";
+let records = [];
+
+// Initialize Filters
+function initFilters() {
+  const yearSelects = [
+    document.getElementById("shipmentFilterYear"),
+    document.getElementById("thFilterYear"),
+    document.getElementById("receiptFilterYear")
+  ];
+  const currentYear = new Date().getFullYear();
+  yearSelects.forEach(select => {
+    for (let i = currentYear - 5; i <= currentYear + 5; i++) {
+      const option = document.createElement("option");
+      option.value = i;
+      option.text = i;
+      select.appendChild(option);
+    }
+  });
+  loadRecords("shipment");
+  loadRecords("transplant-harvest");
+  loadReceipts();
+}
+
+// Load Records
+function loadRecords(tab) {
+  const records = tab === "shipment" ? shipmentRecords : thRecords;
+  const tbody = document.getElementById(tab === "shipment" ? "shipmentRecords" : "thRecords");
+  tbody.innerHTML = "";
+
+  // 排序：將 signed 為 true 的記錄（完整收款）放在最底部
+  const sortedRecords = [...records].sort((a, b) => {
+    if (a.signed && !b.signed) return 1;
+    if (!a.signed && b.signed) return -1;
+    return new Date(a.date) - new Date(b.date);
+  });
+
+  sortedRecords.forEach((record, index) => {
+    const originalIndex = records.indexOf(record);
+    const tr = document.createElement("tr");
+    tr.innerHTML = tab === "shipment" ? 
+      `<td><input type="checkbox" class="record-checkbox" data-index="${originalIndex}" data-customer="${record.customer}" ${record.signed ? "disabled" : ""} onchange="restrictSameCustomer('${tab}')"></td>
+      <td>${record.date}</td>
+      <td>${record.customer}</td>
+      <td>${record.phone}</td>
+      <td>${record.variety}</td>
+      <td>${record.time}</td>
+      <td>${record.quantity} ${record.unit}</td>
+      <td>${record.totalGrains} 粒</td>
+      <td>${record.refundGrains} 粒</td>
+      <td>${record.fee} 元</td>
+      <td><select onchange="updatePaymentStatus('${tab}', ${originalIndex}, this.value)" ${record.signed ? "disabled" : ""}>
+        <option value="false" ${!record.paid ? "selected" : ""}>未付款</option>
+        <option value="true" ${record.paid ? "selected" : ""}>已付款</option>
+      </select></td>
+      <td>${record.actualReceived} 元</td>
+      <td>${record.outstanding} 元</td>`
+      : 
+      `<td><input type="checkbox" class="record-checkbox" data-index="${originalIndex}" data-customer="${record.customer}" ${record.signed ? "disabled" : ""} onchange="restrictSameCustomer('${tab}')"></td>
+      <td>${record.type}</td>
+      <td>${record.date}</td>
+      <td>${record.customer}</td>
+      <td>${record.phone}</td>
+      <td>${record.transplantWorker || '-'}</td>
+      <td>${record.harvestWorker || '-'}</td>
+      <td>${record.area} 分</td>
+      <td>${record.singlePurchase > 0 ? record.singlePurchase + ' 顆' : '-'}</td>
+      <td>${record.totalGrains > 0 ? record.totalGrains + ' 顆' : '-'}</td>
+      <td>${record.driver.length > 0 ? record.driver.join(", ") : '-'}</td>
+      <td>${record.assistant || '-'}</td>
+      <td>${record.selfTransport}</td>
+      <td>${record.fee} 元</td>
+      <td><select onchange="updatePaymentStatus('${tab}', ${originalIndex}, this.value)" ${record.signed ? "disabled" : ""}>
+        <option value="false" ${!record.paid ? "selected" : ""}>未付款</option>
+        <option value="true" ${record.paid ? "selected" : ""}>已付款</option>
+      </select></td>
+      <td>${record.actualReceived} 元</td>
+      <td>${record.outstanding} 元</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// Restrict Same Customer
+function restrictSameCustomer(tab) {
+  const checkboxes = document.querySelectorAll(`#${tab === "shipment" ? "shipmentRecords" : "thRecords"} .record-checkbox:not(:disabled)`);
+  let selectedCustomer = null;
+  checkboxes.forEach(cb => {
+    if (cb.checked) {
+      if (!selectedCustomer) {
+        selectedCustomer = cb.dataset.customer;
+      } else if (cb.dataset.customer !== selectedCustomer) {
+        cb.checked = false;
+        alert("只能選擇同一客戶的記錄開單！");
+      }
+    }
+  });
+  document.getElementById(tab === "shipment" ? "shipmentSelectAll" : "thSelectAll").checked = false;
+}
+
+// Toggle Select All
+function toggleSelectAll(tab) {
+  const selectAll = document.getElementById(tab === "shipment" ? "shipmentSelectAll" : "thSelectAll").checked;
+  const checkboxes = document.querySelectorAll(`#${tab === "shipment" ? "shipmentRecords" : "thRecords"} .record-checkbox:not(:disabled)`);
+  if (selectAll) {
+    const firstCustomer = checkboxes[0].dataset.customer;
+    checkboxes.forEach(cb => {
+      cb.checked = cb.dataset.customer === firstCustomer;
+    });
+  } else {
+    checkboxes.forEach(cb => cb.checked = false);
+  }
+}
+
+// Load Receipts
+function loadReceipts() {
+  const tbody = document.getElementById("receiptRecords");
+  tbody.innerHTML = "";
+  const sortedReceipts = [...receipts].sort((a, b) => {
+    const dateA = new Date(a.date.replace(/\//g, '-'));
+    const dateB = new Date(b.date.replace(/\//g, '-'));
+    return dateB - dateA;
+  });
+  sortedReceipts.forEach((receipt, index) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = 
+      `<td>${receipt.type}</td>
+      <td>${receipt.date}</td>
+      <td>${receipt.customer}</td>
+      <td>${receipt.collectorName || '未知'}</td>
+      <td>${receipt.totalFee} 元</td>
+      <td>${receipt.actualReceived} 元</td>
+      <td>${receipt.outstanding} 元</td>
+      <td>${receipt.voided ? "已作廢" : "有效"}</td>
+      <td><button class="bg-blue-500 text-white px-2 py-1 rounded" onclick="viewReceipt(${receipts.indexOf(receipt)})">查看</button></td>
+      <td>
+        <button class="bg-green-500 text-white px-2 py-1 rounded" onclick="downloadReceiptFromList(${receipts.indexOf(receipt)})">下載</button>
+        ${!receipt.voided ? `<button class="bg-red-500 text-white px-2 py-1 rounded" onclick="voidReceipt(${receipts.indexOf(receipt)})">作廢</button>` : ""}
+      </td>`;
+    tr.dataset.date = receipt.date;
+    tbody.appendChild(tr);
+  });
+  filterReceipts();
+}
+
+// Filter Records
+function filterRecords(tab) {
+  const query = document.getElementById(tab === "shipment" ? "shipmentSearch" : "thSearch").value.toLowerCase();
+  const year = document.getElementById(tab === "shipment" ? "shipmentFilterYear" : "thFilterYear").value;
+  const month = document.getElementById(tab === "shipment" ? "shipmentFilterMonth" : "thFilterMonth").value;
+  const payment = document.getElementById(tab === "shipment" ? "shipmentFilterPayment" : "thFilterPayment").value;
+  const rows = document.querySelectorAll(`#${tab === "shipment" ? "shipmentRecords" : "thRecords"} tr`);
+  rows.forEach(row => {
+    const date = row.cells[1].innerText;
+    const customer = row.cells[2].innerText.toLowerCase();
+    const phone = row.cells[3].innerText.toLowerCase();
+    const paid = row.cells[row.cells.length - 3].querySelector("select").value === "true";
+    const [rowYear, rowMonth] = date.split("-");
+    const matchesSearch = customer.includes(query) || phone.includes(query);
+    const matchesYear = !year || rowYear === year;
+    const matchesMonth = !month || rowMonth === month;
+    const matchesPayment = !payment || (payment === "paid" && paid) || (payment === "unpaid" && !paid);
+    row.style.display = matchesSearch && matchesYear && matchesMonth && matchesPayment ? "" : "none";
+  });
+}
+
+// Filter Receipts
+function filterReceipts() {
+  const year = document.getElementById("receiptFilterYear").value;
+  const month = document.getElementById("receiptFilterMonth").value;
+  const rows = document.querySelectorAll("#receiptRecords tr");
+  rows.forEach(row => {
+    const date = row.dataset.date;
+    const [rowYear, rowMonth] = date.split(/[-/]/);
+    const matchesYear = !year || rowYear === year;
+    const matchesMonth = !month || rowMonth === month;
+    row.style.display = matchesYear && matchesMonth ? "" : "none";
+  });
+}
+
+// Update Payment Status
+function updatePaymentStatus(tab, index, value) {
+  const records = tab === "shipment" ? shipmentRecords : thRecords;
+  records[index].paid = value === "true";
+  if (records[index].paid) {
+    records[index].actualReceived = records[index].fee;
+    records[index].outstanding = 0;
+    records[index].signed = true; // 設置為已簽署（完整收款）
+  } else {
+    records[index].actualReceived = 0;
+    records[index].outstanding = records[index].fee;
+    records[index].signed = false;
+  }
+  loadRecords(tab);
+}
+
+// Switch Tab
+function switchTab(tab) {
+  currentTab = tab;
+
+  // 隱藏全部 tab-content、顯示對應 tab
+  document.querySelectorAll(".tab-content").forEach(content => {
+    content.style.display = "none";
+  });
+  document.getElementById(`${tab}-tab`).style.display = "block";
+
+  // 更新按鈕 active 樣式
+  document.querySelectorAll(".tab-button").forEach(btn => {
+    btn.classList.remove("active");
+  });
+  const activeBtn = document.querySelector(`.tab-button[data-tab="${tab}"]`);
+  activeBtn.classList.add("active");
+}
+
+// Generate Receipt
+function generateReceipt(tab) {
+  const checkboxes = document.querySelectorAll(`#${tab === "shipment" ? "shipmentRecords" : "thRecords"} .record-checkbox:checked`);
+  if (checkboxes.length === 0) {
+    alert("請選擇至少一筆資料");
+    return;
+  }
+  currentTab = tab;
+  records = tab === "shipment" ? shipmentRecords : thRecords;
+  collectorName = "系統生成";
+  generateReceiptWithPassword(tab);
+}
+
+// Generate Receipt with Password
+function generateReceiptWithPassword(tab) {
+  const checkboxes = document.querySelectorAll(`#${tab === "shipment" ? "shipmentRecords" : "thRecords"} .record-checkbox:checked`);
+  const receiptContent = document.getElementById("receiptContent");
+  receiptContent.innerHTML = "";
+  const currentDateTime = new Date().toLocaleString("zh-TW", { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  totalFee = 0;
+  currentReceiptIndices = Array.from(checkboxes).map(cb => parseInt(cb.dataset.index));
+  const customer = records[currentReceiptIndices[0]].customer;
+
+  let receiptHTML = 
+    `<div class="receipt-container-a4" style="position: relative; text-align: left;">
+      <div class="receipt-header-a4">
+        <h1 style="font-size: 24px;">麥寮秧苗場 - ${tab === "shipment" ? "出貨單總收據" : "插秧與收割總收據"}</h1>
+        <p>開立日期: ${currentDateTime}</p>
+        <p>收款人姓名: ${collectorName}</p>
+        <p>客戶: ${customer}</p>
+      </div>
+      <div class="receipt-details-a4">
+        <p style="font-weight: bold;">項目明細:</p>
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="background-color: #34D399; color: white;">`;
+
+  if (tab === "shipment") {
+    receiptHTML += 
+          `<th style="border: 1px solid #000; padding: 5px;">日期</th>
+          <th style="border: 1px solid #000; padding: 5px;">品種</th>
+          <th style="border: 1px solid #000; padding: 5px;">時段</th>
+          <th style="border: 1px solid #000; padding: 5px;">數量</th>
+          <th style="border: 1px solid #000; padding: 5px;">總粒數</th>
+          <th style="border: 1px solid #000; padding: 5px;">退粒數</th>
+          <th style="border: 1px solid #000; padding: 5px;">費用</th>
+        </tr>
+      </thead>
+      <tbody>`;
+    let totalQuantity = 0, totalGrainsSum = 0, refundGrainsSum = 0;
+    currentReceiptIndices.forEach(index => {
+      const record = records[index];
+      totalFee += record.fee;
+      totalQuantity += record.quantity;
+      totalGrainsSum += record.totalGrains;
+      refundGrainsSum += record.refundGrains;
+      receiptHTML += 
+        `<tr>
+          <td style="border: 1px solid #000; padding: 5px;">${record.date}</td>
+          <td style="border: 1px solid #000; padding: 5px;">${record.variety}</td>
+          <td style="border: 1px solid #000; padding: 5px;">${record.time}</td>
+          <td style="border: 1px solid #000; padding: 5px;">${record.quantity} ${record.unit}</td>
+          <td style="border: 1px solid #000; padding: 5px;">${record.totalGrains} 粒</td>
+          <td style="border: 1px solid #000; padding: 5px;">${record.refundGrains} 粒</td>
+          <td style="border: 1px solid #000; padding: 5px;">${record.fee} 元</td>
+        </tr>`;
+    });
+    receiptHTML += 
+      `</tbody>
+    </table>
+    <div class="receipt-divider-a4"></div>
+    <p>總數量: ${totalQuantity} 箱/粒 | 總粒數: ${totalGrainsSum} 粒 | 總退粒數: ${refundGrainsSum} 粒</p>`;
+  } else {
+    const hasSinglePurchase = currentReceiptIndices.some(index => records[index].type === "插秧單" && records[index].singlePurchase > 0);
+    const hasTotalGrains = currentReceiptIndices.some(index => records[index].type === "插秧單" && records[index].totalGrains > 0);
+    const hasHarvest = currentReceiptIndices.some(index => records[index].type === "收割單");
+    receiptHTML += 
+          `<th style="border: 1px solid #000; padding: 5px;">類型</th>
+          <th style="border: 1px solid #000; padding: 5px;">日期</th>
+          ${hasSinglePurchase ? `<th style="border: 1px solid #000; padding: 5px;">單買</th>` : ""}
+          ${hasTotalGrains ? `<th style="border: 1px solid #000; padding: 5px;">總插秧粒數</th>` : ""}
+          ${hasHarvest ? `<th style="border: 1px solid #000; padding: 5px;">面積</th>` : ""}
+          <th style="border: 1px solid #000; padding: 5px;">是否自運</th>
+          <th style="border: 1px solid #000; padding: 5px;">費用</th>
+        </tr>
+      </thead>
+      <tbody>`;
+    let totalGrainsSum = 0, singlePurchaseSum = 0, totalHarvestArea = 0;
+    currentReceiptIndices.forEach(index => {
+      const record = records[index];
+      totalFee += record.fee;
+      if (record.type === "插秧單") {
+        if (record.singlePurchase > 0) singlePurchaseSum += record.singlePurchase;
+        if (record.totalGrains > 0) totalGrainsSum += record.totalGrains;
+        receiptHTML += 
+          `<tr>
+            <td style="border: 1px solid #000; padding: 5px;">插秧單</td>
+            <td style="border: 1px solid #000; padding: 5px;">${record.date}</td>
+            ${hasSinglePurchase ? `<td style="border: 1px solid #000; padding: 5px;">${record.singlePurchase > 0 ? record.singlePurchase + ' 顆' : '-'}</td>` : ""}
+            ${hasTotalGrains ? `<td style="border: 1px solid #000; padding: 5px;">${record.totalGrains > 0 ? record.totalGrains + ' 顆' : '-'}</td>` : ""}
+            ${hasHarvest ? `<td style="border: 1px solid #000; padding: 5px;">-</td>` : ""}
+            <td style="border: 1px solid #000; padding: 5px;">${record.selfTransport}</td>
+            <td style="border: 1px solid #000; padding: 5px;">${record.fee} 元</td>
+          </tr>`;
+      } else {
+        totalHarvestArea += record.area;
+        receiptHTML += 
+          `<tr>
+            <td style="border: 1px solid #000; padding: 5px;">收割單</td>
+            <td style="border: 1px solid #000; padding: 5px;">${record.date}</td>
+            ${hasSinglePurchase ? `<td style="border: 1px solid #000; padding: 5px;">-</td>` : ""}
+            ${hasTotalGrains ? `<td style="border: 1px solid #000; padding: 5px;">-</td>` : ""}
+            ${hasHarvest ? `<td style="border: 1px solid #000; padding: 5px;">${record.area} 分</td>` : ""}
+            <td style="border: 1px solid #000; padding: 5px;">${record.selfTransport}</td>
+            <td style="border: 1px solid #000; padding: 5px;">${record.fee} 元</td>
+          </tr>`;
+      }
+    });
+    receiptHTML += 
+      `</tbody>
+    </table>
+    <div class="receipt-divider-a4"></div>
+    <p>${hasSinglePurchase ? `總單買: ${singlePurchaseSum} 顆 | ` : ""}${hasTotalGrains ? `總插秧粒數: ${totalGrainsSum} 顆` : ""}${hasHarvest ? ` | 總收割面積: ${totalHarvestArea} 分` : ""}</p>`;
+  }
+
+  receiptHTML += 
+    `</div>
+    <div class="receipt-total-a4">
+      <p>總計: ${totalFee} 元</p>
+    </div>
+    <div class="receipt-footer-a4">
+      <p>地址: 雲林縣麥寮鄉施厝村施厝七街22號</p>
+      <p>行動電話: 0932057161</p>
+      <p>電話: 05-6911559</p>
+    </div>
+    <div class="receipt-stamp-a4">
+      <img id="stampImage-a4" src="${localStorage.getItem('stampImage') || ''}">
+    </div>
+  </div>`;
+  receiptContent.innerHTML = receiptHTML;
+  document.getElementById("receiptModal").classList.add("active");
+}
+
+// Close Receipt Modal
+function closeReceiptModal() {
+  document.getElementById("receiptModal").classList.remove("active");
+}
+
+// Open Download Password Modal
+function openDownloadPasswordModal() {
+  document.getElementById("downloadPasswordModal").classList.add("active");
+  document.getElementById("downloadPassword").value = "";
+}
+
+// Close Download Password Modal
+function closeDownloadPasswordModal() {
+  document.getElementById("downloadPasswordModal").classList.remove("active");
+}
+
+// Confirm Download Password
+function confirmDownloadPassword() {
+  const downloadPassword = document.getElementById("downloadPassword").value;
+  if (!downloadPassword) {
+    alert("請輸入密碼！");
+    return;
+  }
+  const collectorPasswords = JSON.parse(localStorage.getItem("collectorPasswords")) || ["default123", "password456"];
+  if (!collectorPasswords.includes(downloadPassword)) {
+    alert("無效的密碼！");
+    return;
+  }
+  collectorName = collectorMap[downloadPassword] || "系統生成";
+  closeDownloadPasswordModal();
+  downloadReceipt();
+}
+
+// Download Receipt
+async function downloadReceipt() {
+  const { jsPDF } = window.jspdf;
+  const receiptElement = document.getElementById("receiptPrintArea");
+  actualReceived = parseInt(document.getElementById("actualReceived").value) || 0;
+
+  // 檢查實收金額是否大於總金額
+  if (actualReceived > totalFee) {
+    alert("實收金額不能大於總金額！");
+    return;
+  }
+
+  outstanding = totalFee - actualReceived;
+
+  const tempDiv = document.createElement('div');
+  tempDiv.style.width = '190mm';
+  tempDiv.style.padding = '10mm';
+  tempDiv.style.fontFamily = "'Courier New', Courier, monospace";
+  tempDiv.style.fontSize = '16px';
+  tempDiv.style.textAlign = 'left';
+  let receiptContent = document.getElementById("receiptContent").innerHTML;
+  receiptContent = receiptContent.replace(
+    `<p>收款人姓名: 系統生成</p>`,
+    `<p>收款人姓名: ${collectorName}</p>`
+  );
+  receiptContent = receiptContent.replace(
+    `<div class="receipt-total-a4">`,
+    `<div class="receipt-total-a4">
+      <p>總計: ${totalFee} 元</p>
+      <p>已收款: ${actualReceived} 元</p>
+      <p>未收款: ${outstanding} 元</p>`
+  );
+  tempDiv.innerHTML = receiptContent;
+  document.body.appendChild(tempDiv);
+
+  const canvas = await html2canvas(tempDiv, { 
+    scale: 2,
+    useCORS: true,
+    width: tempDiv.offsetWidth,
+    height: tempDiv.offsetHeight,
+    windowWidth: tempDiv.offsetWidth,
+    windowHeight: tempDiv.offsetHeight
+  });
+  
+  const imgData = canvas.toDataURL("image/png");
+  document.body.removeChild(tempDiv);
+
+  const pdf = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4"
+  });
+
+  const imgWidth = 190;
+  const imgHeight = (canvas.height * imgWidth) / canvas.width;
+  const xPos = 12;
+  const yPos = 5;
+
+  pdf.addImage(imgData, "PNG", xPos, yPos, imgWidth, imgHeight);
+
+  const receipt = {
+    type: currentTab === "shipment" ? "出貨單" : "插秧與收割",
+    date: new Date().toLocaleString("zh-TW", { year: 'numeric', month: '2-digit', day: '2-digit' }),
+    totalFee: totalFee,
+    actualReceived: actualReceived,
+    outstanding: outstanding,
+    indices: currentReceiptIndices,
+    tab: currentTab,
+    collectorName: collectorName,
+    customer: records[currentReceiptIndices[0]].customer,
+    voided: false
+  };
+  receipts.push(receipt);
+  localStorage.setItem("receipts", JSON.stringify(receipts));
+
+  const sortedIndices = currentReceiptIndices.sort((a, b) => new Date(records[a].date) - new Date(records[b].date));
+  let remainingReceived = actualReceived;
+  sortedIndices.forEach(index => {
+    const record = records[index];
+    const receivable = record.fee - record.actualReceived;
+    const receivedForThisRecord = Math.min(remainingReceived, receivable);
+    record.actualReceived += receivedForThisRecord;
+    record.outstanding = record.fee - record.actualReceived;
+    record.paid = record.outstanding === 0;
+    record.signed = record.outstanding === 0; // 完整收款的記錄設為 signed
+    remainingReceived -= receivedForThisRecord;
+  });
+
+  loadRecords(currentTab);
+  loadReceipts();
+
+  pdf.save(`${currentTab}-payment-receipt-${receipt.date}.pdf`);
+  closeReceiptModal();
+}
+
+// Print Page
+// Print Page
+async function printPage(tab) {
+  const { jsPDF } = window.jspdf;
+  const records = tab === "shipment" ? shipmentRecords : thRecords;
+  const rows = document.querySelectorAll(`#${tab === "shipment" ? "shipmentRecords" : "thRecords"} tr`);
+  let visibleRecords = Array.from(rows)
+    .filter(row => row.style.display !== "none")
+    .map(row => {
+      const index = row.querySelector('.record-checkbox').dataset.index;
+      return records[index];
+    });
+
+  if (visibleRecords.length === 0) {
+    alert("沒有可列印的資料");
+    return;
+  }
+
+  visibleRecords.sort((a, b) => {
+    if (a.customer === b.customer) {
+      return new Date(a.date) - new Date(b.date);
+    }
+    return a.customer.localeCompare(b.customer);
+  });
+
+  const groupedRecords = {};
+  visibleRecords.forEach(record => {
+    if (!groupedRecords[record.customer]) {
+      groupedRecords[record.customer] = [];
+    }
+    groupedRecords[record.customer].push(record);
+  });
+
+  const printArea = document.createElement('div');
+  printArea.style.padding = '10mm';
+  printArea.style.fontFamily = 'Arial, sans-serif'; // 使用更易讀的字體
+  printArea.style.fontSize = '14px'; // 增加基礎字體大小
+  printArea.style.lineHeight = '1.6';
+  printArea.style.width = '210mm'; // 設定為A4寬度
+  printArea.style.boxSizing = 'border-box';
+
+  const title = document.createElement('h1');
+  title.innerHTML = `麥寮秧苗場 - ${tab === "shipment" ? "出貨單" : "插秧與收割"}列印明細`;
+  title.style.textAlign = 'center';
+  title.style.fontSize = '24px'; // 增大標題字體
+  title.style.marginBottom = '10mm';
+  title.style.fontWeight = 'bold';
+  printArea.appendChild(title);
+
+  const printDate = document.createElement('p');
+  printDate.innerHTML = `列印日期: ${new Date().toLocaleDateString("zh-TW")}`;
+  printDate.style.textAlign = 'center';
+  printDate.style.fontSize = '16px'; // 增大日期字體
+  printDate.style.marginBottom = '10mm';
+  printArea.appendChild(printDate);
+
+  let totalFee = 0, receivable = 0, received = 0;
+  let isFirstTable = true;
+
+  for (const customer in groupedRecords) {
+    const customerHeader = document.createElement('h2');
+    customerHeader.innerHTML = `客戶: ${customer} (${groupedRecords[customer][0].phone})`;
+    customerHeader.style.fontSize = '18px'; // 增大客戶標題字體
+    customerHeader.style.marginTop = '10mm';
+    customerHeader.style.marginBottom = '5mm';
+    customerHeader.style.fontWeight = 'bold';
+    printArea.appendChild(customerHeader);
+
+    const table = document.createElement('table');
+    table.style.width = '100%';
+    table.style.borderCollapse = 'collapse';
+    table.style.marginBottom = '10mm';
+    table.style.fontSize = '14px'; // 確保表格字體大小
+
+    if (isFirstTable) {
+      table.innerHTML = 
+        `<thead>
+          <tr style="background-color: #34D399; color: white; font-size: 16px;">`; // 增大表頭字體
+      if (tab === "shipment") {
+        table.innerHTML += 
+          `<th style="border: 2px solid #000; padding: 8px; text-align: center;">日期</th>
+          <th style="border: 2px solid #000; padding: 8px; text-align: center;">品種</th>
+          <th style="border: 2px solid #000; padding: 8px; text-align: center;">時段</th>
+          <th style="border: 2px solid #000; padding: 8px; text-align: center;">數量</th>
+          <th style="border: 2px solid #000; padding: 8px; text-align: center;">總粒數</th>
+          <th style="border: 2px solid #000; padding: 8px; text-align: center;">退粒數</th>
+          <th style="border: 2px solid #000; padding: 8px; text-align: center;">費用</th>
+          <th style="border: 2px solid #000; padding: 8px; text-align: center;">付款狀態</th>
+          <th style="border: 2px solid #000; padding: 8px; text-align: center;">已收款</th>
+          <th style="border: 2px solid #000; padding: 8px; text-align: center;">未收款</th>`;
+      } else {
+        table.innerHTML += 
+          `<th style="border: 2px solid #000; padding: 8px; text-align: center;">類型</th>
+          <th style="border: 2px solid #000; padding: 8px; text-align: center;">日期</th>
+          <th style="border: 2px solid #000; padding: 8px; text-align: center;">代插師傅</th>
+          <th style="border: 2px solid #000; padding: 8px; text-align: center;">收割師傅</th>
+          <th style="border: 2px solid #000; padding: 8px; text-align: center;">面積</th>
+          <th style="border: 2px solid #000; padding: 8px; text-align: center;">單買</th>
+          <th style="border: 2px solid #000; padding: 8px; text-align: center;">總插秧粒數</th>
+          <th style="border: 2px solid #000; padding: 8px; text-align: center;">載穀司機</th>
+          <th style="border: 2px solid #000; padding: 8px; text-align: center;">小工</th>
+          <th style="border: 2px solid #000; padding: 8px; text-align: center;">是否自運</th>
+          <th style="border: 2px solid #000; padding: 8px; text-align: center;">費用</th>
+          <th style="border: 2px solid #000; padding: 8px; text-align: center;">付款狀態</th>
+          <th style="border: 2px solid #000; padding: 8px; text-align: center;">已收款</th>
+          <th style="border: 2px solid #000; padding: 8px; text-align: center;">未收款</th>`;
+      }
+      table.innerHTML += `</tr></thead><tbody></tbody>`;
+      isFirstTable = false;
+    } else {
+      table.innerHTML = `<tbody></tbody>`;
+    }
+
+    const tbody = table.querySelector('tbody');
+    let customerTotal = 0, customerReceived = 0, customerReceivable = 0;
+    groupedRecords[customer].forEach(record => {
+      totalFee += record.fee;
+      received += record.actualReceived;
+      receivable += record.outstanding;
+      customerTotal += record.fee;
+      customerReceived += record.actualReceived;
+      customerReceivable += record.outstanding;
+
+      const newRow = document.createElement('tr');
+      newRow.style.fontSize = '14px'; // 確保表格內容字體大小
+      if (tab === "shipment") {
+        newRow.innerHTML = 
+          `<td style="border: 1px solid #000; padding: 6px; text-align: center;">${record.date}</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: center;">${record.variety}</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: center;">${record.time}</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: center;">${record.quantity} ${record.unit}</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: center;">${record.totalGrains} 粒</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: center;">${record.refundGrains} 粒</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: center;">${record.fee} 元</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: center;">${record.paid ? "已付款" : "未付款"}</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: center;">${record.actualReceived} 元</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: center;">${record.outstanding} 元</td>`;
+      } else {
+        newRow.innerHTML = 
+          `<td style="border: 1px solid #000; padding: 6px; text-align: center;">${record.type}</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: center;">${record.date}</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: center;">${record.transplantWorker || '-'}</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: center;">${record.harvestWorker || '-'}</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: center;">${record.area} 分</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: center;">${record.singlePurchase > 0 ? record.singlePurchase + ' 顆' : '-'}</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: center;">${record.totalGrains > 0 ? record.totalGrains + ' 顆' : '-'}</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: center;">${record.driver.length > 0 ? record.driver.join(", ") : '-'}</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: center;">${record.assistant || '-'}</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: center;">${record.selfTransport}</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: center;">${record.fee} 元</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: center;">${record.paid ? "已付款" : "未付款"}</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: center;">${record.actualReceived} 元</td>
+          <td style="border: 1px solid #000; padding: 6px; text-align: center;">${record.outstanding} 元</td>`;
+      }
+      tbody.appendChild(newRow);
+    });
+
+    const totalRow = document.createElement('tr');
+    totalRow.style.fontWeight = 'bold';
+    totalRow.style.fontSize = '14px';
+    totalRow.innerHTML = 
+      `<td colspan="${tab === "shipment" ? 10 : 14}" style="border: 1px solid #000; padding: 8px; text-align: left;">
+        客戶總計: ${customerTotal} 元 | 已收款: ${customerReceived} 元 | 未收款: ${customerReceivable} 元
+      </td>`;
+    tbody.appendChild(totalRow);
+
+    printArea.appendChild(table);
+  }
+
+  const summary = document.createElement('div');
+  summary.style.marginTop = '10mm';
+  summary.style.fontSize = '16px'; // 增大總結字體
+  summary.style.fontWeight = 'bold';
+  summary.innerHTML = 
+    `總計: ${totalFee} 元 | 未收款: ${receivable} 元 | 已收款: ${received} 元`;
+  summary.style.textAlign = 'left';
+  printArea.appendChild(summary);
+
+  document.body.appendChild(printArea);
+
+  const canvas = await html2canvas(printArea, { 
+    scale: 2,
+    width: 210 * 3.78, // 210mm轉換為像素
+    height: printArea.offsetHeight * 1.5,
+    windowWidth: 210 * 3.78,
+    windowHeight: printArea.offsetHeight * 1.5,
+    useCORS: true
+  });
+  
+  const imgData = canvas.toDataURL('image/png');
+  const pdf = new jsPDF('p', 'mm', 'a4');
+  const pdfWidth = 210;
+  const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+  const pageHeight = 297;
+
+  let heightLeft = pdfHeight;
+  let position = 0;
+
+  pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+  heightLeft -= pageHeight;
+  while (heightLeft > 0) {
+    position -= pageHeight;
+    pdf.addPage();
+    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+    heightLeft -= pageHeight;
+  }
+
+  pdf.save(`${tab}-report-${new Date().toLocaleDateString("zh-TW")}.pdf`);
+  document.body.removeChild(printArea);
+}
+
+// View Receipt
+function viewReceipt(index) {
+  const receipt = receipts[index];
+  const viewContent = document.getElementById("receiptViewContent");
+  viewContent.innerHTML = regenerateReceiptContent(receipt);
+  document.getElementById("receiptViewModal").classList.add("active");
+}
+
+// Close Receipt View Modal
+function closeReceiptViewModal() {
+  document.getElementById("receiptViewModal").classList.remove("active");
+}
+
+// Regenerate Receipt Content
+function regenerateReceiptContent(receipt) {
+  const records = receipt.tab === "shipment" ? shipmentRecords : thRecords;
+  const customer = records[receipt.indices[0]].customer;
+  let totalFee = receipt.totalFee;
+
+  let receiptHTML = 
+    `<div class="receipt-container-a4" style="position: relative; text-align: left;">
+      <div class="receipt-header-a4">
+        <h1 style="font-size: 24px;">${receipt.type}總收據</h1>
+        <p>開立日期: ${receipt.date}</p>
+        <p>收款人姓名: ${receipt.collectorName || '未知'}</p>
+        <p>客戶: ${customer}</p>
+      </div>
+      <div class="receipt-details-a4">
+        <p style="font-weight: bold;">項目明細:</p>
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="background-color: #34D399; color: white;">`;
+
+  if (receipt.tab === "shipment") {
+    receiptHTML += 
+          `<th style="border: 1px solid #000; padding: 5px;">日期</th>
+          <th style="border: 1px solid #000; padding: 5px;">品種</th>
+          <th style="border: 1px solid #000; padding: 5px;">時段</th>
+          <th style="border: 1px solid #000; padding: 5px;">數量</th>
+          <th style="border: 1px solid #000; padding: 5px;">總粒數</th>
+          <th style="border: 1px solid #000; padding: 5px;">退粒數</th>
+          <th style="border: 1px solid #000; padding: 5px;">費用</th>
+        </tr>
+      </thead>
+      <tbody>`;
+    let totalQuantity = 0, totalGrainsSum = 0, refundGrainsSum = 0;
+    receipt.indices.forEach(index => {
+      const record = records[index];
+      totalQuantity += record.quantity;
+      totalGrainsSum += record.totalGrains;
+      refundGrainsSum += record.refundGrains;
+      receiptHTML += 
+        `<tr>
+          <td style="border: 1px solid #000; padding: 5px;">${record.date}</td>
+          <td style="border: 1px solid #000; padding: 5px;">${record.variety}</td>
+          <td style="border: 1px solid #000; padding: 5px;">${record.time}</td>
+          <td style="border: 1px solid #000; padding: 5px;">${record.quantity} ${record.unit}</td>
+          <td style="border: 1px solid #000; padding: 5px;">${record.totalGrains} 粒</td>
+          <td style="border: 1px solid #000; padding: 5px;">${record.refundGrains} 粒</td>
+          <td style="border: 1px solid #000; padding: 5px;">${record.fee} 元</td>
+        </tr>`;
+    });
+    receiptHTML += 
+      `</tbody>
+    </table>
+    <div class="receipt-divider-a4"></div>
+    <p>總數量: ${totalQuantity} 箱/粒 | 總粒數: ${totalGrainsSum} 粒 | 總退粒數: ${refundGrainsSum} 粒</p>`;
+  } else {
+    const hasSinglePurchase = receipt.indices.some(index => records[index].type === "插秧單" && records[index].singlePurchase > 0);
+    const hasTotalGrains = receipt.indices.some(index => records[index].type === "插秧單" && records[index].totalGrains > 0);
+    const hasHarvest = receipt.indices.some(index => records[index].type === "收割單");
+    receiptHTML += 
+          `<th style="border: 1px solid #000; padding: 5px;">類型</th>
+          <th style="border: 1px solid #000; padding: 5px;">日期</th>
+          ${hasSinglePurchase ? `<th style="border: 1px solid #000; padding: 5px;">單買</th>` : ""}
+          ${hasTotalGrains ? `<th style="border: 1px solid #000; padding: 5px;">總插秧粒數</th>` : ""}
+          ${hasHarvest ? `<th style="border: 1px solid #000; padding: 5px;">面積</th>` : ""}
+          <th style="border: 1px solid #000; padding: 5px;">是否自運</th>
+          <th style="border: 1px solid #000; padding: 5px;">費用</th>
+        </tr>
+      </thead>
+      <tbody>`;
+    let totalGrainsSum = 0, singlePurchaseSum = 0, totalHarvestArea = 0;
+    receipt.indices.forEach(index => {
+      const record = records[index];
+      if (record.type === "插秧單") {
+        if (record.singlePurchase > 0) singlePurchaseSum += record.singlePurchase;
+        if (record.totalGrains > 0) totalGrainsSum += record.totalGrains;
+        receiptHTML += 
+          `<tr>
+            <td style="border: 1px solid #000; padding: 5px;">插秧單</td>
+            <td style="border: 1px solid #000; padding: 5px;">${record.date}</td>
+            ${hasSinglePurchase ? `<td style="border: 1px solid #000; padding: 5px;">${record.singlePurchase > 0 ? record.singlePurchase + ' 顆' : '-'}</td>` : ""}
+            ${hasTotalGrains ? `<td style="border: 1px solid #000; padding: 5px;">${record.totalGrains > 0 ? record.totalGrains + ' 顆' : '-'}</td>` : ""}
+            ${hasHarvest ? `<td style="border: 1px solid #000; padding: 5px;">-</td>` : ""}
+            <td style="border: 1px solid #000; padding: 5px;">${record.selfTransport}</td>
+            <td style="border: 1px solid #000; padding: 5px;">${record.fee} 元</td>
+          </tr>`;
+      } else {
+        totalHarvestArea += record.area;
+        receiptHTML += 
+          `<tr>
+            <td style="border: 1px solid #000; padding: 5px;">收割單</td>
+            <td style="border: 1px solid #000; padding: 5px;">${record.date}</td>
+            ${hasSinglePurchase ? `<td style="border: 1px solid #000; padding: 5px;">-</td>` : ""}
+            ${hasTotalGrains ? `<td style="border: 1px solid #000; padding: 5px;">-</td>` : ""}
+            ${hasHarvest ? `<td style="border: 1px solid #000; padding: 5px;">${record.area} 分</td>` : ""}
+            <td style="border: 1px solid #000; padding: 5px;">${record.selfTransport}</td>
+            <td style="border: 1px solid #000; padding: 5px;">${record.fee} 元</td>
+          </tr>`;
+      }
+    });
+    receiptHTML += 
+      `</tbody>
+    </table>
+    <div class="receipt-divider-a4"></div>
+    <p>${hasSinglePurchase ? `總單買: ${singlePurchaseSum} 顆 | ` : ""}${hasTotalGrains ? `總插秧粒數: ${totalGrainsSum} 顆` : ""}${hasHarvest ? ` | 總收割面積: ${totalHarvestArea} 分` : ""}</p>`;
+  }
+
+  receiptHTML += 
+    `</div>
+    <div class="receipt-total-a4">
+      <p>總計: ${totalFee} 元</p>
+      <p>已收款: ${receipt.actualReceived} 元</p>
+      <p>未收款: ${receipt.outstanding} 元</p>
+    </div>
+    <div class="receipt-footer-a4">
+      <p>地址: 雲林縣麥寮鄉施厝村施厝七街22號</p>
+      <p>行動電話: 0932057161</p>
+      <p>電話: 05-6911559</p>
+    </div>
+    <div class="receipt-stamp-a4">
+      <img id="stampImage-a4" src="${localStorage.getItem('stampImage') || ''}">
+    </div>
+  </div>`;
+  return receiptHTML;
+}
+
+// Download Receipt From List
+async function downloadReceiptFromList(index) {
+  const receipt = receipts[index];
+  const { jsPDF } = window.jspdf;
+
+  const tempDiv = document.createElement('div');
+  tempDiv.style.width = '190mm';
+  tempDiv.style.padding = '10mm';
+  tempDiv.style.fontFamily = "'Courier New', Courier, monospace";
+  tempDiv.style.fontSize = '16px';
+  tempDiv.style.textAlign = 'left';
+  tempDiv.innerHTML = regenerateReceiptContent(receipt);
+  document.body.appendChild(tempDiv);
+
+  const canvas = await html2canvas(tempDiv, { scale: 2, useCORS: true });
+  const imgData = canvas.toDataURL("image/png");
+  document.body.removeChild(tempDiv);
+
+  const pdf = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4"
+  });
+
+  const imgWidth = 190;
+  const imgHeight = (canvas.height * imgWidth) / canvas.width;
+  const xPos = 12;
+  const yPos = 5;
+
+  pdf.addImage(imgData, "PNG", xPos, yPos, imgWidth, imgHeight);
+  pdf.save(`${receipt.tab}-payment-receipt-${receipt.date}.pdf`);
+}
+
+// Void Receipt
+function voidReceipt(index) {
+  if (confirm("確定要作廢這張收據嗎？")) {
+    receipts[index].voided = true;
+
+    const records = receipts[index].tab === "shipment" ? shipmentRecords : thRecords;
+    receipts[index].indices.forEach(recordIndex => {
+      const record = records[recordIndex];
+      record.actualReceived = 0;
+      record.outstanding = record.fee;
+      record.paid = false;
+      record.signed = false;
+    });
+
+    localStorage.setItem("receipts", JSON.stringify(receipts));
+    loadRecords(receipts[index].tab);
+    loadReceipts();
+  }
+}
+
+// Toggle Sidebar
+function toggleSidebar() {
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("sidebar-overlay");
+  sidebar.classList.toggle("open");
+  overlay.classList.toggle("show");
+}
+
+initFilters();
+switchTab('shipment');
+  </script>
+</body>
+</html> 
