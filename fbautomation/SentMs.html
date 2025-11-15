@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>蓋好賣 - 自動私訊</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+color: #1a202c;
+line-height: 1.6;
+min-height: 100vh;
+}
+.sidebar {
+width: 280px; height: 100vh; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
+position: fixed; padding: 40px 20px; box-shadow: 4px 0 24px rgba(0,0,0,0.1); z-index: 100;
+}
+.sidebar ul {
+list-style: none;
+}
+.logo { font-size: 2.4rem; font-weight: 800; margin-bottom: 50px; text-align: center;
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+-webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.sidebar ul li {
+padding: 18px 20px; margin-bottom: 12px; font-size: 1.05rem; cursor: pointer;
+border-radius: 12px; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); color: #4a5568; font-weight: 500;
+}
+.sidebar ul li:hover { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;
+transform: translateX(5px); box-shadow: 0 4px 12px rgba(102,126,234,0.4);
+}
+.sidebar ul li.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;
+box-shadow: 0 4px 12px rgba(102,126,234,0.4);
+}
+.content { margin-left: 280px; padding: 60px 60px; min-height: 100vh; }
+.header h1 { color: white; font-size: 2.4rem; font-weight: 700; margin-bottom: 12px; text-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+.header p { color: rgba(255,255,255,0.9); font-size: 1.1rem; }
+.progress-steps { display: flex; justify-content: space-between; margin-bottom: 60px; position: relative; max-width: 900px; margin-left: auto; margin-right: auto; }
+.progress-line { position: absolute; top: 25px; left: 10%; width: 80%; height: 3px; background: rgba(255,255,255,0.3); z-index: 0; }
+.progress-line-fill { height: 100%; background: white; transition: width 0.5s ease; width: 0%; }
+.step { flex: 1; text-align: center; min-width: 120px; position: relative; z-index: 1; }
+.step-circle { width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,0.3);
+display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 700;
+color: white; margin: 0 auto 16px; transition: all 0.3s; border: 3px solid transparent;
+position: relative; z-index: 2;
+}
+.step.active .step-circle { background: white; color: #667eea; box-shadow: 0 4px 20px rgba(255,255,255,0.4); transform: scale(1.1); }
+.step.completed .step-circle { background: white; color: #48bb78; }
+.step-label { color: rgba(255,255,255,0.8); font-size: 1rem; font-weight: 600; white-space: normal; word-break: break-word; }
+.step.active .step-label { color: white; font-weight: 700; }
+.card {
+background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 40px;
+border-radius: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); margin-bottom: 50px;
+border: 1px solid rgba(255,255,255,0.3); max-width: 900px; margin-left: auto; margin-right: auto;
+}
+.card h2 { font-size: 1.6rem; margin-bottom: 30px; color: #2d3748; font-weight: 700;
+display: flex; align-items: center; gap: 12px;
+}
+.step-content { display: none; }
+.step-content.active { display: block; animation: fadeIn 0.5s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.form-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 30px; }
+.form-group label { font-weight: 600; color: #2d3748; font-size: 1rem; display: flex; align-items: center; gap: 10px; }
+.form-group textarea, .form-group input[type="text"], .form-group input[type="file"], .form-group input[type="time"], .form-group input[type="number"] {
+width: 100%; padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px;
+font-size: 1rem; font-family: inherit; transition: all 0.2s;
+}
+.form-group textarea:focus, .form-group input:focus { outline: none; border-color: #667eea;
+box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+}
+.form-group textarea { min-height: 180px; resize: vertical; }
+.account-list { background: linear-gradient(135deg,#f7fafc 0%,#edf2f7 100%); padding: 20px;
+border-radius: 12px; border: 2px solid #e2e8f0; max-height: 300px; overflow-y: auto;
+}
+.account-item { display: flex; align-items: center; gap: 10px; padding: 12px; margin-bottom: 8px;
+background: white; border-radius: 8px;
+}
+.select-all-container { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+.image-preview-container { display: grid; grid-template-columns: repeat(auto-fill,minmax(180px,1fr)); gap: 20px; margin-top: 20px; }
+.image-preview-item { position: relative; aspect-ratio: 1; border-radius: 12px; overflow: hidden;
+border: 2px solid #e2e8f0; background: #f7fafc;
+}
+.image-preview-item img { width: 100%; height: 100%; object-fit: cover; }
+.image-preview-remove { position: absolute; top: 8px; right: 8px; background: #f56565; color: white;
+border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 1.2rem;
+display: flex; align-items: center; justify-content: center;
+}
+.image-preview-remove:hover { background: #e53e3e; transform: scale(1.1); }
+.info-box { background: #e6f2ff; padding: 20px; border-radius: 12px; margin-top: 15px; color: #2d3748; font-size: 0.95rem; }
+.post-options { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+.option-card { padding: 35px; border: 2px solid #e2e8f0; border-radius: 16px; cursor: pointer;
+transition: all 0.3s; background: linear-gradient(135deg,#f7fafc 0%,#edf2f7 100%);
+}
+.option-card:hover { border-color: #667eea; background: white; transform: translateY(-5px);
+box-shadow: 0 8px 20px rgba(102,126,234,0.2);
+}
+.option-card.selected { border-color: #667eea; background: linear-gradient(135deg,#e6f2ff 0%,#ebf4ff 100%);
+box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+}
+.option-title { font-size: 1.3rem; font-weight: 700; color: #2d3748; margin-bottom: 12px;
+display: flex; align-items: center; gap: 12px;
+}
+.schedule-settings { margin-top: 30px; padding: 25px; background: white; border-radius: 12px; display: none; }
+.schedule-settings.show { display: block; }
+.schedule-type-toggle { display: flex; gap: 12px; margin-bottom: 25px; background: #f7fafc;
+padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0;
+}
+.schedule-type-toggle label { flex: 1; padding: 14px; background: white; border-radius: 8px;
+cursor: pointer; text-align: center; transition: all 0.2s; font-weight: 600; color: #2d3748;
+}
+.schedule-type-toggle input[type="radio"] { display: none; }
+.schedule-type-toggle input[type="radio"]:checked + span {
+background: linear-gradient(135deg,#e6f2ff 0%,#ebf4ff 100%); color: #667eea;
+box-shadow: 0 2px 8px rgba(102,126,234,0.2);
+}
+.interval-mode-container, .custom-mode-container { background: #f7fafc; padding: 25px;
+border-radius: 12px; border: 1px solid #e2e8f0;
+}
+.interval-mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+.interval-summary { background: #e6f2ff; padding: 20px; border-radius: 8px; font-size: 0.95rem; color: #2d3748; }
+.custom-day-form { margin-top: 20px; padding: 20px; background: white; border-radius: 12px;
+border: 1px solid #e2e8f0;
+}
+.custom-time-slots { display: grid; gap: 15px; }
+.time-slot-row { display: flex; gap: 15px; align-items: center; padding: 10px; background: #f7fafc; border-radius: 8px; }
+.time-slot-row label { min-width: 80px; color: #718096; font-size: 0.95rem; }
+.time-slot-row input[type="time"] { flex: 1; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; }
+.time-slot-row button { padding: 10px 16px; border: none; border-radius: 8px; color: white; cursor: pointer; transition: all 0.2s; }
+.time-slot-row button:hover { transform: scale(1.05); }
+.time-slot-row button:first-of-type { background: #f56565; }
+.time-slot-row button:last-of-type { background: #48bb78; }
+.navigation-buttons {
+display: flex; justify-content: flex-end; align-items: center; gap: 20px; margin-top: 30px;
+}
+.btn {
+padding: 16px 24px; border: none; border-radius: 12px; font-size: 1.05rem; font-weight: 600;
+cursor: pointer; transition: all 0.3s;
+}
+.btn-secondary { background: #edf2f7; color: #4a5568; }
+.btn-secondary:hover { background: #e2e8f0; }
+.btn-primary { background: linear-gradient(135deg,#667eea 0%,#764ba2 100%); color: white;
+box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,126,234,0.4); }
+.btn-success { background: linear-gradient(135deg,#48bb78 0%,#38a169 100%); color: white;
+box-shadow: 0 4px 12px rgba(72,187,120,0.3);
+}
+.btn-success:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(72,187,120,0.4); }
+@media (max-width: 768px) {
+.progress-steps { flex-direction: column; align-items: center; }
+.progress-line { display: none; }
+.step { margin-bottom: 20px; min-width: auto; }
+.step-label { font-size: 0.9rem; }
+}
+</style>
+</head>
+<body>
+<div class="sidebar">
+<div class="logo">🏆 蓋好賣</div>
+<ul>
+<li onclick="window.location.href='index.html'">📊 首頁</li>
+<li onclick="window.location.href='account.html'">👤 帳號管理</li>
+<li onclick="window.location.href='schedule.html'">📝 排程管理</li>
+<li onclick="window.location.href='normalPost.html'">💬 一般社團發文</li>
+<li onclick="window.location.href='marketPlace.html'">🛒 拍賣+社團發文</li>
+<li onclick="window.location.href='addClub.html'">➕ 自動加入社團</li>
+<li onclick="window.location.href='cultivateAccount.html'">🤖 自動養號</li>
+<li class="active" onclick="window.location.href='SentMs.html'">📩 自動私訊</li>
+<li class="" onclick="window.location.href='PostAct.html'">👍 指定貼文按讚留言</li>
+</ul>
+</div>
+<div class="content">
+<div class="header">
+<h1>自動私訊</h1>
+<p>批量發送私訊到指定對象</p>
+</div>
+<div class="progress-steps">
+<div class="progress-line"><div class="progress-line-fill" id="progressFill"></div></div>
+<div class="step active" data-step="1"><div class="step-circle">1</div><div class="step-label">選擇帳號</div></div>
+<div class="step" data-step="2"><div class="step-circle">2</div><div class="step-label">上傳對象&編輯內容</div></div>
+<div class="step" data-step="3"><div class="step-circle">3</div><div class="step-label">立即發送／儲存排程</div></div>
+</div>
+<!-- Step 1 -->
+<div class="step-content active" id="step1">
+<div class="card">
+<h2>選擇發送帳號</h2>
+<div class="form-group">
+<div class="select-all-container">
+<input type="checkbox" id="selectAllAccounts" onchange="toggleSelectAllAccounts()">
+<label for="selectAllAccounts">全選</label>
+</div>
+<div class="account-list" id="accountList"></div>
+<div id="selectedAccountsDisplay" style="margin-top: 10px;"></div>
+</div>
+<div class="navigation-buttons">
+<button class="btn btn-secondary" id="prevBtn" onclick="previousStep()" style="display:none;">上一步</button>
+<button class="btn btn-primary" id="nextBtn" onclick="nextStep()">下一步</button>
+<button class="btn btn-success" id="submitBtn" onclick="submitMessage()" style="display:none;">送出</button>
+</div>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="step-content" id="step2">
+<div class="card">
+<h2>上傳私訊對象（可略過）</h2>
+<div class="form-group">
+<label>上傳 Excel 檔案（選填）</label>
+<input type="file" id="excelFile" accept=".xlsx,.xls,.csv" onchange="handleExcelUpload(event)">
+<div class="info-box">
+<strong>格式說明：</strong><br>
+                    • 需有「連結」或「URL」欄位<br>
+                    • 每行一個 Facebook 個人檔案連結
+</div>
+<div id="excelPreview" style="margin-top:15px; color:#2d3748;"></div>
+</div>
+</div>
+<div class="card">
+<h2>編輯私訊內容</h2>
+<div class="form-group">
+<label>私訊文字內容（支援 {name}、{firstName}）</label>
+<textarea id="messageContent" placeholder="哈囉 {name}～&#10;我是小美，很喜歡你的貼文喔！&#10;想跟你聊聊～"></textarea>
+</div>
+<div class="form-group">
+<label>上傳圖片（最多5張）</label>
+<input type="file" id="imageFiles" accept="image/*" multiple onchange="handleImageUpload(event)">
+<div class="info-box">最多 5 張圖片</div>
+<div id="imagePreview" class="image-preview-container"></div>
+</div>
+<div class="navigation-buttons">
+<button class="btn btn-secondary" id="prevBtn" onclick="previousStep()" style="display:none;">上一步</button>
+<button class="btn btn-primary" id="nextBtn" onclick="nextStep()">下一步</button>
+<button class="btn btn-success" id="submitBtn" onclick="submitMessage()" style="display:none;">送出</button>
+</div>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="step-content" id="step3">
+<div class="card">
+<h2>發送模式</h2>
+<div class="post-options">
+<div class="option-card selected" onclick="selectSendMode('immediate')">
+<div class="option-title">
+<input type="radio" name="sendMode" id="immediate" checked>
+<label for="immediate">⚡ 立即發送</label>
+</div>
+<div class="option-desc">馬上開始發送私訊</div>
+</div>
+<div class="option-card" onclick="selectSendMode('schedule')">
+<div class="option-title">
+<input type="radio" name="sendMode" id="schedule">
+<label for="schedule">📅排程發送</label>
+</div>
+<div class="option-desc">按照設定的時間自動發送</div>
+</div>
+</div>
+<div class="schedule-settings" id="scheduleSettings">
+<div class="schedule-type-toggle">
+<label><input type="radio" name="scheduleType" value="interval" checked onchange="toggleScheduleType()"><span>間隔時間</span></label>
+<label><input type="radio" name="scheduleType" value="custom" onchange="toggleScheduleType()"><span>客製化時間</span></label>
+</div>
+<div id="intervalMode" class="interval-mode-container">
+<h4>間隔發送設定</h4>
+<div class="interval-mode-grid">
+<div class="form-group">
+<label>開始時間</label>
+<input type="time" id="startTime" value="09:00">
+</div>
+<div class="form-group">
+<label>每幾小時發送一次</label>
+<div style="display:flex;gap:10px;align-items:center;">
+<input type="number" id="intervalHours" min="0.1" step="0.1" value="0.5" style="flex:1;" oninput="updateIntervalSummary()">
+<span style="color:#718096;font-size:0.9rem;">小時</span>
+</div>
+</div>
+<div class="form-group">
+<label>每次發送數量</label>
+<div style="display:flex;gap:10px;align-items:center;">
+<input type="number" id="messagesPerInterval" min="1" value="5" style="flex:1;" oninput="updateIntervalSummary()">
+<span style="color:#718096;font-size:0.9rem;">人</span>
+</div>
+</div>
+</div>
+<div class="interval-summary">
+<strong>發送摘要：</strong> 總共 <span id="totalRecipients">0</span> 位對象，需 <span id="totalSessions">0</span> 次發送
+</div>
+</div>
+<div id="customMode" class="custom-mode-container" style="display:none;">
+<h4>客製化發送設定</h4>
+<div class="form-group" style="margin-bottom:20px;">
+<label>選擇日期：</label>
+<div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;">
+<label style="padding:10px 20px;background:#f7fafc;border-radius:10px;cursor:pointer;font-size:0.95rem; border:1px solid #e2e8f0; transition:all 0.2s;"><input type="checkbox" value="mon" style="margin-right:8px;" onchange="updateCustomDayForms()">星期一</label>
+<label style="padding:10px 20px;background:#f7fafc;border-radius:10px;cursor:pointer;font-size:0.95rem; border:1px solid #e2e8f0; transition:all 0.2s;"><input type="checkbox" value="tue" style="margin-right:8px;" onchange="updateCustomDayForms()">星期二</label>
+<label style="padding:10px 20px;background:#f7fafc;border-radius:10px;cursor:pointer;font-size:0.95rem; border:1px solid #e2e8f0; transition:all 0.2s;"><input type="checkbox" value="wed" style="margin-right:8px;" onchange="updateCustomDayForms()">星期三</label>
+<label style="padding:10px 20px;background:#f7fafc;border-radius:10px;cursor:pointer;font-size:0.95rem; border:1px solid #e2e8f0; transition:all 0.2s;"><input type="checkbox" value="thu" style="margin-right:8px;" onchange="updateCustomDayForms()">星期四</label>
+<label style="padding:10px 20px;background:#f7fafc;border-radius:10px;cursor:pointer;font-size:0.95rem; border:1px solid #e2e8f0; transition:all 0.2s;"><input type="checkbox" value="fri" style="margin-right:8px;" onchange="updateCustomDayForms()">星期五</label>
+<label style="padding:10px 20px;background:#f7fafc;border-radius:10px;cursor:pointer;font-size:0.95rem; border:1px solid #e2e8f0; transition:all 0.2s;"><input type="checkbox" value="sat" style="margin-right:8px;" onchange="updateCustomDayForms()">星期六</label>
+<label style="padding:10px 20px;background:#f7fafc;border-radius:10px;cursor:pointer;font-size:0.95rem; border:1px solid #e2e8f0; transition:all 0.2s;"><input type="checkbox" value="sun" style="margin-right:8px;" onchange="updateCustomDayForms()">星期日</label>
+</div>
+</div>
+<div id="customDayForms"></div>
+<div style="margin-top:20px;padding:20px;background:#e6f2ff;border-radius:8px;font-size:0.95rem;">
+<strong>發送摘要：</strong> 總共 <span id="customTotalSends">0</span> 次發送
+</div>
+</div>
+</div>
+<div class="navigation-buttons">
+<button class="btn btn-secondary" id="prevBtn" onclick="previousStep()" style="display:none;">上一步</button>
+<button class="btn btn-primary" id="nextBtn" onclick="nextStep()">下一步</button>
+<button class="btn btn-success" id="submitBtn" onclick="submitMessage()" style="display:none;">送出</button>
+</div>
+</div>
+</div>
+</div>
+<script>
+let currentStep = 1;
+let selectedAccounts = [];
+let recipients = [];
+let uploadedImages = [];
+// 初始化帳號列表
+function initAccounts() {
+const list = document.getElementById('accountList');
+let html = '';
+for(let i=1; i<=50; i++){
+html += `<div class="account-item">
+            <input type="checkbox" id="acc${i}" value="帳號 ${i}" onchange="updateSelectedAccounts()">
+            <label for="acc${i}">帳號 ${i}</label>
+        </div>`;
+    }
+list.innerHTML = html;
+}
+function toggleSelectAllAccounts() {
+const master = document.getElementById('selectAllAccounts');
+document.querySelectorAll('#accountList input[type="checkbox"]').forEach(cb => cb.checked = master.checked);
+updateSelectedAccounts();
+}
+function updateSelectedAccounts() {
+const checked = document.querySelectorAll('#accountList input[type="checkbox"]:checked');
+document.getElementById('selectAllAccounts').checked = checked.length === 50;
+selectedAccounts = Array.from(checked).map(cb => cb.value);
+const display = document.getElementById('selectedAccountsDisplay');
+display.innerHTML = selectedAccounts.length > 0
+? `<div style="padding:10px;background:linear-gradient(135deg,#e6f2ff 0%,#ebf4ff 100%);border-radius:8px;">
+               <strong>已選擇 ${selectedAccounts.length} 個帳號</strong>
+           </div>`
+: '';
+}
+// Excel 上傳
+function handleExcelUpload(e) {
+const file = e.target.files[0];
+if(!file) return;
+const reader = new FileReader();
+reader.onload = function(ev) {
+try {
+const data = new Uint8Array(ev.target.result);
+const workbook = XLSX.read(data, {type: 'array'});
+const sheet = workbook.Sheets[workbook.SheetNames[0]];
+const json = XLSX.utils.sheet_to_json(sheet, {header:1});
+const header = json[0].map(h => String(h).toLowerCase());
+const urlCol = header.findIndex(h => h.includes('連結') || h.includes('url'));
+if(urlCol === -1){
+alert('找不到「連結」或「URL」欄位！');
+return;
+            }
+const urls = [];
+for(let i=1; i<json.length; i++){
+const val = json[i][urlCol];
+if(val && String(val).includes('facebook.com')){
+urls.push(String(val).trim());
+                }
+            }
+recipients = urls;
+document.getElementById('excelPreview').innerHTML = `<strong>已成功載入 ${recipients.length} 位對象</strong>`;
+updateIntervalSummary();
+        } catch(err) {
+alert('檔案解析失敗，請確認是正確的 Excel 檔案');
+        }
+    };
+reader.readAsArrayBuffer(file);
+}
+// 圖片處理（只保留上傳後顯示縮圖，不再同步到預覽區）
+function handleImageUpload(e) {
+const files = Array.from(e.target.files).slice(0,5);
+uploadedImages = files;
+const container = document.getElementById('imagePreview');
+container.innerHTML = '';
+files.forEach((file,i) => {
+const url = URL.createObjectURL(file);
+const div = document.createElement('div');
+div.className = 'image-preview-item';
+div.innerHTML = `<img src="${url}"><button class="image-preview-remove" onclick="removeImage(${i})">×</button>`;
+container.appendChild(div);
+    });
+}
+function removeImage(idx){
+uploadedImages.splice(idx,1);
+handleImageUpload({target:{files:uploadedImages}});
+}
+// 步驟控制
+function updateStep(){
+document.querySelectorAll('.step').forEach((s,i) => {
+s.className = 'step';
+if(i+1 < currentStep) s.classList.add('completed');
+if(i+1 === currentStep) s.classList.add('active');
+    });
+document.querySelectorAll('.step-content').forEach(c => c.classList.remove('active'));
+document.getElementById('step'+currentStep).classList.add('active');
+document.getElementById('progressFill').style.width = ((currentStep-1)/2)*100 + '%';
+document.querySelectorAll('#prevBtn').forEach(btn => btn.style.display = currentStep===1 ? 'none' : 'block');
+document.querySelectorAll('#nextBtn').forEach(btn => btn.style.display = currentStep===3 ? 'none' : 'block');
+document.querySelectorAll('#submitBtn').forEach(btn => btn.style.display = currentStep===3 ? 'block' : 'none');
+}
+function previousStep(){ if(currentStep>1) {currentStep--; updateStep();} }
+function nextStep(){
+if(currentStep===1 && selectedAccounts.length===0){
+alert('請至少選擇一個發送帳號');
+return;
+    }
+if(currentStep < 3){
+currentStep++;
+updateStep();
+    }
+}
+// 發送模式
+function selectSendMode(mode){
+document.querySelectorAll('.option-card').forEach(c=>c.classList.remove('selected'));
+document.querySelectorAll('input[name="sendMode"]').forEach(r=>r.checked = r.id===mode);
+document.getElementById('scheduleSettings').classList.toggle('show', mode==='schedule');
+if(mode==='immediate') document.querySelector('.option-card:nth-child(1)').classList.add('selected');
+else document.querySelector('.option-card:nth-child(2)').classList.add('selected');
+}
+// 排程功能
+function toggleScheduleType(){
+const type = document.querySelector('input[name="scheduleType"]:checked').value;
+document.getElementById('intervalMode').style.display = type==='interval'?'block':'none';
+document.getElementById('customMode').style.display = type==='custom'?'block':'none';
+if(type==='interval') updateIntervalSummary();
+if(type==='custom') updateCustomDayForms();
+}
+function updateIntervalSummary(){
+const total = recipients.length;
+const per = parseInt(document.getElementById('messagesPerInterval').value) || 1;
+const sessions = total===0 ? 0 : Math.ceil(total / per);
+document.getElementById('totalRecipients').textContent = total;
+document.getElementById('totalSessions').textContent = sessions;
+}
+function updateCustomDayForms(){
+const days = ['mon','tue','wed','thu','fri','sat','sun'];
+const checked = days.filter(d=>document.querySelector(`input[value="${d}"]:checked`));
+const container = document.getElementById('customDayForms');
+const dayNames = ['星期一','星期二','星期三','星期四','星期五','星期六','星期日'];
+container.innerHTML = checked.map((day,i)=>{
+const name = dayNames[days.indexOf(day)];
+return `
+            <div class="custom-day-form" data-day="${day}">
+                <h5>${name} 發送設定</h5>
+                <div class="form-group">
+                    <label>每次發送數量</label>
+                    <div style="display:flex;gap:10px;align-items:center;">
+                        <input type="number" class="msg-count" min="1" value="5" style="flex:1;" oninput="updateCustomTotal()">
+                        <span style="color:#718096;font-size:0.9rem;">人</span>
+                    </div>
+                </div>
+                <div class="custom-time-slots" id="slots-${day}">
+                    <div class="time-slot-row">
+                        <label style="min-width:60px;color:#718096;">時間1：</label>
+                        <input type="time" value="09:00" style="flex:1;">
+                        <button type="button" onclick="removeTimeSlot(this,'${day}')" style="background:#f56565;color:white;border:none;padding:8px 12px;border-radius:8px;">−</button>
+                        <button type="button" onclick="addTimeSlot('${day}')" style="background:#48bb78;color:white;border:none;padding:8px 12px;border-radius:8px;">+</button>
+                    </div>
+                </div>
+            </div>`;
+    }).join('');
+updateCustomTotal();
+}
+function addTimeSlot(day){
+const container = document.getElementById(`slots-${day}`);
+const count = container.querySelectorAll('.time-slot-row').length + 1;
+const row = document.createElement('div');
+row.className = 'time-slot-row';
+row.innerHTML = `
+        <label style="min-width:60px;color:#718096;">時間${count}：</label>
+        <input type="time" value="09:00" style="flex:1;">
+        <button type="button" onclick="removeTimeSlot(this,'${day}')" style="background:#f56565;color:white;border:none;padding:8px 12px;border-radius:8px;">−</button>
+        <button type="button" onclick="addTimeSlot('${day}')" style="background:#48bb78;color:white;border:none;padding:8px 12px;border-radius:8px;">+</button>`;
+container.appendChild(row);
+updateCustomTotal();
+}
+function removeTimeSlot(btn, day){
+const container = document.getElementById(`slots-${day}`);
+if(container.querySelectorAll('.time-slot-row').length > 1){
+btn.parentElement.remove();
+updateCustomTotal();
+    }
+}
+function updateCustomTotal(){
+let total = 0;
+document.querySelectorAll('.custom-day-form').forEach(form=>{
+const cnt = parseInt(form.querySelector('.msg-count').value) || 1;
+const slots = form.querySelectorAll('.time-slot-row').length;
+total += cnt * slots;
+    });
+document.getElementById('customTotalSends').textContent = total;
+}
+// 最終送出
+function submitMessage(){
+if(selectedAccounts.length===0){
+alert('請選擇至少一個發送帳號');
+return;
+    }
+if(recipient.length===0){
+if(!confirm('你還沒有上傳對象名單，確定要送出空白任務嗎？（可用於測試排程）')){
+return;
+        }
+    }
+const mode = document.querySelector('input[name="sendMode"]:checked').id;
+const data = {
+accounts: selectedAccounts,
+recipients: recipients,
+message: document.getElementById('messageContent').value || '(空白訊息)',
+images: uploadedImages.map(f=>f.name),
+mode: mode,
+schedule: mode==='schedule' ? collectScheduleData() : null
+    };
+console.log('【自動私訊任務已提交】', data);
+alert(`任務已成功提交！\n帳號：${selectedAccounts.length} 個\n對象：${recipients.length} 人\n模式：${mode==='immediate'?'立即發送':'排程發送'}`);
+}
+function collectScheduleData(){
+const type = document.querySelector('input[name="scheduleType"]:checked').value;
+if(type==='interval'){
+return {
+type: 'interval',
+startTime: document.getElementById('startTime').value,
+intervalHours: parseFloat(document.getElementById('intervalHours').value),
+perBatch: parseInt(document.getElementById('messagesPerInterval').value)
+        };
+    }else{
+const days = Array.from(document.querySelectorAll('.custom-day-form')).map(form=>({
+day: form.dataset.day,
+count: parseInt(form.querySelector('.msg-count').value),
+times: Array.from(form.querySelectorAll('input[type="time"]')).map(t=>t.value)
+        }));
+return { type:'custom', days };
+    }
+}
+// 初始化
+document.addEventListener('DOMContentLoaded', ()=>{
+initAccounts();
+updateStep();
+updateIntervalSummary();
+});
+</script>
+</body>
+</html>
