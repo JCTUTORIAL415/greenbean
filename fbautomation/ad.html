@@ -1,0 +1,1995 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓋好賣 FB AI 機器人 - 讓業績暴增 243%</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #000;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        :root {
+            --fb-blue: #1877f2;
+            --neon-blue: #00f0ff;
+            --neon-purple: #b24bf3;
+            --neon-pink: #ff006e;
+            --gold: #ffd700;
+        }
+
+        /* 3D Canvas Background */
+        #canvas3d {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
+
+        /* Glassmorphism Container */
+        .glass-container {
+            position: relative;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+        }
+
+        /* Navbar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 20px 5%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(24, 119, 242, 0.3);
+            animation: slideDown 0.2s ease-out; /* 进一步缩短动画时间 */
+        }
+
+        .nav-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--fb-blue), var(--neon-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            color: var(--neon-blue);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--neon-blue);
+            transition: width 0.3s;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 120px 5% 80px;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Floating Badge */
+        .floating-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, rgba(24, 119, 242, 0.2), rgba(155, 89, 182, 0.2));
+            border: 2px solid rgba(24, 119, 242, 0.5);
+            border-radius: 50px;
+            margin-bottom: 40px;
+            backdrop-filter: blur(20px);
+            animation: float 3s ease-in-out infinite;
+            box-shadow: 0 0 40px rgba(24, 119, 242, 0.4);
+        }
+
+        @keyframes float {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-15px);
+            }
+        }
+
+        .fb-icon {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--fb-blue), var(--neon-blue));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            box-shadow: 0 4px 20px rgba(24, 119, 242, 0.5);
+        }
+
+        /* Main Title with 3D Effect */
+        .hero-title {
+            font-size: clamp(3.5rem, 12vw, 10rem);
+            font-weight: 900;
+            margin-bottom: 30px;
+            line-height: 1.1;
+            position: relative;
+            animation: titleReveal 0.3s ease-out; /* 进一步缩短动画时间 */
+        }
+
+        @keyframes titleReveal {
+            from {
+                opacity: 0;
+                transform: translateY(50px) scale(0.9);
+                filter: blur(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--fb-blue) 0%, var(--neon-purple) 30%, var(--neon-pink) 60%, var(--gold) 100%);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientFlow 5s ease infinite;
+            position: relative;
+            text-shadow: 0 0 80px rgba(24, 119, 242, 0.5);
+        }
+
+        @keyframes gradientFlow {
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        /* 3D Robot Display */
+        .robot-stage {
+            perspective: 1000px;
+            margin: 60px 0;
+            animation: stageReveal 0.3s ease-out 0.2s both; /* 进一步缩短动画时间 */
+        }
+
+        @keyframes stageReveal {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .robot-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 0 auto;
+            transform-style: preserve-3d;
+            animation: robotFloat 4s ease-in-out infinite;
+        }
+
+        @keyframes robotFloat {
+            0%,
+            100% {
+                transform: translateY(0) rotateY(0deg);
+            }
+
+            50% {
+                transform: translateY(-30px) rotateY(15deg);
+            }
+        }
+
+        .robot-core {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--fb-blue), var(--neon-purple));
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 60px rgba(24, 119, 242, 0.6), 0 0 120px rgba(155, 89, 182, 0.4), inset 0 0 40px rgba(255, 255, 255, 0.1);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .robot-face {
+            font-size: 100px;
+            animation: blink 4s infinite;
+        }
+
+        @keyframes blink {
+            0%,
+            48%,
+            52%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        /* Orbiting Elements */
+        .orbit {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 80px;
+            height: 80px;
+            margin: -40px 0 0 -40px;
+        }
+
+        .orbit-1 {
+            animation: orbit 8s linear infinite;
+        }
+
+        .orbit-2 {
+            animation: orbit 8s linear infinite 2.66s;
+        }
+
+        .orbit-3 {
+            animation: orbit 8s linear infinite 5.32s;
+        }
+
+        @keyframes orbit {
+            from {
+                transform: rotate(0deg) translateX(180px) rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg) translateX(180px) rotate(-360deg);
+            }
+        }
+
+        .orbit-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            box-shadow: 0 10px 40px rgba(0, 240, 255, 0.5);
+            animation: iconSpin 2s ease-in-out infinite;
+        }
+
+        @keyframes iconSpin {
+            0%,
+            100% {
+                transform: rotate(0deg) scale(1);
+            }
+
+            50% {
+                transform: rotate(180deg) scale(1.1);
+            }
+        }
+
+        /* Hero Subtitle */
+        .hero-subtitle {
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            margin-bottom: 50px;
+            line-height: 1.6;
+            animation: fadeInUp 0.3s ease-out 0.4s both; /* 进一步缩短动画时间 */
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .highlight-gold {
+            background: linear-gradient(135deg, var(--gold), #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+            text-shadow: 0 0 40px rgba(255, 215, 0, 0.5);
+        }
+
+        /* CTA Buttons */
+        .cta-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 80px;
+            animation: fadeInUp 0.3s ease-out 0.6s both; /* 进一步缩短动画时间 */
+        }
+
+        .btn {
+            padding: 20px 50px;
+            border: none;
+            border-radius: 60px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--fb-blue), var(--neon-blue));
+            color: white;
+            box-shadow: 0 15px 50px rgba(24, 119, 242, 0.5);
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 20px 60px rgba(24, 119, 242, 0.7);
+        }
+
+        .btn-primary:hover::before {
+            opacity: 1;
+        }
+
+        .btn-primary span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            border: 2px solid rgba(24, 119, 242, 0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(24, 119, 242, 0.2);
+            border-color: var(--neon-blue);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 240, 255, 0.3);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            animation: fadeInUp 0.3s ease-out 0.8s both; /* 进一步缩短动画时间 */
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--fb-blue) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-15px) scale(1.03);
+            border-color: var(--neon-blue);
+            box-shadow: 0 20px 60px rgba(24, 119, 242, 0.4);
+        }
+
+        .stat-card:hover::before {
+            opacity: 0.1;
+        }
+
+        .stat-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            animation: bounce 2s ease-in-out infinite;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes bounce {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-15px);
+            }
+        }
+
+        .stat-number {
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Section Base */
+        .section {
+            padding: 120px 5%;
+            position: relative;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: clamp(2.5rem, 8vw, 6rem);
+            font-weight: 900;
+            margin-bottom: 80px;
+            background: linear-gradient(135deg, white, var(--neon-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Problem Cards */
+        .problems-grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .problem-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 0, 110, 0.3);
+            border-radius: 25px;
+            padding: 40px;
+            transition: all 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .problem-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 0, 110, 0.1), transparent);
+            transition: left 0.6s;
+        }
+
+        .problem-card:hover::before {
+            left: 100%;
+        }
+
+        .problem-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--neon-pink);
+            box-shadow: 0 20px 60px rgba(255, 0, 110, 0.3);
+        }
+
+        .problem-icon {
+            font-size: 4rem;
+            margin-bottom: 25px;
+            filter: drop-shadow(0 0 20px rgba(255, 0, 110, 0.5));
+        }
+
+        .problem-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .problem-desc {
+            opacity: 0.8;
+            line-height: 1.8;
+        }
+
+        .arrow-section {
+            text-align: center;
+            font-size: 4rem;
+            margin: 60px 0;
+            animation: bounceDown 2s infinite;
+        }
+
+        @keyframes bounceDown {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(20px);
+            }
+        }
+
+        /* Solution Box */
+        .solution-box {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(24, 119, 242, 0.1), rgba(155, 89, 182, 0.1));
+            backdrop-filter: blur(30px);
+            border: 2px solid rgba(24, 119, 242, 0.5);
+            border-radius: 40px;
+            padding: 60px 40px;
+            box-shadow: 0 30px 80px rgba(24, 119, 242, 0.3);
+        }
+
+        .solution-title {
+            font-size: clamp(2rem, 6vw, 4rem);
+            font-weight: 900;
+            margin-bottom: 25px;
+            background: linear-gradient(135deg, var(--gold), var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .solution-subtitle {
+            font-size: 1.5rem;
+            line-height: 1.8;
+            margin-bottom: 40px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Feature Cards */
+        .features-grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 35px;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 45px;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--neon-blue) 0%, var(--neon-purple) 100%);
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            border-color: var(--neon-blue);
+            box-shadow: 0 30px 80px rgba(0, 240, 255, 0.4);
+        }
+
+        .feature-card:hover::before {
+            opacity: 0.1;
+        }
+
+        .feature-icon {
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, var(--fb-blue), var(--neon-blue));
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            margin-bottom: 25px;
+            box-shadow: 0 15px 40px rgba(24, 119, 242, 0.4);
+            transition: transform 0.5s;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: scale(1.15) rotate(10deg);
+        }
+
+        .feature-title {
+            font-size: 1.6rem;
+            margin-bottom: 18px;
+            font-weight: bold;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-desc {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.8;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Pricing Section */
+        .pricing-grid {
+            max-width: 1400px;
+            margin: 60px auto 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 40px;
+        }
+
+        .price-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 35px;
+            padding: 50px;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .price-card::before {
+            content: '';
+            position: absolute;
+            inset: -50%;
+            background: conic-gradient(from 0deg, transparent, var(--neon-blue), transparent);
+            animation: rotate 4s linear infinite;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        @keyframes rotate {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .price-card:hover::before {
+            opacity: 0.3;
+        }
+
+        .price-card::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 33px;
+            z-index: 1;
+        }
+
+        .price-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .price-card:hover {
+            transform: translateY(-20px) scale(1.03);
+            box-shadow: 0 30px 80px rgba(24, 119, 242, 0.4);
+        }
+
+        .price-card.popular {
+            border-color: var(--gold);
+            transform: scale(1.05);
+        }
+
+        .price-card.popular:hover {
+            transform: translateY(-20px) scale(1.08);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -35px; /* 进一步调整位置，避免被切到 */
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--gold), #ff6b6b);
+            color: #000;
+            padding: 10px 30px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1rem;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.5);
+            z-index: 3;
+        }
+
+        .plan-name {
+            font-size: 2rem;
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+
+        .plan-price {
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--gold), #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+        }
+
+        .plan-price span {
+            font-size: 1.5rem;
+        }
+
+        .plan-original {
+            text-decoration: line-through;
+            opacity: 0.5;
+            font-size: 1.3rem;
+            margin-bottom: 35px;
+        }
+
+        .plan-features {
+            list-style: none;
+            margin: 35px 0;
+            text-align: left;
+        }
+
+        .plan-features li {
+            padding: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .plan-features li::before {
+            content: '✓';
+            color: var(--gold);
+            font-weight: bold;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        /* Testimonials */
+        .testimonials-grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 35px;
+        }
+
+        .testimonial-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 45px;
+            transition: all 0.4s;
+        }
+
+        .testimonial-card:hover {
+            border-color: var(--neon-blue);
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0, 240, 255, 0.3);
+        }
+
+        .testimonial-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .testimonial-avatar {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--fb-blue), var(--neon-blue));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            box-shadow: 0 10px 30px rgba(24, 119, 242, 0.4);
+        }
+
+        .testimonial-info h4 {
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+        }
+
+        .testimonial-info p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.95rem;
+        }
+
+        .stars {
+            color: var(--gold);
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+        }
+
+        .testimonial-text {
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.9;
+        }
+
+        /* Final CTA */
+        .final-cta {
+            padding: 120px 5%;
+        }
+
+        .cta-box {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(30px);
+            border: 2px solid rgba(24, 119, 242, 0.3);
+            border-radius: 45px;
+            padding: 80px 50px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-box::before {
+            content: '';
+            position: absolute;
+            inset: -50%;
+            background: conic-gradient(from 0deg, transparent, var(--neon-blue), transparent, var(--neon-purple), transparent);
+            animation: rotate 6s linear infinite;
+        }
+
+        .cta-box::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 43px;
+            z-index: 1;
+        }
+
+        .cta-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .cta-title {
+            font-size: clamp(2.5rem, 6vw, 5rem);
+            font-weight: 900;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, var(--gold), var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .cta-subtitle {
+            font-size: 1.8rem;
+            margin-bottom: 50px;
+            line-height: 1.6;
+        }
+
+        /* Countdown */
+        .countdown {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 50px 0;
+            flex-wrap: wrap;
+        }
+
+        .countdown-item {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 25px 35px;
+            border-radius: 20px;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            min-width: 120px;
+            transition: all 0.3s;
+        }
+
+        .countdown-item:hover {
+            transform: scale(1.1);
+            border-color: var(--gold);
+            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.4);
+        }
+
+        .countdown-number {
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: var(--gold);
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+
+        .countdown-label {
+            font-size: 1rem;
+            opacity: 0.8;
+            margin-top: 10px;
+        }
+
+        /* FAQ */
+        .faq-container {
+            max-width: 900px;
+            margin: 80px auto 0;
+        }
+
+        .faq-title {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .faq-item {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .faq-item:hover {
+            border-color: var(--neon-blue);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .faq-item summary {
+            font-size: 1.2rem;
+            font-weight: bold;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .faq-item p {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            line-height: 1.8;
+            opacity: 0.85;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal-content {
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(40px);
+            border: 2px solid rgba(24, 119, 242, 0.5);
+            border-radius: 35px;
+            padding: 60px;
+            max-width: 650px;
+            width: 100%;
+            position: relative;
+            animation: slideUp 0.4s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            width: 45px;
+            height: 45px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 0, 110, 0.2);
+            border-color: var(--neon-pink);
+            transform: rotate(90deg);
+        }
+
+        .modal-title {
+            font-size: 2.8rem;
+            font-weight: 900;
+            margin-bottom: 40px;
+            background: linear-gradient(135deg, var(--fb-blue), var(--neon-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .form-group {
+            margin-bottom: 30px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 18px 25px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(24, 119, 242, 0.3);
+            border-radius: 18px;
+            color: white;
+            font-size: 1.05rem;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--neon-blue);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.2);
+        }
+
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 10px;
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .checkbox-group a {
+            color: var(--neon-blue);
+            text-decoration: none;
+        }
+
+        .checkbox-group a:hover {
+            text-decoration: underline;
+        }
+
+        #formMessage {
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        #formMessage.success {
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid rgba(0, 255, 0, 0.3);
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(0, 0, 0, 0.8);
+            border-top: 1px solid rgba(24, 119, 242, 0.3);
+            padding: 60px 5%;
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-size: 1.05rem;
+            transition: all 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--neon-blue);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 15px 5%;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero {
+                padding: 100px 5% 60px;
+            }
+
+            .robot-container {
+                width: 200px;
+                height: 200px;
+            }
+
+            .robot-face {
+                font-size: 70px;
+            }
+
+            .orbit {
+                width: 60px;
+                height: 60px;
+                margin: -30px 0 0 -30px;
+            }
+
+            @keyframes orbit {
+                from {
+                    transform: rotate(0deg) translateX(120px) rotate(0deg);
+                }
+
+                to {
+                    transform: rotate(360deg) translateX(120px) rotate(-360deg);
+                }
+            }
+
+            .orbit-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 2rem;
+            }
+
+            .modal-content {
+                padding: 40px 30px;
+            }
+
+            .section {
+                padding: 80px 5%;
+            }
+
+            .countdown {
+                gap: 15px;
+            }
+
+            .countdown-item {
+                padding: 20px 25px;
+                min-width: 100px;
+            }
+
+            .countdown-number {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 3D Canvas Background -->
+    <canvas id="canvas3d"></canvas>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo">
+                <span>🤖</span> 蓋好賣 AI
+            </div>
+            <div class="nav-links">
+                <a href="#features" class="nav-link">功能</a>
+                <a href="#pricing" class="nav-link">價格</a>
+                <a href="#testimonials" class="nav-link">見證</a>
+                <a href="#faq" class="nav-link">常見問題</a> <!-- 添加常见问题链接 -->
+                <button class="btn btn-primary" onclick="openModal()" style="padding: 12px 30px; font-size: 1rem;">
+                    <span>免費試用</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <!-- Floating Badge -->
+            <div class="floating-badge">
+                <div class="fb-icon">f</div>
+                <span style="font-weight: bold;">Facebook行銷全面整合</span>
+            </div>
+
+            <!-- Main Title -->
+            <h1 class="hero-title">
+                <span class="gradient-text">蓋好賣 AI</span>
+            </h1>
+
+            <!-- 3D Robot Display -->
+            <div class="robot-stage">
+                <div class="robot-container">
+                    <div class="robot-core">
+                        <div class="robot-face">🤖</div>
+                    </div>
+                    <!-- Orbiting Elements -->
+                    <div class="orbit orbit-1">
+                        <div class="orbit-icon">💬</div>
+                    </div>
+                    <div class="orbit orbit-2">
+                        <div class="orbit-icon">⚡</div>
+                    </div>
+                    <div class="orbit orbit-3">
+                        <div class="orbit-icon">🎯</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hero Subtitle -->
+            <p class="hero-subtitle">
+                Facebook 自動發文 AI 機器人<br>
+                <span class="highlight-gold">讓業績暴增 243%</span>
+            </p>
+
+            <!-- CTA Buttons -->
+            <div class="cta-group">
+                <button class="btn btn-primary" onclick="openModal()">
+                    <span>✨ 免費試用 3 天</span>
+                </button>
+                <button class="btn btn-secondary">
+                    <span>▶ 觀看實戰示範</span>
+                </button>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-number">5000+</div>
+                    <div class="stat-label">使用者見證</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⏰</div>
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">全天候運作</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🛡️</div>
+                    <div class="stat-number">99%</div>
+                    <div class="stat-label">帳號存活率</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📱</div>
+                    <div class="stat-number">100+</div>
+                    <div class="stat-label">社團同步發文</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Problems Section -->
+    <section class="section" id="problems">
+        <h2 class="section-title">你是否遇到這些困擾？</h2>
+        <div class="problems-grid">
+            <div class="problem-card">
+                <div class="problem-icon">😰</div>
+                <h3 class="problem-title">手動發文累到爆</h3>
+                <p class="problem-desc">每天花3小時手動發文到100個社團，累到懷疑人生...</p>
+            </div>
+            <div class="problem-card">
+                <div class="problem-icon">💸</div>
+                <h3 class="problem-title">廣告費燒不停</h3>
+                <p class="problem-desc">FB廣告每月燒掉5萬，效果卻越來越差，客戶越來越少...</p>
+            </div>
+            <div class="problem-card">
+                <div class="problem-icon">📉</div>
+                <h3 class="problem-title">客源嚴重不足</h3>
+                <p class="problem-desc">業績下滑，客戶詢問量少得可憐，不知道怎麼找客戶...</p>
+            </div>
+            <div class="problem-card">
+                <div class="problem-icon">⏰</div>
+                <h3 class="problem-title">沒時間經營</h3>
+                <p class="problem-desc">忙著跑業務，根本沒時間經營FB社團和粉絲專頁...</p>
+            </div>
+        </div>
+        <div class="arrow-section">⬇️</div>
+        <div class="solution-box">
+            <h2 class="solution-title">一鍵解決所有煩惱！</h2>
+            <p class="solution-subtitle">
+                ✨ FB自動發文機器人 ✨<br>
+                讓機器人24小時幫你工作，睡覺也在賺錢！
+            </p>
+            <button class="btn btn-primary" onclick="openModal()">立即免費試用 →</button>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section" id="features">
+        <h2 class="section-title">🚀 強大功能，讓你業績翻倍</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3 class="feature-title">24小時自動發文</h3>
+                <p class="feature-desc">設定好內容後,機器人全天候自動發文到指定社團，完全不用手動操作！</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3 class="feature-title">智慧養號系統</h3>
+                <p class="feature-desc">模擬真人行為，自動點讚、留言、互動，帳號存活率高達99%！</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3 class="feature-title">自動加入社團</h3>
+                <p class="feature-desc">智慧搜尋並自動加入目標社團，快速擴大曝光範圍！</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📅</div>
+                <h3 class="feature-title">排程自動發文</h3>
+                <p class="feature-desc">預先設定發文時間和內容，系統自動執行，省時又省力！</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🛡️</div>
+                <h3 class="feature-title">安全穩定保障</h3>
+                <p class="feature-desc">台灣團隊開發，資料安全有保障，可開統編發票！</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🏪</div>
+                <h3 class="feature-title">Marketplace上架</h3>
+                <p class="feature-desc">自動上架商品到FB Marketplace，多管道獲取客源！</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="section" id="pricing">
+        <h2 class="section-title">💎 超值方案 · 限時優惠</h2>
+        <p style="text-align: center; font-size: 1.5rem; margin-bottom: 30px;">
+            ⚡ 首月優惠 <span style="color: var(--gold); font-weight: bold;">5折起</span> ⚡
+        </p>
+        <div class="pricing-grid">
+            <div class="price-card">
+                <div class="price-content">
+                    <div class="plan-name">小資方案</div>
+                    <div class="plan-price">$200<span>/月</span></div>
+                    <div class="plan-original">原價 $400</div>
+                    <ul class="plan-features">
+                        <li>☕ 幾杯飲料錢</li>
+                        <li>僅限 1 個帳號</li>
+                        <li>小團購族也適用</li>
+                        <li>自動發文</li>
+                        <li>自動截圖</li>
+                        <li>自動排程</li>
+                        <li>自動養號</li>
+                        <li>贈送2000則驗證碼</li>
+                    </ul>
+                    <button class="btn btn-primary" style="width: 100%;" onclick="openModal()">立即試用</button>
+                </div>
+            </div>
+            <div class="price-card popular">
+                <div class="popular-badge">🔥 最熱門</div>
+                <div class="price-content">
+                    <div class="plan-name">標準方案</div>
+                    <div class="plan-price">$800<span>/月</span></div>
+                    <div class="plan-original">原價 $1,600</div>
+                    <ul class="plan-features">
+                        <li>💪 15 個以上帳號</li>
+                        <li>業務團隊首選</li>
+                        <li>自動發文</li>
+                        <li>自動截圖</li>
+                        <li>自動排程</li>
+                        <li>自動養號</li>
+                        <li>贈送2500則驗證碼</li>
+                        <li>多帳號管理</li>
+                        <li>優先客服支援</li>
+                        <li>客製化數量洽談</li>
+                    </ul>
+                    <button class="btn btn-primary" style="width: 100%;" onclick="openModal()">立即試用</button>
+                </div>
+            </div>
+            <div class="price-card">
+                <div class="price-content">
+                    <div class="plan-name">進階方案</div>
+                    <div class="plan-price">$2,000<span>/月</span></div>
+                    <div class="plan-original">原價 $4,000</div>
+                    <ul class="plan-features">
+                        <li>🚀 30 個以上帳號</li>
+                        <li>中型團隊專屬</li>
+                        <li>自動發文</li>
+                        <li>自動截圖</li>
+                        <li>自動排程</li>
+                        <li>自動養號</li>
+                        <li>贈送2500則驗證碼</li>
+                        <li>多帳號管理</li>
+                        <li>優先客服支援</li>
+                        <li>專屬客服</li>
+                    </ul>
+                    <button class="btn btn-primary" style="width: 100%;" onclick="openModal()">立即試用</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="section" id="testimonials">
+        <h2 class="section-title">💬 真實客戶見證</h2>
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div class="testimonial-header">
+                    <div class="testimonial-avatar">🏠</div>
+                    <div class="testimonial-info">
+                        <h4>林經理</h4>
+                        <p>房仲業 · 使用3個月</p>
+                    </div>
+                </div>
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">
+                    「用了3個月，每月成交量從5件提升到9件！不用再手動發文到半夜了，機器人24小時幫我工作，連睡覺都在賺錢。現在客戶主動來找我的比例大幅提升！」
+                </p>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-header">
+                    <div class="testimonial-avatar">🚗</div>
+                    <div class="testimonial-info">
+                        <h4>陳老闆</h4>
+                        <p>中古車商 · 使用5個月</p>
+                    </div>
+                </div>
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">
+                    「以前一天發20篇累到爆，現在機器人24小時幫我發，詢問量暴增156%！每天都有客戶來看車，業績翻倍成長。這個軟體真的太神了！」
+                </p>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-header">
+                    <div class="testimonial-avatar">💰</div>
+                    <div class="testimonial-info">
+                        <h4>王顧問</h4>
+                        <p>貸款業務 · 使用2個月</p>
+                    </div>
+                </div>
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">
+                    「投資報酬率超高！一個月軟體費用，一筆單就賺回來了。現在每天都有客戶主動諮詢，根本接不完。早知道就早點用了！」
+                </p>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-header">
+                    <div class="testimonial-avatar">🎮</div>
+                    <div class="testimonial-info">
+                        <h4>張站長</h4>
+                        <p>遊戲私服 · 使用4個月</p>
+                    </div>
+                </div>
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">
+                    「玩家數從200人激增到1800人！自動宣傳功能太強大了，24小時不間斷曝光，新玩家一直湧入。省下的廣告費都可以再開一個伺服器了！」
+                </p>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-header">
+                    <div class="testimonial-avatar">🏢</div>
+                    <div class="testimonial-info">
+                        <h4>劉總監</h4>
+                        <p>仲介公司 · 使用半年</p>
+                    </div>
+                </div>
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">
+                    「公司全面導入後，整體業績成長40%！10個業務員都在用，大家都說這是必備神器。客服也很專業，有問題馬上解決！」
+                </p>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-header">
+                    <div class="testimonial-avatar">💼</div>
+                    <div class="testimonial-info">
+                        <h4>吳小姐</h4>
+                        <p>保險業務 · 使用1個月</p>
+                    </div>
+                </div>
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">
+                    「才用一個月就回本了！以前花大錢買名單效果還不好，現在用機器人自動行銷，客戶品質更好，成交率也更高。強烈推薦！」
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="final-cta">
+        <div class="cta-box">
+            <div class="cta-content">
+                <h2 class="cta-title">🎁 限時優惠倒數中！</h2>
+                <p class="cta-subtitle">
+                    現在註冊立即享有 <span class="highlight-gold">3天免費試用</span> + 首月 <span class="highlight-gold">5折優惠</span>
+                </p>
+                <div class="countdown">
+                    <div class="countdown-item">
+                        <div class="countdown-number" id="hours">23</div>
+                        <div class="countdown-label">小時</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-number" id="minutes">59</div>
+                        <div class="countdown-label">分鐘</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-number" id="seconds">45</div>
+                        <div class="countdown-label">秒</div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" style="font-size: 1.6rem; padding: 28px 70px;" onclick="openModal()">
+                    🚀 立即免費試用 3 天
+                </button>
+                <p style="margin-top: 35px; opacity: 0.9; font-size: 1.1rem;">
+                    ✓ 無需綁定信用卡 ✓ 隨時可取消 ✓ 專人教學指導
+                </p>
+            </div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="faq-container" id="faq"> <!-- 添加id="faq" -->
+            <h3 class="faq-title">常見問題</h3>
+            <details class="faq-item">
+                <summary>❓ 會不會被FB封鎖帳號？</summary>
+                <p>我們的系統採用智慧養號技術，模擬真人行為，包含自動點讚、留言、互動等，帳號存活率高達99%。使用超過5000+用戶，極少發生封鎖情況。</p>
+            </details>
+            <details class="faq-item">
+                <summary>❓ 需要懂技術才能使用嗎？</summary>
+                <p>完全不需要！介面設計非常簡單直覺，只要會用FB就會用我們的軟體。而且我們提供完整的教學影片和專人指導，讓你快速上手。</p>
+            </details>
+            <details class="faq-item">
+                <summary>❓ 可以同時管理多個帳號嗎？</summary>
+                <p>可以！標準版支援15個帳號，企業版支援無限帳號。所有帳號都可以同時運作，大幅提升曝光效率。</p>
+            </details>
+            <details class="faq-item">
+                <summary>❓ 試用期結束後可以取消嗎？</summary>
+                <p>當然可以！試用期內隨時可以取消，完全沒有任何約束。如果滿意再繼續使用即可。</p>
+            </details>
+            <details class="faq-item">
+                <summary>❓ 有客服支援嗎？</summary>
+                <p>有的！我們提供LINE客服、電話客服，週一到週五 9:00-18:00 專人服務。付費用戶還享有優先支援服務。</p>
+            </details>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-links">
+            <a href="#features">功能介紹</a>
+            <a href="#pricing">價格方案</a>
+            <a href="#testimonials">客戶見證</a>
+            <a href="#contact">聯絡我們</a>
+            <a href="#privacy">隱私政策</a>
+            <a href="#terms">服務條款</a>
+        </div>
+        <p style="opacity: 0.7; margin-top: 25px; line-height: 1.8;">
+            © 2024 蓋好賣 FB自動發文機器人 | 台灣開發 · 安全可靠<br>
+            客服專線: 0800-123-456 | LINE ID: @gaihaomai
+        </p>
+    </footer>
+
+    <!-- Modal -->
+    <div class="modal" id="registrationModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">×</button>
+            <h3 class="modal-title">📝 立即註冊試用</h3>
+            <form id="trialForm" onsubmit="handleSubmit(event)">
+                <div class="form-group">
+                    <label for="name">👤 姓名 *</label>
+                    <input type="text" id="name" name="name" required placeholder="請輸入您的姓名" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="phone">📱 手機號碼 *</label>
+                    <input type="tel" id="phone" name="phone" required placeholder="請輸入手機號碼（例：0912345678）" pattern="[0-9]{10}" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="email">📧 電子信箱 *</label>
+                    <input type="email" id="email" name="email" required placeholder="請輸入電子信箱" class="form-input">
+                    <small>試用帳號密碼將寄送至此信箱</small>
+                </div>
+                <div class="form-group">
+                    <label for="address">🏠 地址</label>
+                    <input type="text" id="address" name="address" placeholder="請輸入地址（選填）" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="industry">💼 產業別 *</label>
+                    <select id="industry" name="industry" required class="form-input form-select" onchange="toggleOtherIndustry(this)">
+                        <option value="">請選擇您的產業</option>
+                        <option value="房仲業">🏠 房仲業</option>
+                        <option value="車仲業">🚗 車仲業</option>
+                        <option value="貸款業">💰 貸款業</option>
+                        <option value="遊戲私服">🎮 遊戲私服</option>
+                        <option value="保險業">💼 保險業</option>
+                        <option value="直銷業">🤝 直銷業</option>
+                        <option value="電商">🛒 電商</option>
+                        <option value="其他">📋 其他</option>
+                    </select>
+                    <div id="otherIndustryDiv" style="display: none; margin-top: 15px;">
+                        <input type="text" id="otherIndustry" name="otherIndustry" placeholder="請輸入您的產業別" class="form-input">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" name="terms" required id="terms">
+                        <label for="terms">我已閱讀並同意 <a href="#">服務條款</a> 和 <a href="#">隱私政策</a></label>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">🎁 立即免費試用 3 天</button>
+                <div id="formMessage" style="margin-top: 25px; display: none;"></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 3D Canvas Background
+        const canvas = document.getElementById('canvas3d');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = [];
+        const particleCount = 80;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.z = Math.random() * 1000;
+                this.speed = Math.random() * 0.5 + 0.5;
+            }
+
+            update() {
+                this.z -= this.speed;
+                if (this.z <= 0) {
+                    this.z = 1000;
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                }
+            }
+
+            draw() {
+                const scale = 1000 / this.z;
+                const x = (this.x - canvas.width / 2) * scale + canvas.width / 2;
+                const y = (this.y - canvas.height / 2) * scale + canvas.height / 2;
+                const radius = scale * 2;
+                const opacity = (1000 - this.z) / 1000;
+
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(24, 119, 242, ${opacity * 0.8})`;
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        function animate() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Modal Functions
+        function openModal() {
+            document.getElementById('registrationModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('registrationModal').classList.remove('active');
+        }
+
+        // Close modal on outside click
+        document.getElementById('registrationModal').addEventListener('click', (e) => {
+            if (e.target.id === 'registrationModal') {
+                closeModal();
+            }
+        });
+
+        // Toggle Other Industry
+        function toggleOtherIndustry(select) {
+            const otherDiv = document.getElementById('otherIndustryDiv');
+            const otherInput = document.getElementById('otherIndustry');
+            if (select.value === '其他') {
+                otherDiv.style.display = 'block';
+                otherInput.required = true;
+            } else {
+                otherDiv.style.display = 'none';
+                otherInput.required = false;
+                otherInput.value = '';
+            }
+        }
+
+        // Form Submission
+        function handleSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            let industry = formData.get('industry');
+            if (industry === '其他') {
+                industry = formData.get('otherIndustry') || industry;
+            }
+            const data = {
+                name: formData.get('name'),
+                phone: formData.get('phone'),
+                email: formData.get('email'),
+                address: formData.get('address'),
+                industry: industry
+            };
+
+            const messageDiv = document.getElementById('formMessage');
+            messageDiv.style.display = 'block';
+            messageDiv.className = '';
+            messageDiv.innerHTML = '⏳ 正在處理您的申請...';
+
+            setTimeout(() => {
+                messageDiv.className = 'success';
+                messageDiv.innerHTML = `✅ 註冊成功！試用帳號密碼已寄送至 ${data.email}`;
+                form.reset();
+                document.getElementById('otherIndustryDiv').style.display = 'none';
+            }, 2000);
+        }
+
+        // Countdown Timer
+        function updateCountdown() {
+            const hoursEl = document.getElementById('hours');
+            const minutesEl = document.getElementById('minutes');
+            const secondsEl = document.getElementById('seconds');
+
+            let hours = parseInt(hoursEl.textContent);
+            let minutes = parseInt(minutesEl.textContent);
+            let seconds = parseInt(secondsEl.textContent);
+
+            seconds--;
+            if (seconds < 0) {
+                seconds = 59;
+                minutes--;
+            }
+            if (minutes < 0) {
+                minutes = 59;
+                hours--;
+            }
+            if (hours < 0) {
+                hours = 23;
+            }
+
+            hoursEl.textContent = hours.toString().padStart(2, '0');
+            minutesEl.textContent = minutes.toString().padStart(2, '0');
+            secondsEl.textContent = seconds.toString().padStart(2, '0');
+        }
+
+        setInterval(updateCountdown, 1000);
+
+        // Smooth Scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.feature-card, .problem-card, .testimonial-card, .price-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'all 0.6s ease-out';
+            observer.observe(el);
+        });
+
+        // Parallax Effect on Scroll
+        let ticking = false;
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    const scrolled = window.pageYOffset;
+                    const parallaxElements = document.querySelectorAll('.robot-container, .stat-card');
+                    parallaxElements.forEach((el, index) => {
+                        const speed = 0.5 + (index * 0.1);
+                        const yPos = -(scrolled * speed / 10);
+                        el.style.transform = `translateY(${yPos}px)`;
+                    });
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        });
+
+        // Add random floating animation delays to stats
+        document.querySelectorAll('.stat-card').forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+        });
+
+        // Particle trail on mouse move
+        let mouseX = 0;
+        let mouseY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+    </script>
+</body>
+</html>
