@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>收割單管理</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" onload="console.log('jsPDF loaded');" onerror="console.error('Failed to load jsPDF'); alert('無法載入jsPDF庫，請檢查網絡連接。');"></script>
+    <style>
+      /* Reset CSS */
+      *, *::before, *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+      }
+      /* Sidebar */
+      .sidebar {
+        width: 250px;
+        height: 100vh;
+        background-color: #34d399;
+        color: white;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 50;
+        transition: transform 0.3s ease;
+      }
+      .sidebar a {
+        display: block;
+        padding: 1rem;
+        color: white;
+        text-decoration: none;
+      }
+      .sidebar a:hover, .sidebar .active {
+        background-color: #059669;
+      }
+      .sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 40;
+        display: none;
+      }
+      .sidebar-overlay.show {
+        display: block;
+      }
+      @media (max-width: 768px) {
+        .sidebar {
+          transform: translateX(-100%);
+        }
+        .sidebar.open {
+          transform: translateX(0);
+        }
+      }
+      /* Content */
+      .content {
+        margin-left: 250px;
+        padding: 20px;
+        transition: margin-left 0.3s;
+      }
+      @media (max-width: 768px) {
+        .content {
+          margin-left: 0;
+        }
+      }
+      /* Tab Buttons */
+      .tab-buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .tab-btn {
+        background-color: #e5e7eb;
+        color: #374151;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .tab-btn.active {
+        background-color: #34d399;
+        color: white;
+      }
+      .tab-btn:hover:not(.active) {
+        background-color: #d1d5db;
+      }
+      /* Sections */
+      .section {
+        display: none;
+      }
+      .section.active {
+        display: block;
+      }
+      /* Autocomplete Styles */
+      .autocomplete-container {
+        position: relative;
+        width: 100%;
+      }
+      .autocomplete-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: #fff;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        max-height: 150px;
+        overflow-y: auto;
+        z-index: 10;
+        display: none;
+      }
+      .autocomplete-item {
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+      .autocomplete-item:hover {
+        background-color: #f0f0f0;
+      }
+      /* Modal Styles */
+      .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 100;
+      }
+      .modal.active {
+        display: flex;
+      }
+      .modal-content {
+        width: 100%;
+        max-width: 700px;
+        max-height: 90vh;
+        padding: 1.5rem;
+        overflow-y: auto;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      /* Receipt Styles */
+      .receipt-container {
+        width: 100%;
+        max-width: 650px;
+        border: 3px double #000;
+        padding: 2rem;
+        margin: 0 auto 2rem;
+        background: #fff;
+        font-family: Arial, sans-serif;
+        font-size: 16px;
+      }
+      .receipt-header {
+        text-align: center;
+        border-bottom: 2px solid #000;
+        padding-bottom: 0.75rem;
+        margin-bottom: 1.5rem;
+      }
+      .receipt-header h1 {
+        font-size: 24px;
+        font-weight: bold;
+      }
+      .receipt-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        border-bottom: 1px dashed #ccc;
+        padding-bottom: 0.5rem;
+      }
+      .receipt-row label {
+        font-weight: bold;
+        width: 35%;
+        text-align: right;
+        padding-right: 1.5rem;
+      }
+      .receipt-field {
+        width: 65%;
+        font-size: 16px;
+      }
+      .receipt-total {
+        font-size: 18px;
+        font-weight: bold;
+        text-align: right;
+        margin-top: 1rem;
+      }
+      /* Signature Styles */
+      .signature-img {
+        max-width: 100%;
+        max-height: 300px;
+        margin: 0 auto;
+        display: block;
+      }
+      /* Filter Styles */
+      .filter-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: center;
+      }
+      .filter-group select, .filter-group input {
+        padding: 0.5rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        min-width: 150px;
+      }
+      /* Print Styles */
+      @media print {
+        body * {
+          visibility: hidden;
+        }
+        #printWageArea, #printWageArea * {
+          visibility: visible;
+        }
+        #printWageArea {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+        }
+        .no-print {
+          display: none !important;
+        }
+        #printWageTable {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        #printWageTable th, #printWageTable td {
+          border: 1px solid #000;
+          padding: 8px;
+          text-align: center;
+          font-size: 16px;
+        }
+      }
+      /* Dropdown Checkbox Styles */
+      .dropdown-checkbox {
+        max-height: 200px;
+        overflow-y: auto;
+      }
+      .dropdown-checkbox label {
+        cursor: pointer;
+      }
+      .dropdown-checkbox label:hover {
+        background-color: #f0f0f0;
+      }
+      .selected-workers, .selected-driver, .selected-assistant {
+        color: #374151;
+      }
+      .selected-display {
+        min-height: 1.5rem;
+      }
+      /* 操作按鈕改成垂直排列，並且上下留 0.5rem */
+      .operations {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+    </style>
+  </head>
+  <body class="bg-gray-100">
+    <!-- Mobile Sidebar Toggle -->
+    <button onclick="toggleSidebar()" class="fixed top-4 left-4 bg-green-500 text-white p-2 rounded lg:hidden z-50">☰</button>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <div class="text-center py-6 font-bold text-2xl">秧苗場管理</div>
+      <a href="index.html">首頁</a>
+      <a href="seedling.html">秧苗製成與管理</a>
+      <a href="calender.html">插秧排程</a>
+      <a href="Shipment.html">出貨單</a>
+      <a href="TransplantingList.html">插秧單</a>
+      <a href="harvest.html" class="active">割稻單</a>
+      <a href="customer.html">客戶管理</a>
+      <a href="workerManage.html">師傅管理</a>
+      <a href="payment.html">收錢管理</a>
+      <a href="profile.html">秧苗場個人檔案設定</a>
+      <a href="#">登出</a>
+    </div>
+    <!-- Sidebar Overlay -->
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <!-- Main Content -->
+    <div class="content space-y-6">
+      <!-- Tab Buttons -->
+      <div class="tab-buttons">
+        <button class="tab-btn active" onclick="showSection('harvest')">收割單管理</button>
+        <button class="tab-btn" onclick="showSection('wage')">師傅工資計算</button>
+        <button class="tab-btn" onclick="showSection('processed')">已開工資收據</button>
+      </div>
+      <!-- Harvest Section -->
+      <div id="harvestSection" class="section active">
+        <!-- Add Harvest Form -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h2 class="text-xl font-bold mb-4">新增/編輯收割單</h2>
+          <form id="harvestForm" class="space-y-4">
+            <div class="autocomplete-container">
+              <label for="customer" class="block mb-1 font-medium">客戶姓名</label>
+              <input type="text" id="customer" required class="w-full border border-gray-300 p-2 rounded" autocomplete="off" />
+              <div id="autocompleteDropdown" class="autocomplete-dropdown"></div>
+            </div>
+            <div>
+              <label for="harvestDate" class="block mb-1 font-medium">收割日期</label>
+              <input type="date" id="harvestDate" required class="w-full border border-gray-300 p-2 rounded" />
+            </div>
+            <div>
+              <label for="area" class="block mb-1 font-medium">面積 (分)</label>
+              <input type="number" id="area" required class="w-full border border-gray-300 p-2 rounded" step="0.01" min="0" />
+            </div>
+            <div class="relative">
+              <label for="workers" class="block mb-1 font-medium">收割師傅</label>
+              <div class="border border-gray-300 rounded p-2 cursor-pointer" onclick="toggleDropdown('workersDropdown')">
+                <div class="selected-workers">請選擇收割師傅</div>
+              </div>
+              <div id="workersDropdown" class="absolute w-full bg-white border border-gray-300 rounded shadow-lg mt-1 z-10 hidden dropdown-checkbox">
+                <label class="block px-4 py-2"><input type="checkbox" value="張師傅" onchange="updateSelected('workers')"> 張師傅</label>
+                <label class="block px-4 py-2"><input type="checkbox" value="李師傅" onchange="updateSelected('workers')"> 李師傅</label>
+                <label class="block px-4 py-2"><input type="checkbox" value="王師傅" onchange="updateSelected('workers')"> 王師傅</label>
+                <label class="block px-4 py-2"><input type="checkbox" value="陳師傅" onchange="updateSelected('workers')"> 陳師傅</label>
+              </div>
+              <div id="workersSelected" class="mt-2 text-sm text-gray-600 selected-display"></div>
+            </div>
+            <div class="relative">
+              <label for="driver" class="block mb-1 font-medium">載穀司機</label>
+              <div class="border border-gray-300 rounded p-2 cursor-pointer" onclick="toggleDropdown('driverDropdown')">
+                <div class="selected-driver">請選擇載穀司機</div>
+              </div>
+              <div id="driverDropdown" class="absolute w-full bg-white border border-gray-300 rounded shadow-lg mt-1 z-10 hidden dropdown-checkbox">
+                <label class="block px-4 py-2"><input type="checkbox" value="林司機" onchange="updateSelected('driver')"> 林司機</label>
+                <label class="block px-4 py-2"><input type="checkbox" value="黃司機" onchange="updateSelected('driver')"> 黃司機</label>
+                <label class="block px-4 py-2"><input type="checkbox" value="吳司機" onchange="updateSelected('driver')"> 吳司機</label>
+              </div>
+              <div id="driverSelected" class="mt-2 text-sm text-gray-600 selected-display"></div>
+            </div>
+            <div class="relative">
+              <label for="assistant" class="block mb-1 font-medium">小工</label>
+              <div class="border border-gray-300 rounded p-2 cursor-pointer" onclick="toggleDropdown('assistantDropdown')">
+                <div class="selected-assistant">請選擇小工</div>
+              </div>
+              <div id="assistantDropdown" class="absolute w-full bg-white border border-gray-300 rounded shadow-lg mt-1 z-10 hidden dropdown-checkbox">
+                <label class="block px-4 py-2"><input type="checkbox" value="小工A" onchange="updateSelected('assistant')"> 小工A</label>
+                <label class="block px-4 py-2"><input type="checkbox" value="小工B" onchange="updateSelected('assistant')"> 小工B</label>
+                <label class="block px-4 py-2"><input type="checkbox" value="小工C" onchange="updateSelected('assistant')"> 小工C</label>
+              </div>
+              <div id="assistantSelected" class="mt-2 text-sm text-gray-600 selected-display"></div>
+            </div>
+            <div>
+              <label for="selfTransport" class="block mb-1 font-medium">是否自運</label>
+              <input type="checkbox" id="selfTransport" class="border border-gray-300 p-2 rounded" />
+            </div>
+            <div>
+              <label for="notes" class="block mb-1 font-medium">備註</label>
+              <textarea id="notes" class="w-full border border-gray-300 p-2 rounded" rows="4"></textarea>
+            </div>
+            <div class="flex space-x-4">
+              <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">儲存</button>
+              <button type="button" onclick="resetForm()" class="bg-gray-500 text-white px-4 py-2 rounded">取消</button>
+            </div>
+          </form>
+        </div>
+        <!-- Harvest List -->
+        <div class="bg-white p-6 rounded-lg shadow-md mt-6">
+          <div class="flex flex-col md:flex-row items-center justify-between mb-4">
+            <h2 class="text-xl font-bold">收割單列表</h2>
+            <button id="printSelected" class="bg-blue-500 text-white px-4 py-2 rounded">列印明細</button>
+          </div>
+          <div class="mb-4 filter-group">
+            <div>
+              <label for="searchFarmer" class="block mb-1 font-medium">搜尋農民</label>
+              <input type="text" id="searchFarmer" placeholder="農民姓名或電話..." class="border border-gray-300 p-2 rounded" />
+            </div>
+            <div>
+              <label for="searchDate" class="block mb-1 font-medium">收割日期</label>
+              <input type="date" id="searchDate" class="border border-gray-300 p-2 rounded" />
+            </div>
+            <div>
+              <label for="majorCategory" class="block mb-1 font-medium">工人類型</label>
+              <select id="majorCategory" class="border border-gray-300 p-2 rounded">
+                <option value="">全部</option>
+                <option value="收割師傅">收割師傅</option>
+                <option value="載穀司機">載穀司機</option>
+                <option value="小工">小工</option>
+              </select>
+            </div>
+            <div>
+              <label for="minorCategory" class="block mb-1 font-medium">工人姓名</label>
+              <select id="minorCategory" class="border border-gray-300 p-2 rounded">
+                <option value="">全部</option>
+              </select>
+            </div>
+            <button id="searchBtn" class="bg-green-500 text-white px-4 py-2 rounded self-end">搜尋</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-2 text-center">客戶姓名</th>
+                  <th class="px-4 py-2 text-center">電話</th>
+                  <th class="px-4 py-2 text-center">收割日期</th>
+                  <th class="px-4 py-2 text-center">面積 (分)</th>
+                  <th class="px-4 py-2 text-center">收割師傅</th>
+                  <th class="px-4 py-2 text-center">載穀司機</th>
+                  <th class="px-4 py-2 text-center">小工</th>
+                  <th class="px-4 py-2 text-center">是否自運</th>
+                  <th class="px-4 py-2 text-center">備註</th>
+                  <th class="px-4 py-2 text-center">操作</th>
+                </tr>
+              </thead>
+              <tbody id="harvestListBody" class="divide-y divide-gray-200"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- Wage Section -->
+      <div id="wageSection" class="section">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <div class="flex flex-col md:flex-row items-center justify-between mb-4">
+            <h2 class="text-xl font-bold">師傅工資列表</h2>
+            <div class="flex space-x-4">
+              <button id="calculateWage" class="bg-purple-600 text-white px-4 py-2 rounded">計算工資</button>
+              <button id="printWageSelected" class="bg-blue-500 text-white px-4 py-2 rounded">列印明細</button>
+            </div>
+          </div>
+          <div class="mb-4 filter-group">
+            <div>
+              <label for="wageMajorCategory" class="block mb-1 font-medium">工人類型</label>
+              <select id="wageMajorCategory" class="border border-gray-300 p-2 rounded">
+                <option value="">全部</option>
+                <option value="收割師傅">收割師傅</option>
+                <option value="載穀司機">載穀司機</option>
+                <option value="小工">小工</option>
+              </select>
+            </div>
+            <div>
+              <label for="wageMinorCategory" class="block mb-1 font-medium">工人姓名</label>
+              <select id="wageMinorCategory" class="border border-gray-300 p-2 rounded">
+                <option value="">全部</option>
+              </select>
+            </div>
+            <div>
+              <label for="wageSearchDate" class="block mb-1 font-medium">收割日期</label>
+              <input type="date" id="wageSearchDate" class="border border-gray-300 p-2 rounded" />
+            </div>
+            <button id="searchWageBtn" class="bg-green-500 text-white px-4 py-2 rounded self-end">搜尋</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-2 text-center"><input type="checkbox" id="selectAllWage" onclick="toggleSelectAllWage()"></th>
+                  <th class="px-4 py-2 text-center">工人姓名</th>
+                  <th class="px-4 py-2 text-center">類型</th>
+                  <th class="px-4 py-2 text-center">客戶姓名</th>
+                  <th class="px-4 py-2 text-center">收割日期</th>
+                  <th class="px-4 py-2 text-center">面積 (分)</th>
+                  <th class="px-4 py-2 text-center">工資 (元)</th>
+                  <th class="px-4 py-2 text-center">操作</th>
+                </tr>
+              </thead>
+              <tbody id="wageListBody" class="divide-y divide-gray-200"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- Processed Wage Receipts Section -->
+      <div id="processedSection" class="section">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <div class="flex flex-col md:flex-row items-center justify-between mb-4">
+            <h2 class="text-xl font-bold">已開工資收據列表</h2>
+            <button id="printProcessedSelected" class="bg-blue-500 text-white px-4 py-2 rounded">列印明細</button>
+          </div>
+          <div class="mb-4 filter-group">
+            <div>
+              <label for="processedMajorCategory" class="block mb-1 font-medium">工人類型</label>
+              <select id="processedMajorCategory" class="border border-gray-300 p-2 rounded">
+                <option value="">全部</option>
+                <option value="收割師傅">收割師傅</option>
+                <option value="載穀司機">載穀司機</option>
+                <option value="小工">小工</option>
+              </select>
+            </div>
+            <div>
+              <label for="processedMinorCategory" class="block mb-1 font-medium">工人姓名</label>
+              <select id="processedMinorCategory" class="border border-gray-300 p-2 rounded">
+                <option value="">全部</option>
+                <option value="張師傅">張師傅</option>
+                <option value="李師傅">李師傅</option>
+                <option value="王師傅">王師傅</option>
+                <option value="陳師傅">陳師傅</option>
+                <option value="林司機">林司機</option>
+                <option value="黃司機">黃司機</option>
+                <option value="吳司機">吳司機</option>
+                <option value="小工A">小工A</option>
+                <option value="小工B">小工B</option>
+                <option value="小工C">小工C</option>
+              </select>
+            </div>
+            <div>
+              <label for="processedSearchDate" class="block mb-1 font-medium">收割日期</label>
+              <input type="date" id="processedSearchDate" class="border border-gray-300 p-2 rounded" />
+            </div>
+            <button id="searchProcessedBtn" class="bg-green-500 text-white px-4 py-2 rounded self-end">搜尋</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-2 text-center">工人姓名</th>
+                  <th class="px-4 py-2 text-center">類型</th>
+                  <th class="px-4 py-2 text-center">客戶姓名</th>
+                  <th class="px-4 py-2 text-center">收割日期</th>
+                  <th class="px-4 py-2 text-center">面積 (分)</th>
+                  <th class="px-4 py-2 text-center">工資 (元)</th>
+                  <th class="px-4 py-2 text-center">操作</th>
+                </tr>
+              </thead>
+              <tbody id="processedListBody" class="divide-y divide-gray-200"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- Wage Receipt Modal -->
+      <div id="wageReceiptModal" class="modal">
+        <div class="modal-content">
+          <h2 class="text-2xl font-bold mb-4 text-center">麥寮秧苗場</h2>
+          <div id="wageReceiptPrintArea" class="text-base">
+            <div id="wageReceiptsContainer"></div>
+          </div>
+          <div class="mt-6 flex justify-end space-x-2">
+            <button onclick="downloadWageReceipt()" class="bg-green-500 text-white px-3 py-1 rounded">下載並鎖定收據</button>
+            <button onclick="closeWageReceiptModal()" class="bg-red-500 text-white px-3 py-1 rounded">關閉</button>
+          </div>
+        </div>
+      </div>
+      <!-- Signature Modal -->
+      <div id="signatureModal" class="modal">
+        <div class="modal-content flex flex-col items-center">
+          <canvas id="signatureCanvas" class="border border-gray-300"></canvas>
+          <div class="mt-4 flex space-x-4">
+            <button onclick="saveSignature()" class="bg-green-500 text-white px-4 py-2 rounded">儲存</button>
+            <button onclick="clearSignature()" class="bg-yellow-500 text-white px-4 py-2 rounded">清除</button>
+            <button onclick="closeSignatureModal()" class="bg-red-500 text-white px-4 py-2 rounded">取消</button>
+          </div>
+        </div>
+      </div>
+      <!-- Wage Edit Modal -->
+      <div id="wageEditModal" class="modal">
+        <div class="modal-content">
+          <h2 class="text-xl font-bold mb-4">編輯工資</h2>
+          <form id="wageEditForm" class="space-y-4">
+            <div>
+              <label for="editWorker" class="block mb-1 font-medium">工人姓名</label>
+              <select id="editWorker" class="w-full border border-gray-300 p-2 rounded" required>
+                <option value="張師傅">張師傅</option>
+                <option value="李師傅">李師傅</option>
+                <option value="王師傅">王師傅</option>
+                <option value="陳師傅">陳師傅</option>
+                <option value="林司機">林司機</option>
+                <option value="黃司機">黃司機</option>
+                <option value="吳司機">吳司機</option>
+                <option value="小工A">小工A</option>
+                <option value="小工B">小工B</option>
+                <option value="小工C">小工C</option>
+              </select>
+            </div>
+            <div>
+              <label for="editType" class="block mb-1 font-medium">類型</label>
+              <select id="editType" class="w-full border border-gray-300 p-2 rounded" required>
+                <option value="收割師傅">收割師傅</option>
+                <option value="載穀司機">載穀司機</option>
+                <option value="小工">小工</option>
+              </select>
+            </div>
+            <div>
+              <label for="editWage" class="block mb-1 font-medium">工資 (元)</label>
+              <input type="number" id="editWage" required class="w-full border border-gray-300 p-2 rounded" step="0.01" min="0" />
+            </div>
+            <div class="flex space-x-4">
+              <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">儲存</button>
+              <button type="button" onclick="closeWageEditModal()" class="bg-red-500 text-white px-4 py-2 rounded">取消</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <!-- Print Area (Hidden) -->
+      <div id="printWageArea" class="hidden"></div>
+    </div>
+  </body>
+  <script>
+    const customers = [
+  { name: "王小明", phone: "0912345678" },
+  { name: "李大華", phone: "0923456789" },
+  { name: "張三丰", phone: "0934567890" },
+  { name: "陳四海", phone: "0945678901" }
+];
+
+const workerCategories = {
+  "收割師傅": ["張師傅", "李師傅", "王師傅", "陳師傅"],
+  "載穀司機": ["林司機", "黃司機", "吳司機"],
+  "小工": ["小工A", "小工B", "小工C"]
+};
+
+const WAGE_RATE = {
+  worker: 1000,
+  driver: 500,
+  assistant: 300,
+  selfTransportDeduction: 100
+};
+
+let harvestData = [
+  {
+    customer: "王小明",
+    phone: "0912345678",
+    date: "2023-06-15",
+    area: 10,
+    workers: ["張師傅", "李師傅"],
+    driver: ["林司機"],
+    assistant: ["小工A"],
+    selfTransport: false,
+    notes: "晴天收割",
+    wages: [
+      { worker: "張師傅", type: "收割師傅", wage: 5000, processed: false, signature: "" },
+      { worker: "李師傅", type: "收割師傅", wage: 5000, processed: false, signature: "" },
+      { worker: "林司機", type: "載穀司機", wage: 5000, processed: false, signature: "" },
+      { worker: "小工A", type: "小工", wage: 3000, processed: false, signature: "" }
+    ]
+  }
+];
+
+let editingIndex = -1;
+let editingWage = { harvestIndex: -1, wageIndex: -1 };
+let currentReceiptId = '';
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('show');
+}
+
+function showSection(section) {
+  const sections = ['harvestSection', 'wageSection', 'processedSection'];
+  sections.forEach(id => document.getElementById(id).classList.toggle('active', id === `${section}Section`));
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.onclick.toString().includes(section)));
+  if (section === 'harvest') {
+    loadHarvestData();
+  } else if (section === 'wage') {
+    loadWageData();
+  } else {
+    loadProcessedData();
+    const processedTableBody = document.getElementById('processedListBody');
+    if (processedTableBody.lastElementChild) {
+      processedTableBody.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  }
+}
+
+function updateMinorCategoryDropdown(majorSelectId, minorSelectId) {
+  const majorCategory = document.getElementById(majorSelectId).value;
+  const minorSelect = document.getElementById(minorSelectId);
+  minorSelect.innerHTML = '<option value="">全部</option>';
+  if (majorCategory && workerCategories[majorCategory]) {
+    workerCategories[majorCategory].forEach(name => {
+      const option = document.createElement('option');
+      option.value = name;
+      option.textContent = name;
+      minorSelect.appendChild(option);
+    });
+  }
+}
+
+function loadHarvestData() {
+  const tbody = document.getElementById("harvestListBody");
+  tbody.innerHTML = "";
+  harvestData.forEach((entry, index) => {
+    const row = document.createElement("tr");
+    row.className = "text-center";
+    row.innerHTML = `
+  <td class="px-4 py-2">${entry.customer}</td>
+  <td class="px-4 py-2">${entry.phone}</td>
+  <td class="px-4 py-2">${entry.date}</td>
+  <td class="px-4 py-2">${entry.area.toFixed(2)}</td>
+  <td class="px-4 py-2">${entry.workers.join(", ") || '-'}</td>
+  <td class="px-4 py-2">${entry.driver.join(", ") || '-'}</td>
+  <td class="px-4 py-2">${entry.assistant.join(", ") || '-'}</td>
+  <td class="px-4 py-2">${entry.selfTransport ? '是' : '否'}</td>
+  <td class="px-4 py-2">${entry.notes || '-'}</td>
+  <td class="px-4 py-2 operations">
+    <button class="bg-blue-500 text-white px-2 py-1 rounded" onclick="editOrder(${index})">編輯</button>
+    <button class="bg-red-500 text-white px-2 py-1 rounded" onclick="deleteOrder(${index})">刪除</button>
+  </td>
+`;
+
+    tbody.appendChild(row);
+  });
+  filterHarvestList();
+}
+
+function loadWageData() {
+  const tbody = document.getElementById("wageListBody");
+  tbody.innerHTML = "";
+  const majorCategory = document.getElementById('wageMajorCategory').value;
+  const minorCategory = document.getElementById('wageMinorCategory').value;
+  const dateQuery = document.getElementById('wageSearchDate').value;
+  let wageRows = [];
+  harvestData.forEach((entry, harvestIndex) => {
+    if (dateQuery && entry.date !== dateQuery) return;
+    entry.wages.forEach((wageEntry, wageIndex) => {
+      if (majorCategory && wageEntry.type !== majorCategory) return;
+      if (minorCategory && wageEntry.worker !== minorCategory) return;
+      wageRows.push({
+        harvestIndex,
+        wageIndex,
+        worker: wageEntry.worker,
+        type: wageEntry.type,
+        customer: entry.customer,
+        date: entry.date,
+        area: entry.area,
+        wage: wageEntry.wage,
+        processed: wageEntry.processed
+      });
+    });
+  });
+  wageRows.forEach(row => {
+    const tr = document.createElement("tr");
+    tr.className = "text-center";
+    tr.setAttribute('data-harvest-index', row.harvestIndex);
+    tr.setAttribute('data-wage-index', row.wageIndex);
+    tr.innerHTML = `
+      <td class="px-4 py-2"><input type="checkbox" class="wage-checkbox" ${row.processed ? 'disabled' : ''}></td>
+      <td class="px-4 py-2">${row.worker}</td>
+      <td class="px-4 py-2">${row.type}</td>
+      <td class="px-4 py-2">${row.customer}</td>
+      <td class="px-4 py-2">${row.date}</td>
+      <td class="px-4 py-2">${row.area.toFixed(2)}</td>
+      <td class="px-4 py-2">${row.wage.toFixed(2)}</td>
+      <td class="px-4 py-2">
+        ${row.processed ? '' : `
+          <button class="bg-blue-500 text-white px-2 py-1 rounded mr-1" onclick="editWage(${row.harvestIndex}, ${row.wageIndex})">編輯</button>
+          <button class="bg-red-500 text-white px-2 py-1 rounded" onclick="deleteWage(${row.harvestIndex}, ${row.wageIndex})">刪除</button>
+        `}
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function loadProcessedData() {
+  const tbody = document.getElementById("processedListBody");
+  tbody.innerHTML = "";
+  const majorCategory = document.getElementById('processedMajorCategory').value;
+  const minorCategory = document.getElementById('processedMinorCategory').value;
+  const dateQuery = document.getElementById('processedSearchDate').value;
+  let processedRows = [];
+  harvestData.forEach((entry, harvestIndex) => {
+    if (dateQuery && entry.date !== dateQuery) return;
+    entry.wages.forEach((wageEntry, wageIndex) => {
+      if (!wageEntry.processed) return;
+      if (majorCategory && wageEntry.type !== majorCategory) return;
+      if (minorCategory && wageEntry.worker !== minorCategory) return;
+      processedRows.push({
+        harvestIndex,
+        wageIndex,
+        worker: wageEntry.worker,
+        type: wageEntry.type,
+        customer: entry.customer,
+        date: entry.date,
+        area: entry.area,
+        wage: wageEntry.wage
+      });
+    });
+  });
+  processedRows.forEach(row => {
+    const tr = document.createElement("tr");
+    tr.className = "text-center";
+    tr.setAttribute('data-harvest-index', row.harvestIndex);
+    tr.setAttribute('data-wage-index', row.wageIndex);
+    tr.innerHTML = `
+      <td class="px-4 py-2">${row.worker}</td>
+      <td class="px-4 py-2">${row.type}</td>
+      <td class="px-4 py-2">${row.customer}</td>
+      <td class="px-4 py-2">${row.date}</td>
+      <td class="px-4 py-2">${row.area.toFixed(2)}</td>
+      <td class="px-4 py-2">${row.wage.toFixed(2)}</td>
+      <td class="px-4 py-2">
+        <button class="bg-yellow-500 text-white px-2 py-1 rounded" onclick="resignWage(${row.harvestIndex}, ${row.wageIndex})">重簽</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('harvestDate').value = new Date().toISOString().split('T')[0];
+  updateMinorCategoryDropdown('majorCategory', 'minorCategory');
+  updateMinorCategoryDropdown('wageMajorCategory', 'wageMinorCategory');
+  updateMinorCategoryDropdown('processedMajorCategory', 'processedMinorCategory');
+  document.getElementById('majorCategory').addEventListener('change', () => {
+    updateMinorCategoryDropdown('majorCategory', 'minorCategory');
+    filterHarvestList();
+  });
+  document.getElementById('wageMajorCategory').addEventListener('change', () => {
+    updateMinorCategoryDropdown('wageMajorCategory', 'wageMinorCategory');
+    loadWageData();
+  });
+  document.getElementById('processedMajorCategory').addEventListener('change', () => {
+    updateMinorCategoryDropdown('processedMajorCategory', 'processedMinorCategory');
+    loadProcessedData();
+  });
+  document.getElementById('minorCategory').addEventListener('change', filterHarvestList);
+  document.getElementById('wageMinorCategory').addEventListener('change', loadWageData);
+  document.getElementById('processedMinorCategory').addEventListener('change', loadProcessedData);
+  document.getElementById('searchBtn').addEventListener('click', filterHarvestList);
+  document.getElementById('searchWageBtn').addEventListener('click', loadWageData);
+  document.getElementById('searchProcessedBtn').addEventListener('click', loadProcessedData);
+  document.getElementById('calculateWage').addEventListener('click', calculateWageReceipt);
+  document.getElementById('searchFarmer').addEventListener('keypress', e => e.key === 'Enter' && filterHarvestList());
+  document.getElementById('wageSearchDate').addEventListener('change', loadWageData);
+  document.getElementById('processedSearchDate').addEventListener('change', loadProcessedData);
+  document.getElementById('printWageSelected').addEventListener('click', printWageSelected);
+  document.getElementById('printSelected').addEventListener('click', printHarvestDetails);
+  document.getElementById('printProcessedSelected').addEventListener('click', printProcessedWageReceipts);
+  loadHarvestData();
+});
+
+const customerInput = document.getElementById('customer');
+const dropdown = document.getElementById('autocompleteDropdown');
+customerInput.addEventListener('input', function() {
+  const query = this.value.trim().toLowerCase();
+  dropdown.innerHTML = '';
+  if (query) {
+    const matches = customers.filter(c => c.name.toLowerCase().includes(query) || c.phone.includes(query));
+    if (matches.length) {
+      matches.forEach(match => {
+        const item = document.createElement('div');
+        item.className = 'autocomplete-item';
+        item.textContent = `${match.name} (${match.phone})`;
+        item.addEventListener('click', () => {
+          customerInput.value = match.name;
+          dropdown.style.display = 'none';
+        });
+        dropdown.appendChild(item);
+      });
+      dropdown.style.display = 'block';
+    } else {
+      dropdown.style.display = 'none';
+    }
+  } else {
+    dropdown.style.display = 'none';
+  }
+});
+document.addEventListener('click', e => {
+  if (!customerInput.contains(e.target) && !dropdown.contains(e.target)) {
+    dropdown.style.display = 'none';
+  }
+});
+
+function toggleDropdown(dropdownId) {
+  const dropdown = document.getElementById(dropdownId);
+  dropdown.classList.toggle('hidden');
+  document.addEventListener('click', function handler(e) {
+    if (!dropdown.contains(e.target) && !e.target.closest(`[onclick*="toggleDropdown('${dropdownId}')"]`)) {
+      dropdown.classList.add('hidden');
+      document.removeEventListener('click', handler);
+    }
+  });
+}
+
+function updateSelected(field) {
+  const checkboxes = document.querySelectorAll(`#${field}Dropdown input[type="checkbox"]:checked`);
+  const selected = Array.from(checkboxes).map(cb => cb.value);
+  const display = document.getElementById(`${field}Selected`);
+  const placeholder = document.querySelector(`.selected-${field}`);
+  if (selected.length > 0) {
+    display.textContent = `已選擇：${selected.join(', ')}`;
+    placeholder.textContent = selected.join(', ');
+  } else {
+    display.textContent = '';
+    placeholder.textContent = `請選擇${field === 'workers' ? '收割師傅' : field === 'driver' ? '載穀司機' : '小工'}`;
+  }
+}
+
+function getSelectedValues(field) {
+  const checkboxes = document.querySelectorAll(`#${field}Dropdown input[type="checkbox"]:checked`);
+  return Array.from(checkboxes).map(cb => cb.value);
+}
+
+function resetForm() {
+  document.getElementById("harvestForm").reset();
+  document.getElementById('harvestDate').value = new Date().toISOString().split('T')[0];
+  ['workers', 'driver', 'assistant'].forEach(field => {
+    const checkboxes = document.querySelectorAll(`#${field}Dropdown input[type="checkbox"]`);
+    checkboxes.forEach(cb => cb.checked = false);
+    updateSelected(field);
+  });
+  dropdown.style.display = 'none';
+  editingIndex = -1;
+  document.querySelector('#harvestForm button[type="submit"]').textContent = '儲存';
+}
+
+document.getElementById("harvestForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+  const customer = customerInput.value;
+  const phone = customers.find(c => c.name === customer)?.phone || "";
+  const date = document.getElementById("harvestDate").value;
+  const area = parseFloat(document.getElementById("area").value);
+  const workers = getSelectedValues('workers');
+  const driver = getSelectedValues('driver');
+  const assistant = getSelectedValues('assistant');
+  const selfTransport = document.getElementById("selfTransport").checked;
+  const notes = document.getElementById("notes").value;
+  const wages = [];
+  workers.forEach(worker => wages.push({
+    worker,
+    type: "收割師傅",
+    wage: (WAGE_RATE.worker * area) / (workers.length || 1),
+    processed: false,
+    signature: ""
+  }));
+  driver.forEach(driver => wages.push({
+    worker: driver,
+    type: "載穀司機",
+    wage: (WAGE_RATE.driver - (selfTransport ? WAGE_RATE.selfTransportDeduction : 0)) * area,
+    processed: false,
+    signature: ""
+  }));
+  assistant.forEach(assistant => wages.push({
+    worker: assistant,
+    type: "小工",
+    wage: WAGE_RATE.assistant * area,
+    processed: false,
+    signature: ""
+  }));
+  const entry = { customer, phone, date, area, workers, driver, assistant, selfTransport, notes, wages };
+  if (editingIndex >= 0) {
+    harvestData[editingIndex] = entry;
+    editingIndex = -1;
+  } else {
+    harvestData.push(entry);
+  }
+  loadHarvestData();
+  loadWageData();
+  loadProcessedData();
+  resetForm();
+});
+
+function editOrder(index) {
+  const entry = harvestData[index];
+  customerInput.value = entry.customer;
+  document.getElementById("harvestDate").value = entry.date;
+  document.getElementById("area").value = entry.area;
+  ['workers', 'driver', 'assistant'].forEach(field => {
+    const checkboxes = document.querySelectorAll(`#${field}Dropdown input[type="checkbox"]`);
+    checkboxes.forEach(cb => cb.checked = entry[field].includes(cb.value));
+    updateSelected(field);
+  });
+  document.getElementById("selfTransport").checked = entry.selfTransport;
+  document.getElementById("notes").value = entry.notes;
+  editingIndex = index;
+  document.querySelector('#harvestForm button[type="submit"]').textContent = '更新';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function deleteOrder(index) {
+  if (confirm("確定要刪除此收割單？")) {
+    harvestData.splice(index, 1);
+    loadHarvestData();
+    loadWageData();
+    loadProcessedData();
+  }
+}
+
+function editWage(harvestIndex, wageIndex) {
+  const wageEntry = harvestData[harvestIndex].wages[wageIndex];
+  if (wageEntry.processed) {
+    alert('此工資記錄已處理，無法編輯。');
+    return;
+  }
+  document.getElementById('editWorker').value = wageEntry.worker;
+  document.getElementById('editType').value = wageEntry.type;
+  document.getElementById('editWage').value = wageEntry.wage;
+  editingWage = { harvestIndex, wageIndex };
+  document.getElementById('wageEditModal').classList.add('active');
+}
+
+function closeWageEditModal() {
+  document.getElementById('wageEditModal').classList.remove('active');
+  editingWage = { harvestIndex: -1, wageIndex: -1 };
+}
+
+document.getElementById('wageEditForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const worker = document.getElementById('editWorker').value;
+  const type = document.getElementById('editType').value;
+  const wage = parseFloat(document.getElementById('editWage').value);
+  if (editingWage.harvestIndex >= 0 && editingWage.wageIndex >= 0) {
+    if (harvestData[editingWage.harvestIndex].wages[editingWage.wageIndex].processed) {
+      alert('此工資記錄已處理，無法編輯。');
+      return;
+    }
+    harvestData[editingWage.harvestIndex].wages[editingWage.wageIndex] = {
+      ...harvestData[editingWage.harvestIndex].wages[editingWage.wageIndex],
+      worker,
+      type,
+      wage
+    };
+    loadWageData();
+    loadProcessedData();
+    closeWageEditModal();
+  }
+});
+
+function deleteWage(harvestIndex, wageIndex) {
+  if (harvestData[harvestIndex].wages[wageIndex].processed) {
+    alert('此工資記錄已處理，無法刪除。');
+    return;
+  }
+  if (confirm("確定要刪除此工資記錄？")) {
+    harvestData[harvestIndex].wages.splice(wageIndex, 1);
+    loadWageData();
+    loadProcessedData();
+  }
+}
+
+function resignWage(harvestIndex, wageIndex) {
+  currentReceiptId = `wage-${harvestIndex}-${wageIndex}`;
+  const wageEntry = harvestData[harvestIndex].wages[wageIndex];
+  const container = document.getElementById('wageReceiptsContainer');
+  container.innerHTML = '';
+  const currentDate = new Date().toLocaleDateString('zh-TW');
+  const div = document.createElement('div');
+  div.className = 'receipt-container';
+  div.innerHTML = `
+    <div class="receipt-header">
+      <h1>收割工資收據</h1>
+      <p>開立日期: ${currentDate}</p>
+    </div>
+    <div class="receipt-row"><label>工人姓名：</label><div class="receipt-field">${wageEntry.worker}</div></div>
+    <div class="receipt-row"><label>類型：</label><div class="receipt-field">${wageEntry.type}</div></div>
+    <div class="receipt-row"><label>是否自運：</label><div class="receipt-field">${harvestData[harvestIndex].selfTransport ? '是' : '否'}</div></div>
+    <div class="receipt-row"><label>訂單數量：</label><div class="receipt-field">1</div></div>
+    <div class="receipt-row"><label>總面積 (分)：</label><div class="receipt-field">${harvestData[harvestIndex].area.toFixed(2)}</div></div>
+    <div class="receipt-total">總計工資：${wageEntry.wage.toFixed(2)} 元</div>
+    <div class="mt-4 text-center">
+      <p class="font-bold mb-2">簽名：</p>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded" onclick="openSignatureModal('${currentReceiptId}')">簽名</button>
+      <img id="signature-${currentReceiptId}" class="signature-img" src="${wageEntry.signature}" style="display: ${wageEntry.signature ? 'block' : 'none'};">
+    </div>
+  `;
+  container.appendChild(div);
+  document.getElementById('wageReceiptModal').classList.add('active');
+}
+
+function filterHarvestList() {
+  const nameQuery = document.getElementById('searchFarmer').value.trim().toLowerCase();
+  const dateQuery = document.getElementById('searchDate').value;
+  const majorCategory = document.getElementById('majorCategory').value;
+  const minorCategory = document.getElementById('minorCategory').value;
+  const rows = document.querySelectorAll('#harvestListBody tr');
+  rows.forEach(row => {
+    const name = row.cells[0].textContent.toLowerCase();
+    const phone = row.cells[1].textContent;
+    const date = row.cells[2].textContent;
+    const workers = row.cells[4].textContent.split(',').map(w => w.trim()).filter(w => w !== '-');
+    const drivers = row.cells[5].textContent.split(',').map(d => d.trim()).filter(d => d !== '-');
+    const assistants = row.cells[6].textContent.split(',').map(a => a.trim()).filter(a => a !== '-');
+    const nameMatch = name.includes(nameQuery) || phone.includes(nameQuery);
+    const dateMatch = dateQuery ? date === dateQuery : true;
+    let workerMatch = true;
+    if (majorCategory || minorCategory) {
+      const allWorkers = [...workers, ...drivers, ...assistants];
+      workerMatch = minorCategory ? allWorkers.includes(minorCategory) : (
+        majorCategory === '收割師傅' ? workers.length > 0 :
+        majorCategory === '載穀司機' ? drivers.length > 0 :
+        majorCategory === '小工' ? assistants.length > 0 : true
+      );
+    }
+    row.style.display = nameMatch && dateMatch && workerMatch ? '' : 'none';
+  });
+}
+
+function toggleSelectAllWage() {
+  const selectAll = document.getElementById('selectAllWage').checked;
+  document.querySelectorAll('.wage-checkbox:not(:disabled)').forEach(cb => cb.checked = selectAll);
+}
+
+function calculateWageReceipt() {
+  const checkboxes = document.querySelectorAll('.wage-checkbox:checked');
+  if (!checkboxes.length) {
+    alert('請選擇至少一筆工資記錄');
+    return;
+  }
+  const container = document.getElementById('wageReceiptsContainer');
+  container.innerHTML = '';
+  const currentDate = new Date().toLocaleDateString('zh-TW');
+  let workerGroups = {};
+  checkboxes.forEach(cb => {
+    const row = cb.closest('tr');
+    const harvestIndex = parseInt(row.getAttribute('data-harvest-index'));
+    const wageIndex = parseInt(row.getAttribute('data-wage-index'));
+    const worker = row.cells[1].textContent;
+    const type = row.cells[2].textContent;
+    const customer = row.cells[3].textContent;
+    const date = row.cells[4].textContent;
+    const area = parseFloat(row.cells[5].textContent);
+    const wage = parseFloat(row.cells[6].textContent);
+    const selfTransport = harvestData[harvestIndex].selfTransport;
+    if (!workerGroups[worker]) {
+      workerGroups[worker] = { type, orders: [], totalArea: 0, totalWage: 0, indices: [], selfTransport };
+    }
+    workerGroups[worker].orders.push({ customer, date, area, wage });
+    workerGroups[worker].totalArea += area;
+    workerGroups[worker].totalWage += wage;
+    workerGroups[worker].indices.push({ harvestIndex, wageIndex });
+  });
+  let index = 0;
+  for (const worker in workerGroups) {
+    const { type, orders, totalArea, totalWage, selfTransport, indices } = workerGroups[worker];
+    const receiptId = `wage${index++}`;
+    const div = document.createElement('div');
+    div.className = 'receipt-container';
+    div.setAttribute('data-indices', JSON.stringify(indices));
+    div.innerHTML = `
+      <div class="receipt-header">
+        <h1>收割工資收據</h1>
+        <p>開立日期: ${currentDate}</p>
+      </div>
+      <div class="receipt-row"><label>工人姓名：</label><div class="receipt-field">${worker}</div></div>
+      <div class="receipt-row"><label>類型：</label><div class="receipt-field">${type}</div></div>
+      <div class="receipt-row"><label>是否自運：</label><div class="receipt-field">${selfTransport ? '是' : '否'}</div></div>
+      <div class="receipt-row"><label>訂單數量：</label><div class="receipt-field">${orders.length}</div></div>
+      <div class="receipt-row"><label>總面積 (分)：</label><div class="receipt-field">${totalArea.toFixed(2)}</div></div>
+      <div class="receipt-total">總計工資：${totalWage.toFixed(2)} 元</div>
+      <div class="mt-4 text-center">
+        <p class="font-bold mb-2">簽名：</p>
+        <button class="bg-blue-500 text-white px-4 py-2 rounded" onclick="openSignatureModal('${receiptId}')">簽名</button>
+        <img id="signature-${receiptId}" class="signature-img" style="display: none;">
+      </div>
+    `;
+    container.appendChild(div);
+  }
+  document.getElementById('wageReceiptModal').classList.add('active');
+}
+
+function closeWageReceiptModal() {
+  document.getElementById('wageReceiptModal').classList.remove('active');
+}
+
+async function downloadWageReceipt() {
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    console.error('jsPDF is not loaded.');
+    alert('無法生成PDF：jsPDF庫未正確載入，請檢查網絡連接或稍後重試。');
+    return;
+  }
+  const { jsPDF } = window.jspdf;
+  const printArea = document.getElementById('wageReceiptPrintArea');
+  const receiptsContainer = document.getElementById('wageReceiptsContainer');
+  printArea.style.display = 'block';
+  printArea.style.position = 'absolute';
+  printArea.style.top = '0';
+  printArea.style.left = '0';
+  printArea.style.width = '210mm';
+  printArea.style.padding = '10mm';
+  printArea.style.background = 'white';
+  printArea.style.boxSizing = 'border-box';
+  printArea.style.maxHeight = 'none';
+  printArea.style.overflow = 'visible';
+  printArea.innerHTML = '';
+  printArea.appendChild(receiptsContainer.cloneNode(true));
+  try {
+    const canvas = await html2canvas(printArea, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      windowWidth: 794,
+      windowHeight: 1123,
+    });
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+    });
+    const pdfWidth = 210;
+    const pdfHeight = 297;
+    const imgWidth = pdfWidth - 20;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    let heightLeft = imgHeight;
+    let position = 10;
+    pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+    heightLeft -= (pdfHeight - 20);
+    while (heightLeft > 0) {
+      pdf.addPage();
+      position = 10 - (heightLeft % (pdfHeight - 20));
+      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+      heightLeft -= (pdfHeight - 20);
+    }
+    pdf.save('wage-receipt.pdf');
+    const containers = document.querySelectorAll('#wageReceiptsContainer .receipt-container');
+    containers.forEach(container => {
+      const indices = JSON.parse(container.getAttribute('data-indices') || '[]');
+      const signatureImg = container.querySelector('img[src]:not([src=""])');
+      if (signatureImg) {
+        indices.forEach(({ harvestIndex, wageIndex }) => {
+          harvestData[harvestIndex].wages[wageIndex].signature = signatureImg.src;
+          harvestData[harvestIndex].wages[wageIndex].processed = true;
+        });
+      }
+    });
+    loadWageData();
+    loadProcessedData();
+    closeWageReceiptModal();
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    alert('生成PDF時發生錯誤，請檢查網絡或稍後重試。');
+  } finally {
+    printArea.style.display = '';
+    printArea.style.position = '';
+    printArea.style.top = '';
+    printArea.style.left = '';
+    printArea.style.width = '';
+    printArea.style.padding = '';
+    printArea.style.background = '';
+    printArea.style.maxHeight = '';
+    printArea.style.overflow = '';
+    printArea.innerHTML = '<div id="wageReceiptsContainer"></div>';
+  }
+}
+
+// 一、列印工資明細
+async function printWageSelected() {
+  if (!window.html2canvas || !window.jspdf) {
+    alert("無法載入必要的腳本，請檢查網絡連接並重試。");
+    return;
+  }
+  const { jsPDF } = window.jspdf;
+
+  // 1. 撈所有可見的工資行（不需勾選）
+  const allRows = Array.from(document.querySelectorAll('#wageListBody tr'))
+    .filter(r => r.style.display !== 'none');
+
+  if (!allRows.length) {
+    alert("目前沒有任何工資資料可列印！");
+    return;
+  }
+
+  // 2. 依工人姓名分組
+  const byWorker = {};
+  allRows.forEach(r => {
+    const worker = r.cells[1].textContent;
+    const type   = r.cells[2].textContent;
+    const cust   = r.cells[3].textContent;
+    const date   = r.cells[4].textContent;
+    const area   = parseFloat(r.cells[5].textContent) || 0;
+    const wage   = parseFloat(r.cells[6].textContent) || 0;
+    if (!byWorker[worker]) byWorker[worker] = [];
+    byWorker[worker].push({ type, cust, date, area, wage });
+  });
+
+  // 3. 建 printArea
+  const printArea = document.createElement('div');
+  printArea.style.width = '794px';
+  printArea.style.padding = '20px';
+  printArea.style.fontFamily = 'monospace';
+  printArea.style.lineHeight = '1.5';
+
+  // 主標題
+  const title = document.createElement('h1');
+  title.innerText = '師傅工資明細';
+  title.style.textAlign = 'center';
+  title.style.fontSize = '24px';
+  title.style.marginBottom = '20px';
+  printArea.appendChild(title);
+
+  let grandArea = 0, grandWage = 0;
+
+  // 4. 每個師傅一組
+  for (const worker in byWorker) {
+    // 小標題
+    const h2 = document.createElement('h2');
+    h2.innerText = `工人：${worker}`;
+    h2.style.fontSize = '20px';
+    h2.style.margin = '12px 0 8px';
+    printArea.appendChild(h2);
+
+    // 表格
+    const table = document.createElement('table');
+    table.style.width = '100%';
+    table.style.borderCollapse = 'collapse';
+
+    // 彩色表頭
+    const thead = document.createElement('thead');
+    const trHead = document.createElement('tr');
+    ['類型','客戶','日期','面積','工資'].forEach(txt => {
+      const th = document.createElement('th');
+      th.innerText = txt;
+      th.style.background = '#34D399';
+      th.style.color = '#fff';
+      th.style.border = '1px solid #000';
+      th.style.padding = '8px';
+      trHead.appendChild(th);
+    });
+    thead.appendChild(trHead);
+    table.appendChild(thead);
+
+    // 表身＋小計
+    const tbody = document.createElement('tbody');
+    let subArea = 0, subWage = 0;
+    byWorker[worker].forEach(item => {
+      const tr = document.createElement('tr');
+      [item.type, item.cust, item.date, item.area.toFixed(2), item.wage.toFixed(2)].forEach(val => {
+        const td = document.createElement('td');
+        td.innerText = val;
+        td.style.border = '1px solid #000';
+        td.style.padding = '8px';
+        td.style.textAlign = 'center';
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+      subArea += item.area;
+      subWage += item.wage;
+    });
+    // 小計列
+    const trSum = document.createElement('tr');
+    trSum.style.fontWeight = 'bold';
+    trSum.innerHTML = `
+      <td colspan="3" style="border:1px solid #000;padding:8px;text-align:right;">小計：</td>
+      <td style="border:1px solid #000;padding:8px;text-align:center;">${subArea.toFixed(2)}</td>
+      <td style="border:1px solid #000;padding:8px;text-align:center;">${subWage.toFixed(2)}</td>
+    `;
+    tbody.appendChild(trSum);
+
+    table.appendChild(tbody);
+    printArea.appendChild(table);
+
+    grandArea += subArea;
+    grandWage += subWage;
+  }
+
+  // 5. 全體總計
+  const summary = document.createElement('p');
+  summary.innerText = `總面積：${grandArea.toFixed(2)} 分    總工資：${grandWage.toFixed(2)} 元`;
+  summary.style.fontSize = '16px';
+  summary.style.fontWeight = 'bold';
+  summary.style.textAlign = 'right';
+  summary.style.marginTop = '16px';
+  printArea.appendChild(summary);
+
+  document.body.appendChild(printArea);
+
+  // 6. html2canvas 高解析截圖
+  const canvas = await html2canvas(printArea, {
+    scale: 3,
+    useCORS: true,
+    width: 794,
+    windowWidth: 794,
+    windowHeight: printArea.scrollHeight
+  });
+  const imgData = canvas.toDataURL('image/png');
+  document.body.removeChild(printArea);
+
+  // 7. 生成 PDF
+  const pdf = new jsPDF('p','mm','a4');
+  const pdfW = 210;
+  const pdfH = (canvas.height * pdfW) / canvas.width;
+  pdf.addImage(imgData,'PNG',0,0,pdfW,pdfH);
+  pdf.save('wage-details.pdf');
+}
+
+
+
+// 二、列印收割單明細
+// 2. 列印收割單明細
+async function printHarvestDetails() {
+  const { jsPDF } = window.jspdf;
+  const rows = document.querySelectorAll('#harvestListBody tr:not([style*="display: none"])');
+  if (!rows.length) {
+    alert("無可列印的資料");
+    return;
+  }
+
+  const printArea = document.createElement('div');
+  printArea.style.width = '794px';
+  printArea.style.padding = '20px';
+  printArea.style.fontSize = '14px';
+  printArea.innerHTML = '<h1 style="text-align:center;font-size:24px;margin-bottom:20px;">收割單明細</h1>';
+
+  const table = document.createElement('table');
+  table.style.width = '100%';
+  table.style.borderCollapse = 'collapse';
+  table.style.fontSize = '14px';
+  table.innerHTML = `
+    <tr style="background:#f0f0f0;">
+      <th style="border:1px solid #000;padding:8px;">客戶姓名</th>
+      <th style="border:1px solid #000;padding:8px;">電話</th>
+      <th style="border:1px solid #000;padding:8px;">收割日期</th>
+      <th style="border:1px solid #000;padding:8px;">面積 (分)</th>
+      <th style="border:1px solid #000;padding:8px;">收割師傅</th>
+      <th style="border:1px solid #000;padding:8px;">載穀司機</th>
+      <th style="border:1px solid #000;padding:8px;">小工</th>
+      <th style="border:1px solid #000;padding:8px;">是否自運</th>
+      <th style="border:1px solid #000;padding:8px;">備註</th>
+    </tr>`;
+  let totalArea = 0;
+  rows.forEach(row => {
+    const area = parseFloat(row.cells[3].textContent);
+    totalArea += area;
+    table.innerHTML += `
+      <tr>
+        <td style="border:1px solid #000;padding:8px;">${row.cells[0].textContent}</td>
+        <td style="border:1px solid #000;padding:8px;">${row.cells[1].textContent}</td>
+        <td style="border:1px solid #000;padding:8px;">${row.cells[2].textContent}</td>
+        <td style="border:1px solid #000;padding:8px;">${area.toFixed(2)}</td>
+        <td style="border:1px solid #000;padding:8px;">${row.cells[4].textContent}</td>
+        <td style="border:1px solid #000;padding:8px;">${row.cells[5].textContent}</td>
+        <td style="border:1px solid #000;padding:8px;">${row.cells[6].textContent}</td>
+        <td style="border:1px solid #000;padding:8px;">${row.cells[7].textContent}</td>
+        <td style="border:1px solid #000;padding:8px;">${row.cells[8].textContent}</td>
+      </tr>`;
+  });
+  printArea.appendChild(table);
+  printArea.innerHTML += `<p style="margin-top:20px;font-size:16px;font-weight:bold;">
+    總面積: ${totalArea.toFixed(2)} 分
+  </p>`;
+
+  document.body.appendChild(printArea);
+
+  const canvas = await html2canvas(printArea, {
+    scale: 3,
+    useCORS: true,
+    logging: false,
+    width: 794,
+    windowWidth: 794,
+    windowHeight: printArea.scrollHeight
+  });
+  const imgData = canvas.toDataURL('image/png');
+  const pdf = new jsPDF('p', 'mm', 'a4');
+  const pdfWidth = 210;
+  const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+  pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+  pdf.save('harvest-details.pdf');
+
+  document.body.removeChild(printArea);
+}
+
+
+
+// 三、列印已開工資收據明細
+// 3. 列印已開工資收據明細
+async function printProcessedWageReceipts() {
+  const { jsPDF } = window.jspdf;
+  const rows = document.querySelectorAll('#processedListBody tr');
+  if (!rows.length) {
+    alert("無可列印的資料");
+    return;
+  }
+
+  const printArea = document.createElement('div');
+  printArea.style.width = '794px';
+  printArea.style.padding = '20px';
+  printArea.style.fontSize = '14px';
+  printArea.innerHTML = '<h1 style="text-align:center;font-size:24px;margin-bottom:20px;">已開工資收據明細</h1>';
+
+  const table = document.createElement('table');
+  table.style.width = '100%';
+  table.style.borderCollapse = 'collapse';
+  table.style.fontSize = '14px';
+  table.innerHTML = `
+    <tr style="background:#f0f0f0;">
+      <th style="border:1px solid #000;padding:8px;">工人姓名</th>
+      <th style="border:1px solid #000;padding:8px;">類型</th>
+      <th style="border:1px solid #000;padding:8px;">客戶姓名</th>
+      <th style="border:1px solid #000;padding:8px;">收割日期</th>
+      <th style="border:1px solid #000;padding:8px;">面積 (分)</th>
+      <th style="border:1px solid #000;padding:8px;">工資 (元)</th>
+    </tr>`;
+  let totalArea = 0, totalWage = 0;
+  rows.forEach(row => {
+    const area = parseFloat(row.cells[4].textContent);
+    const wage = parseFloat(row.cells[5].textContent);
+    totalArea += area;
+    totalWage += wage;
+    table.innerHTML += `
+      <tr>
+        <td style="border:1px solid #000;padding:8px;">${row.cells[0].textContent}</td>
+        <td style="border:1px solid #000;padding:8px;">${row.cells[1].textContent}</td>
+        <td style="border:1px solid #000;padding:8px;">${row.cells[2].textContent}</td>
+        <td style="border:1px solid #000;padding:8px;">${row.cells[3].textContent}</td>
+        <td style="border:1px solid #000;padding:8px;">${area.toFixed(2)}</td>
+        <td style="border:1px solid #000;padding:8px;">${wage.toFixed(2)}</td>
+      </tr>`;
+  });
+  printArea.appendChild(table);
+  printArea.innerHTML += `
+    <p style="margin-top:20px;font-size:16px;font-weight:bold;">
+      總面積: ${totalArea.toFixed(2)} 分, 總工資: ${totalWage.toFixed(2)} 元
+    </p>`;
+
+  document.body.appendChild(printArea);
+
+  const canvas = await html2canvas(printArea, {
+    scale: 3,
+    useCORS: true,
+    logging: false,
+    width: 794,
+    windowWidth: 794,
+    windowHeight: printArea.scrollHeight
+  });
+  const imgData = canvas.toDataURL('image/png');
+  const pdf = new jsPDF('p', 'mm', 'a4');
+  const pdfWidth = 210;
+  const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+  pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+  pdf.save('processed-wage-details.pdf');
+
+  document.body.removeChild(printArea);
+}
+
+
+
+function openSignatureModal(receiptId) {
+  currentReceiptId = receiptId;
+  const canvas = document.getElementById('signatureCanvas');
+  canvas.width = window.innerWidth * 0.95;
+  canvas.height = window.innerHeight * 0.7;
+  document.getElementById('signatureModal').classList.add('active');
+  initializeSignatureCanvas();
+}
+
+function closeSignatureModal() {
+  document.getElementById('signatureModal').classList.remove('active');
+}
+
+function saveSignature() {
+  const canvas = document.getElementById('signatureCanvas');
+  const ctx = canvas.getContext('2d');
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = canvas.height;
+  tempCanvas.height = canvas.width;
+  const tempCtx = tempCanvas.getContext('2d');
+  tempCtx.translate(0, canvas.width);
+  tempCtx.rotate(-Math.PI / 2);
+  tempCtx.drawImage(canvas, 0, 0);
+  const img = document.getElementById(`signature-${currentReceiptId}`);
+  img.src = tempCanvas.toDataURL('image/png');
+  img.style.display = 'block';
+  closeSignatureModal();
+}
+
+function clearSignature() {
+  const canvas = document.getElementById('signatureCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function initializeSignatureCanvas() {
+  const canvas = document.getElementById('signatureCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.strokeStyle = 'black';
+  ctx.lineWidth = 2;
+  let drawing = false;
+  function startDrawing(e) {
+    drawing = true;
+    ctx.beginPath();
+    draw(e);
+  }
+  function stopDrawing() {
+    drawing = false;
+    ctx.beginPath();
+  }
+  function draw(e) {
+    if (!drawing) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX || e.touches[0].clientX) - rect.left;
+    const y = (e.clientY || e.touches[0].clientY) - rect.top;
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  }
+  canvas.addEventListener('mousedown', startDrawing);
+  canvas.addEventListener('mousemove', draw);
+  canvas.addEventListener('mouseup', stopDrawing);
+  canvas.addEventListener('mouseout', stopDrawing);
+  canvas.addEventListener('touchstart', startDrawing);
+  canvas.addEventListener('touchmove', draw);
+  canvas.addEventListener('touchend', stopDrawing);
+}
+  </script>
+</html>

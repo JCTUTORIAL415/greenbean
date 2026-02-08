@@ -1,0 +1,1166 @@
+```html
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>插秧師傅儀表板</title>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDaN5_Va2EReS1HsZMG_gAyLYfzgQMV5Pg"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
+<style>
+body {
+font-family: 'Arial', sans-serif;
+background: linear-gradient(to right, #d4fc79, #96e6a1);
+margin: 0;
+padding: 20px;
+min-height: 100vh;
+overflow-x: hidden;
+    }
+body.modal-open {
+overflow: hidden;
+height: 100vh;
+position: fixed;
+width: 100%;
+    }
+.container {
+width: 90%;
+max-width: 600px;
+background: white;
+padding: 20px;
+border-radius: 15px;
+box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+margin: 0 auto 20px;
+position: relative;
+    }
+h1, h2 {
+color: #2e7d32;
+text-align: center;
+margin-bottom: 20px;
+font-size: 24px;
+    }
+.input-group {
+display: flex;
+flex-direction: column;
+margin-bottom: 15px;
+    }
+.input-group label {
+font-weight: bold;
+margin-bottom: 5px;
+font-size: 16px;
+    }
+.input-group input[type="text"],
+.input-group input[type="number"],
+.input-group input[type="date"],
+.input-group select,
+.input-group textarea {
+padding: 12px;
+border: 1px solid #ccc;
+border-radius: 8px;
+font-size: 16px;
+appearance: none;
+-webkit-appearance: none;
+-moz-appearance: none;
+    }
+.input-group textarea {
+resize: vertical;
+min-height: 80px;
+    }
+.input-group input[type="checkbox"] {
+width: 20px;
+height: 20px;
+margin-right: 8px;
+vertical-align: middle;
+accent-color: #4caf50;
+cursor: pointer;
+    }
+.input-group .checkbox-label {
+display: flex;
+align-items: center;
+font-size: 16px;
+    }
+.hidden { display: none; }
+.btn {
+padding: 14px;
+font-size: 18px;
+font-weight: bold;
+color: white;
+border: none;
+border-radius: 10px;
+cursor: pointer;
+transition: 0.3s;
+width: 100%;
+box-sizing: border-box;
+margin: 8px 0;
+    }
+.btn.submit { background: linear-gradient(135deg, #4caf50, #2e7d32); }
+.btn.cancel { background: linear-gradient(135deg, #e53935, #c62828); }
+.btn:hover {
+transform: scale(1.05);
+box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2);
+    }
+.record-container {
+background: #f1f8e9;
+padding: 20px;
+border-radius: 10px;
+max-height: 50vh;
+overflow-y: auto;
+    }
+.record {
+background: white;
+padding: 12px;
+border-radius: 8px;
+margin-bottom: 12px;
+box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+display: flex;
+justify-content: space-between;
+align-items: center;
+font-size: 14px;
+line-height: 1.5;
+    }
+.record input[type="checkbox"] {
+margin-right: 8px;
+width: 20px;
+height: 20px;
+accent-color: #4caf50;
+    }
+.modal {
+position: fixed;
+top: 0; left: 0; right: 0; bottom: 0;
+background: rgba(0, 0, 0, 0.5);
+display: none;
+justify-content: center;
+align-items: center;
+z-index: 100;
+    }
+.modal.active { display: flex; }
+.modal-content, .edit-modal-content, .add-field-modal-content {
+background: white;
+padding: 20px;
+border-radius: 10px;
+max-width: 90%;
+max-height: 90vh;
+overflow-y: auto;
+font-size: 14px;
+line-height: 1.5;
+    }
+.receipt-container {
+width: 80mm;
+padding: 1rem;
+margin: 0 auto 1rem;
+background: #fff;
+font-family: Arial, sans-serif;
+box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+font-size: 16px;
+line-height: 2;
+border: 1px solid #000;
+box-sizing: border-box;
+    }
+.receipt-header {
+text-align: center;
+border-bottom: 2px solid #000;
+padding-bottom: 0.5rem;
+margin-bottom: 1rem;
+    }
+.receipt-header h1 {
+font-size: 1.5rem;
+font-weight: bold;
+margin: 0;
+padding: 0;
+line-height: 1.5;
+    }
+.receipt-header p {
+font-size: 0.9rem;
+color: #333;
+margin: 0;
+padding: 0;
+line-height: 1.5;
+    }
+.receipt-row {
+display: flex;
+align-items: center;
+margin-bottom: 0.5rem;
+font-size: 1rem;
+border-bottom: 1px solid #000;
+padding: 0.2rem 0;
+    }
+.receipt-row label {
+font-weight: bold;
+width: 30%;
+text-align: left;
+padding-right: 0.5rem;
+color: #000;
+white-space: nowrap;
+    }
+.receipt-field {
+width: 70%;
+text-align: left;
+font-size: 1rem;
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+    }
+.signature-section {
+margin-top: 1rem;
+text-align: center;
+    }
+.signature-section p {
+font-weight: bold;
+margin-bottom: 0.5rem;
+    }
+.signature-img {
+max-width: 100%;
+max-height: 150px;
+margin: 0 auto;
+display: block;
+transform: rotate(0deg);
+    }
+#signature-modal {
+background: rgba(0, 0, 0, 0.8);
+display: none;
+position: fixed;
+top: 0; left: 0;
+width: 100%; height: 100%;
+justify-content: center;
+align-items: center;
+z-index: 2000;
+    }
+#signature-modal.active { display: flex; }
+.signature-modal-content {
+background: white;
+width: 90%;
+max-width: 600px;
+height: 50vh;
+padding: 20px;
+border-radius: 10px;
+display: flex;
+flex-direction: column;
+justify-content: space-between;
+    }
+#signature-canvas {
+width: 100%;
+height: calc(50vh - 80px);
+border: 1px solid #ccc;
+background: #f9fafb;
+touch-action: none;
+    }
+.edit-modal-content .record-item {
+border: 1px solid #ddd;
+padding: 12px;
+margin-bottom: 12px;
+border-radius: 5px;
+    }
+.btn-edit, .btn-delete {
+background: #2196f3;
+color: white;
+border: none;
+border-radius: 8px;
+cursor: pointer;
+transition: 0.3s;
+box-sizing: border-box;
+margin: 8px 0;
+    }
+.btn-delete { background: #f44336; }
+.field-link {
+color: #3b82f6;
+text-decoration: none;
+font-size: 12px;
+    }
+.field-link:hover {
+text-decoration: underline;
+    }
+.field-no-link {
+color: #f44336;
+font-size: 12px;
+    }
+#farmer-suggestions {
+z-index: 1000;
+max-width: 100%;
+font-size: 14px;
+    }
+#planting-field-checkboxes {
+padding: 12px;
+font-size: 14px;
+line-height: 1.5;
+    }
+.flex.space-x-4 {
+gap: 16px;
+    }
+.stats-container {
+background: #f1f8e9;
+padding: 20px;
+border-radius: 10px;
+margin: 20px auto;
+max-width: 600px;
+    }
+.stats-container h2 {
+font-size: 20px;
+margin-bottom: 15px;
+    }
+.stats-container p {
+font-size: 14px;
+margin: 5px 0;
+    }
+.tab-content.active {
+display: block;
+    }
+.tab-content {
+display: none;
+    }
+.temp-records-container {
+background: #f1f8e9;
+padding: 20px;
+border-radius: 10px;
+margin-top: 20px;
+    }
+.temp-records-container h3 {
+font-size: 18px;
+margin-bottom: 10px;
+    }
+.accordion {
+background-color: #eee;
+color: #444;
+cursor: pointer;
+padding: 18px;
+width: 100%;
+border: none;
+text-align: left;
+outline: none;
+font-size: 15px;
+transition: 0.4s;
+  }
+.active-accordion, .accordion:hover {
+background-color: #ccc;
+  }
+.panel {
+padding: 0 18px;
+display: none;
+background-color: white;
+overflow: hidden;
+  }
+@media print {
+.receipt-container {
+width: 80mm;
+margin: 0;
+padding: 1rem;
+box-shadow: none;
+font-size: 16px;
+      }
+body * {
+visibility: hidden;
+      }
+#receipt-area, #receipt-area * {
+visibility: visible;
+      }
+#receipt-area {
+position: absolute;
+left: 0;
+top: 0;
+width: 80mm;
+      }
+    }
+@media (max-width: 768px) {
+.container, .stats-container {
+width: 95%;
+margin: 16px auto;
+      }
+.signature-modal-content {
+width: 90%;
+height: 60vh;
+padding: 20px;
+      }
+#signature-canvas {
+width: 100%;
+height: calc(60vh - 100px);
+      }
+    }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>插秧師傅儀表板</h1>
+<form id="planting-form" novalidate>
+<div class="input-group">
+<label for="planting-farmer">農民名稱</label>
+<input type="text" id="planting-farmer" placeholder="輸入農民名稱搜尋..." />
+<div id="farmer-suggestions" class="absolute bg-white w-full border rounded mt-1 max-h-40 overflow-y-auto hidden"></div>
+</div>
+<div class="flex space-x-4 mb-4">
+<button type="button" class="btn submit flex-1" onclick="showTab('database-fields')">田地資料</button>
+<button type="button" class="btn submit flex-1" onclick="showTab('add-field')">新增臨時田地</button>
+</div>
+<div id="database-fields" class="tab-content">
+<div class="input-group">
+<label>田地選擇 (可複選)</label>
+<div id="planting-field-checkboxes" class="max-h-40 overflow-y-auto border p-2 rounded"></div>
+<button type="button" class="btn submit mt-2" onclick="getLocation('planting')">更新當前地標</button>
+</div>
+<div class="input-group">
+<label for="planting-area">面積 (分)</label>
+<input type="number" id="planting-area" step="0.01" />
+</div>
+<div class="input-group">
+<label for="planting-single-buy">單買</label>
+<input type="number" id="planting-single-buy" />
+</div>
+<div class="input-group">
+<label for="planting-quantity">總插秧粒數</label>
+<input type="number" id="planting-quantity" />
+</div>
+<div class="input-group">
+<label for="planting-remarks">備註</label>
+<textarea id="planting-remarks" placeholder="輸入備註..."></textarea>
+</div>
+<div class="input-group">
+<label class="checkbox-label">
+<input type="checkbox" id="planting-self-transport" />
+          是否自運
+</label>
+</div>
+<div class="flex space-x-4">
+<button type="button" class="btn submit" onclick="savePlantingField()">儲存田地</button>
+<button type="submit" class="btn submit">提交所有記錄並開收據</button>
+</div>
+</div>
+<div id="add-field" class="tab-content">
+<div class="input-group">
+<label for="new-field-name">田地名稱</label>
+<input type="text" id="new-field-name" required placeholder="輸入田地名稱..." />
+</div>
+<div class="input-group">
+<label for="new-field-area">面積 (分)</label>
+<input type="number" id="new-field-area" step="0.01" required />
+</div>
+<div class="input-group">
+<label for="new-field-remarks">備註</label>
+<textarea id="new-field-remarks" placeholder="輸入備註..."></textarea>
+</div>
+<div class="input-group">
+<label for="new-field-lat">經度</label>
+<input type="number" id="new-field-lat" step="any" placeholder="輸入經度..." />
+</div>
+<div class="input-group">
+<label for="new-field-lng">緯度</label>
+<input type="number" id="new-field-lng" step="any" placeholder="輸入緯度..." />
+</div>
+<button type="button" class="btn submit" onclick="getLocation('new-field')">更新當前地標</button>
+<div class="flex justify-end mt-4 space-x-4">
+<button class="btn submit" onclick="saveNewField()">儲存</button>
+<button class="btn cancel" onclick="showTab('database-fields')">取消</button>
+</div>
+</div>
+</form>
+<div class="temp-records-container">
+<h3>已儲存田地資料 (最新在上)</h3>
+<div id="temp-records-list"></div>
+</div>
+</div>
+<div class="container record-container">
+<h2>過去插秧紀錄</h2>
+<div class="flex flex-col sm:flex-row gap-4 mb-4">
+<input type="text" id="search" placeholder="搜尋農民..." class="w-full p-2 border rounded" />
+<input type="date" id="date-filter" placeholder="選擇日期" class="p-2 border rounded" />
+</div>
+<div id="record-list"></div>
+<button class="btn submit mt-4" onclick="generateReceipt()">生成選取收據</button>
+</div>
+<div class="stats-container">
+<h2>統計資料</h2>
+<div id="stats-area"></div>
+</div>
+<div id="receipt-modal" class="modal">
+<div class="modal-content">
+<div id="receipt-area"></div>
+<div class="flex justify-end mt-4 space-x-4">
+<label class="mr-2">列印份數:</label>
+<input type="number" id="print-copies" min="1" value="1" class="w-16 p-1 border rounded" />
+<button class="btn submit" onclick="downloadReceipt()">下載收據</button>
+<button class="btn cancel" onclick="closeModal()">關閉</button>
+</div>
+</div>
+</div>
+<div id="signature-modal" class="modal">
+<div class="signature-modal-content">
+<canvas id="signature-canvas"></canvas>
+<div class="mt-4 flex space-x-4 justify-center">
+<button class="btn submit" onclick="saveSignature()">儲存</button>
+<button class="btn cancel" onclick="clearSignature()">清除</button>
+<button class="btn cancel" onclick="closeSignatureModal()">取消</button>
+</div>
+</div>
+</div>
+<div id="edit-modal" class="modal">
+<div class="edit-modal-content">
+<h2 id="edit-modal-title" class="text-center">編輯記錄</h2>
+<div id="edit-content"></div>
+<div class="flex justify-end mt-4">
+<button class="btn cancel" onclick="closeEditModal()">關閉</button>
+</div>
+</div>
+</div>
+<script>
+let records = [
+      { type: "planting", date: "2025-03-28", farmer: "王大哥", phone: "0912345678", lands: ["田區A"], area: 50, singleBuy: 100, quantity: 50, selfTransport: false, worker: "老李", remarks: "無特殊要求" },
+      { type: "planting", date: "2025-03-29", farmer: "陳農", phone: "0987654321", lands: ["田地A"], area: 30, singleBuy: 0, quantity: 60, selfTransport: true, worker: "小陳", remarks: "需快速完成" },
+      { type: "planting", date: "2025-03-30", farmer: "林子怡", phone: "0927040169", lands: ["田地1"], area: 40, singleBuy: 80, quantity: 45, selfTransport: false, worker: "阿明", remarks: "注意排水" },
+      { type: "planting", date: "2025-04-01", farmer: "張小明", phone: "0976543210", lands: ["田地2"], area: 60, singleBuy: 0, quantity: 70, selfTransport: true, worker: "老王", remarks: "無" }
+];
+let tempPlantingRecords = [];
+let currentReceiptId = '';
+let farmersData = {
+"王大哥": {
+phone: "0912345678",
+fields: [
+          { name: "田區A", area: 50, unit: "分", remarks: "靠近河邊",  },
+          { name: "田區C", area: 60, unit: "分", remarks: "無", coords: { lat: 23.7, lng: 121.3 } }
+]
+      },
+"陳農": {
+phone: "0987654321",
+fields: [
+          { name: "田地A", area: 30, unit: "分", remarks: "需灌溉", coords: { lat: 23.6, lng: 121.2 } },
+          { name: "田地B", area: 50, unit: "分", remarks: "無", coords: { lat: 23.8, lng: 121.4 } }
+]
+      },
+"林子怡": {
+phone: "0927040169",
+fields: [
+          { name: "田地1", area: 40, unit: "分", remarks: "排水良好", coords: { lat: 23.8, lng: 121.4 } },
+          { name: "田地2", area: 50, unit: "分", remarks: "無", coords: { lat: 24.0, lng: 121.6 } }
+]
+      },
+"張小明": {
+phone: "0976543210",
+fields: [
+          { name: "田地2", area: 60, unit: "分", remarks: "靠近公路", coords: { lat: 23.9, lng: 121.5 } },
+          { name: "田地3", area: 45, unit: "分", remarks: "無", coords: { lat: 24.1, lng: 121.7 } }
+]
+      }
+    };
+function initializeFarmerAutocomplete() {
+const input = document.getElementById('planting-farmer');
+const suggestions = document.getElementById('farmer-suggestions');
+input.addEventListener('input', () => {
+const value = input.value.toLowerCase();
+suggestions.innerHTML = '';
+if (!value) {
+suggestions.classList.add('hidden');
+return;
+        }
+const matches = Object.keys(farmersData).filter(farmer =>
+farmer.toLowerCase().includes(value) ||
+farmersData[farmer].phone.includes(value)
+        );
+matches.forEach(farmer => {
+const div = document.createElement('div');
+div.className = 'p-2 hover:bg-gray-100 cursor-pointer';
+div.textContent = `${farmer} (${farmersData[farmer].phone})`;
+div.onclick = () => {
+input.value = farmer;
+showTab('database-fields');
+suggestions.classList.add('hidden');
+          };
+suggestions.appendChild(div);
+        });
+suggestions.classList.toggle('hidden', !matches.length);
+      });
+document.addEventListener('click', e => {
+if (!suggestions.contains(e.target) && e.target !== input) {
+suggestions.classList.add('hidden');
+        }
+      });
+    }
+function showTab(tabId) {
+document.querySelectorAll('.tab-content').forEach(tab => {
+tab.classList.remove('active');
+      });
+document.getElementById(tabId).classList.add('active');
+if (tabId === 'database-fields') {
+const farmer = document.getElementById('planting-farmer').value;
+loadFieldCheckboxes(farmer);
+      } else if (tabId === 'add-field') {
+const farmer = document.getElementById('planting-farmer').value;
+if (!farmer || !farmersData[farmer]) {
+alert('請先選擇一位農民');
+showTab('database-fields');
+return;
+        }
+const fieldNames = farmersData[farmer].fields.map(f => f.name);
+let defaultName = '田地A';
+if (fieldNames.includes('田地A') && !fieldNames.includes('田地B')) {
+defaultName = '田地B';
+        } else if (fieldNames.includes('田地A') && fieldNames.includes('田地B') && !fieldNames.includes('田地C')) {
+defaultName = '田地C';
+        }
+document.getElementById('new-field-name').value = defaultName;
+document.getElementById('new-field-area').value = '';
+document.getElementById('new-field-remarks').value = '';
+document.getElementById('new-field-lat').value = '';
+document.getElementById('new-field-lng').value = '';
+      }
+    }
+function loadFieldCheckboxes(farmer) {
+const container = document.getElementById('planting-field-checkboxes');
+container.innerHTML = '';
+if (farmer && farmersData[farmer]) {
+farmersData[farmer].fields.forEach(field => {
+const div = document.createElement('div');
+div.className = 'flex items-center mb-2';
+const hasCoords = field.coords && field.coords.lat !== 0 && field.coords.lng !== 0;
+const query = hasCoords ? encodeURIComponent(`${field.coords.lat},${field.coords.lng}`) : '';
+const remarksText = field.remarks || '無';
+const fieldNameDisplay = hasCoords 
+            ? `<a href="https://www.google.com/maps/search/?api=1&query=${query}&basemap=satellite" target="_blank" class="field-link">${field.name}</a>`
+            : `<span class="field-no-link">${field.name}</span>`;
+div.innerHTML = `
+            <input type="checkbox" value="${field.name}" class="mr-2" onchange="updateFieldInputs(this)">
+            <label>${fieldNameDisplay}：${field.area}分 (${remarksText})</label>
+          `;
+container.appendChild(div);
+        });
+      }
+    }
+function updateFieldInputs(checkbox) {
+  const farmer = document.getElementById('planting-farmer').value;
+  const checked = document.querySelectorAll('#planting-field-checkboxes input:checked');
+  const areaInput = document.getElementById('planting-area');
+  if (checked.length === 0) {
+    areaInput.value = '';
+    areaInput.readOnly = false;
+    return;
+  }
+  let totalArea = 0;
+  checked.forEach(cb => {
+    const field = farmersData[farmer].fields.find(f => f.name === cb.value);
+    if (field) {
+      totalArea += field.area;
+    }
+  });
+  areaInput.value = totalArea.toFixed(2);
+  areaInput.readOnly = checked.length > 1;
+}
+function getLocation(context) {
+if (navigator.geolocation) {
+navigator.geolocation.getCurrentPosition(position => {
+let lat = position.coords.latitude;
+let lng = position.coords.longitude;
+if (context === 'planting') {
+const farmer = document.getElementById('planting-farmer').value;
+const checkedFields = document.querySelectorAll('#planting-field-checkboxes input:checked');
+if (checkedFields.length === 0) {
+alert('請先選擇至少一個田地');
+return;
+            }
+if (confirm('確定更新選中田地的經緯度？')) {
+checkedFields.forEach(field => {
+const fieldData = farmersData[farmer].fields.find(f => f.name === field.value);
+if (fieldData) {
+fieldData.coords = { lat, lng };
+                }
+              });
+loadFieldCheckboxes(farmer);
+alert('田地經緯度已更新');
+            }
+          } else if (context === 'new-field') {
+document.getElementById('new-field-lat').value = lat;
+document.getElementById('new-field-lng').value = lng;
+          }
+        }, () => alert("獲取地標失敗！"));
+      } else {
+alert("瀏覽器不支援地理定位！");
+      }
+    }
+function saveNewField() {
+const farmer = document.getElementById('planting-farmer').value;
+const name = document.getElementById('new-field-name').value.trim();
+const area = parseFloat(document.getElementById('new-field-area').value);
+const remarks = document.getElementById('new-field-remarks').value;
+const lat = parseFloat(document.getElementById('new-field-lat').value);
+const lng = parseFloat(document.getElementById('new-field-lng').value);
+if (!name) {
+alert('請填寫田地名稱');
+return;
+      }
+if (isNaN(area) || area <= 0) {
+alert('請填寫有效的面積');
+return;
+      }
+if (farmersData[farmer].fields.some(f => f.name === name)) {
+alert('田地名稱已存在，請使用其他名稱');
+return;
+      }
+if (!farmersData[farmer].fields) {
+farmersData[farmer].fields = [];
+      }
+farmersData[farmer].fields.push({
+name,
+area,
+unit: '分',
+remarks: remarks || '無',
+coords: { lat: lat || 0, lng: lng || 0 }
+      });
+loadFieldCheckboxes(farmer);
+showTab('database-fields');
+alert(`臨時田地 "${name}" 已新增`);
+    }
+function savePlantingField() {
+const farmer = document.getElementById('planting-farmer').value;
+const checkedFields = Array.from(document.querySelectorAll('#planting-field-checkboxes input:checked'));
+const area = parseFloat(document.getElementById('planting-area').value);
+const singleBuy = parseInt(document.getElementById('planting-single-buy').value) || 0;
+const quantity = parseInt(document.getElementById('planting-quantity').value);
+const selfTransport = document.getElementById('planting-self-transport').checked;
+const remarks = document.getElementById('planting-remarks').value || '無';
+if (!farmer || !farmersData[farmer]) {
+alert('請選擇一位農民');
+return;
+      }
+if (!checkedFields.length) {
+alert('請至少選擇一個田地');
+return;
+      }
+if (isNaN(area) || area <= 0) {
+alert('請填寫有效的面積（大於0）');
+return;
+      }
+if (isNaN(quantity) || quantity <= 0) {
+alert('請填寫有效的總插秧粒數（大於0）');
+return;
+      }
+for (const field of checkedFields) {
+if (!farmersData[farmer].fields.find(f => f.name === field.value)) {
+alert(`田地 "${field.value}" 不存在於農民 "${farmer}" 的資料中`);
+return;
+        }
+      }
+let changes = [];
+const updateArea = checkedFields.length === 1;
+if (updateArea) {
+  const fieldData = farmersData[farmer].fields.find(f => f.name === checkedFields[0].value);
+  const oldArea = fieldData.area;
+  if (oldArea !== area) {
+    changes.push(`田地: ${fieldData.name}\n舊面積: ${oldArea}分 -> 新面積: ${area}分`);
+  }
+  if (changes.length > 0) {
+    const confirmMessage = `確定更改田地資料？\n\n${changes.join('\n\n')}`;
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+  }
+  fieldData.area = area;
+}
+const lands = checkedFields.map(field => field.value);
+const phone = farmersData[farmer]?.phone || '';
+const worker = "老李";
+const date = new Date().toISOString().split('T')[0];
+const record = {
+  type: 'planting',
+  date,
+  farmer,
+  phone,
+  lands,
+  area,
+  singleBuy,
+  quantity,
+  selfTransport,
+  worker,
+  remarks
+};
+tempPlantingRecords.push(record);
+console.log(`Saved consolidated record:`, record);
+alert(`已儲存 ${checkedFields.length} 個田地為一筆記錄：${lands.join(', ')}`);
+loadFieldCheckboxes(farmer);
+checkedFields.forEach(cb => cb.checked = false);
+document.getElementById('planting-area').value = '';
+document.getElementById('planting-single-buy').value = '';
+document.getElementById('planting-quantity').value = '';
+document.getElementById('planting-remarks').value = '';
+document.getElementById('planting-self-transport').checked = false;
+renderTempRecords();
+    }
+function renderTempRecords() {
+const list = document.getElementById('temp-records-list');
+list.innerHTML = '';
+// Sort by date descending (newest first)
+tempPlantingRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
+tempPlantingRecords.forEach((record, index) => {
+const div = document.createElement('div');
+div.className = 'record-item';
+const landDisplays = record.lands.map(land => {
+  const field = farmersData[record.farmer]?.fields.find(f => f.name === land);
+  const hasCoords = field?.coords && field.coords.lat !== 0 && field.coords.lng !== 0;
+  const query = hasCoords ? encodeURIComponent(`${field.coords.lat},${field.coords.lng}`) : '';
+  const remarksText = field?.remarks || '無';
+  return hasCoords 
+    ? `<a href="https://www.google.com/maps/search/?api=1&query=${query}&basemap=satellite" target="_blank" class="field-link">${land}</a> - ${field.area}分 (${remarksText})`
+    : `<span class="field-no-link">${land}</span> - ${field.area}分 (${remarksText})`;
+});
+const singleBuyText = record.singleBuy > 0 ? record.singleBuy : '無';
+div.innerHTML = `
+          <p>農民: ${record.farmer}</p>
+          <p>田地: ${landDisplays.join(', ')}</p>
+          <p>總面積: ${record.area}分</p>
+          <p>單買: ${singleBuyText}</p>
+          <p>總插秧粒數: ${record.quantity}</p>
+          <p>是否自運: ${record.selfTransport ? '是' : '否'}</p>
+          <p>備註: ${record.remarks || '無'}</p>
+          <div class="flex space-x-2 mt-2">
+            <button class="btn btn-edit" onclick="editTempRecord(${index})">編輯</button>
+            <button class="btn btn-delete" onclick="deleteTempRecord(${index})">刪除</button>
+          </div>
+        `;
+list.appendChild(div);
+      });
+if (!tempPlantingRecords.length) {
+list.innerHTML = '<p>尚未儲存任何田地記錄</p>';
+      }
+    }
+function renderRecords() {
+const query = document.getElementById('search').value.toLowerCase();
+const selectedDate = document.getElementById('date-filter').value;
+const list = document.getElementById('record-list');
+list.innerHTML = '';
+let filteredRecords = records.filter(r => {
+const matchesSearch = r.farmer && r.farmer.toLowerCase().includes(query);
+const matchesDate = !selectedDate || r.date === selectedDate;
+return matchesSearch && matchesDate;
+      });
+// Sort by date descending
+filteredRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
+// Directly display all records without accordion
+filteredRecords.forEach((r, i) => {
+const div = document.createElement('div');
+div.className = 'record';
+const dateStr = r.date || new Date().toLocaleDateString('zh-TW');
+const landDisplays = r.lands.map(land => {
+  const field = farmersData[r.farmer]?.fields.find(f => f.name === land);
+  const hasCoords = field?.coords && field.coords.lat !== 0 && field.coords.lng !== 0;
+  const query = hasCoords ? encodeURIComponent(`${field.coords.lat},${field.coords.lng}`) : '';
+  const remarksText = field?.remarks || '無';
+  return hasCoords 
+    ? `<a href="https://www.google.com/maps/search/?api=1&query=${query}&basemap=satellite" target="_blank" class="field-link">${land}</a> - ${field.area}分 (${remarksText})`
+    : `<span class="field-no-link">${land}</span> - ${field.area}分 (${remarksText})`;
+});
+const singleBuyText = r.singleBuy > 0 ? r.singleBuy : '無';
+div.innerHTML = `${dateStr} 👤 ${r.farmer} (${r.phone}) - 📍 ${landDisplays.join(', ')} - 💰 ${singleBuyText} - 🌱 ${r.quantity}粒 - 🚚 ${r.selfTransport ? '是' : '否'} - 📝 ${r.remarks || '無'} <input type="checkbox" data-index="${records.indexOf(r)}">`;
+list.appendChild(div);
+      });
+renderStats(filteredRecords);
+    }
+function renderStats(filteredRecords) {
+const statsArea = document.getElementById('stats-area');
+statsArea.innerHTML = '';
+if (!filteredRecords.length) {
+statsArea.innerHTML = '<p>無符合條件的記錄</p>';
+return;
+      }
+const totalArea = filteredRecords.reduce((sum, r) => sum + Number(r.area), 0);
+const totalSingleBuy = filteredRecords.reduce((sum, r) => sum + Number(r.singleBuy), 0);
+const totalQuantity = filteredRecords.reduce((sum, r) => sum + Number(r.quantity), 0);
+statsArea.innerHTML = `
+        <p>總面積: ${totalArea.toFixed(2)} 分</p>
+        <p>總單買: ${totalSingleBuy > 0 ? totalSingleBuy : '無'}</p>
+        <p>總插秧粒數: ${totalQuantity}</p>
+      `;
+    }
+document.getElementById('planting-form').addEventListener('submit', e => {
+e.preventDefault();
+console.log('Form submitted, tempPlantingRecords:', tempPlantingRecords);
+if (!tempPlantingRecords.length) {
+alert('請先儲存至少一個田地');
+return;
+      }
+const farmers = [...new Set(tempPlantingRecords.map(r => r.farmer))];
+if (farmers.length > 1) {
+alert('無法為多位農民同時生成收據，請確保所有記錄屬於同一農民');
+return;
+      }
+try {
+records.push(...tempPlantingRecords);
+console.log('Generating receipt for records:', tempPlantingRecords);
+generateConsolidatedPlantingReceipt(tempPlantingRecords);
+tempPlantingRecords = [];
+document.getElementById('planting-form').reset();
+document.getElementById('planting-field-checkboxes').innerHTML = '';
+showTab('database-fields');
+renderTempRecords();
+renderRecords();
+alert(`成功生成收據`);
+      } catch (error) {
+console.error('Error during form submission:', error);
+alert('生成收據時發生錯誤，請檢查控制台並重試');
+      }
+    });
+function generateConsolidatedPlantingReceipt(records) {
+console.log('Starting receipt generation for:', records);
+try {
+const areaElem = document.getElementById('receipt-area');
+areaElem.innerHTML = '';
+const currentDate = new Date();
+const formattedDate = currentDate.toLocaleDateString('zh-TW');
+const formattedTime = currentDate.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+const id = `receipt_${Date.now()}`;
+const div = document.createElement('div');
+div.className = 'receipt-container';
+const farmer = records[0].farmer;
+if (!farmersData[farmer]) {
+throw new Error(`農民 "${farmer}" 不存在於資料庫`);
+        }
+const phone = records[0].phone;
+const worker = records[0].worker;
+const totalQuantity = records.reduce((sum, r) => sum + (Number(r.quantity) || 0), 0);
+const totalSingleBuy = records.reduce((sum, r) => sum + (Number(r.singleBuy) || 0), 0);
+const selfTransport = records.every(r => r.selfTransport) ? '是' : '否';
+const singleBuyText = totalSingleBuy > 0 ? totalSingleBuy : '無';
+const allLands = records.flatMap(r => r.lands).join(', ');
+div.innerHTML = `
+          <div class="receipt-header">
+            <h1>插秧單存根</h1>
+            <p>麥寮秧苗場</p>
+            <p>開立日期: ${formattedDate} 上午${formattedTime}</p>
+          </div>
+          <div class="receipt-row"><label>日期：</label><div class="receipt-field">${records[0].date}</div></div>
+          <div class="receipt-row"><label>姓名：</label><div class="receipt-field">${farmer}</div></div>
+          <div class="receipt-row"><label>電話：</label><div class="receipt-field">${phone}</div></div>
+          <div class="receipt-row"><label>田地：</label><div class="receipt-field">${allLands}</div></div>
+          <div class="receipt-row"><label>代插師傅：</label><div class="receipt-field">${worker}</div></div>
+          <div class="receipt-row"><label>單買：</label><div class="receipt-field">${singleBuyText}</div></div>
+          <div class="receipt-row"><label>插秧粒數：</label><div class="receipt-field">${totalQuantity}</div></div>
+          <div class="receipt-row"><label>是否自運：</label><div class="receipt-field">${selfTransport}</div></div>
+          <div class="signature-section">
+            <p>簽名：</p>
+            <button class="bg-blue-500 text-white px-4 py-2 rounded" onclick="openSignatureModal('${id}')">簽名</button>
+            <img id="signature-${id}" class="signature-img" src="" style="display: none;">
+          </div>
+        `;
+areaElem.appendChild(div);
+const modal = document.getElementById('receipt-modal');
+modal.classList.add('active');
+console.log('Receipt modal opened successfully');
+      } catch (error) {
+console.error('Error generating receipt:', error);
+alert('無法生成收據，請檢查控制台錯誤訊息');
+throw error;
+      }
+    }
+function generateReceipt() {
+const checkboxes = document.querySelectorAll('#record-list input[data-index]:checked');
+if (!checkboxes.length) return alert('請選擇至少一筆記錄');
+const selected = Array.from(checkboxes).map(cb => records[cb.dataset.index]);
+const farmers = [...new Set(selected.map(r => r.farmer))];
+if (farmers.length > 1) {
+alert('無法為多位農民同時生成收據，請選擇同一農民的記錄');
+return;
+      }
+const areaElem = document.getElementById('receipt-area');
+areaElem.innerHTML = '';
+const currentDate = new Date();
+const formattedDate = currentDate.toLocaleDateString('zh-TW');
+const formattedTime = currentDate.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+const plantingGroups = {};
+selected.forEach(r => {
+if (!plantingGroups[r.farmer]) plantingGroups[r.farmer] = [];
+plantingGroups[r.farmer].push(r);
+      });
+Object.values(plantingGroups).forEach(group => {
+const id = `receipt_${Date.now()}_${Math.random()}`;
+const div = document.createElement('div');
+div.className = 'receipt-container';
+const totalQuantity = group.reduce((sum, r) => sum + r.quantity, 0);
+const totalSingleBuy = group.reduce((sum, r) => sum + r.singleBuy, 0);
+const selfTransport = group.every(r => r.selfTransport) ? '是' : '否';
+const singleBuyText = totalSingleBuy > 0 ? totalSingleBuy : '無';
+const allLands = group.flatMap(r => r.lands).join(', ');
+div.innerHTML = `
+          <div class="receipt-header">
+            <h1>插秧單存根</h1>
+            <p>愛聚苗場</p>
+            <p>開立日期: ${formattedDate} 上午${formattedTime}</p>
+          </div>
+          <div class="receipt-row"><label>日期：</label><div class="receipt-field">${group[0].date}</div></div>
+          <div class="receipt-row"><label>姓名：</label><div class="receipt-field">${group[0].farmer}</div></div>
+          <div class="receipt-row"><label>電話：</label><div class="receipt-field">${group[0].phone}</div></div>
+          <div class="receipt-row"><label>田地：</label><div class="receipt-field">${allLands}</div></div>
+          <div class="receipt-row"><label>代插師傅：</label><div class="receipt-field">${group[0].worker}</div></div>
+          <div class="receipt-row"><label>單買：</label><div class="receipt-field">${singleBuyText}</div></div>
+          <div class="receipt-row"><label>插秧粒數：</label><div class="receipt-field">${totalQuantity}</div></div>
+          <div class="receipt-row"><label>是否自運：</label><div class="receipt-field">${selfTransport}</div></div>
+          <div class="signature-section">
+            <p>簽名：</p>
+            <button class="bg-blue-500 text-white px-4 py-2 rounded" onclick="openSignatureModal('${id}')">簽名</button>
+            <img id="signature-${id}" class="signature-img" src="" style="display: none;">
+          </div>
+        `;
+areaElem.appendChild(div);
+      });
+document.getElementById('receipt-modal').classList.add('active');
+    }
+function closeModal() {
+document.getElementById('receipt-modal').classList.remove('active');
+    }
+async function downloadReceipt() {
+try {
+const { jsPDF } = window.jspdf;
+const areaElem = document.getElementById('receipt-area');
+const copies = parseInt(document.getElementById('print-copies').value) || 1;
+areaElem.style.height = 'auto';
+areaElem.style.maxHeight = 'none';
+areaElem.style.overflow = 'visible';
+areaElem.style.width = '80mm';
+const canvas = await html2canvas(areaElem, {
+scale: window.devicePixelRatio || 2,
+useCORS: true,
+scrollX: 0,
+scrollY: 0,
+width: areaElem.offsetWidth,
+height: areaElem.scrollHeight,
+windowWidth: areaElem.offsetWidth,
+windowHeight: areaElem.scrollHeight
+        });
+const imgData = canvas.toDataURL('image/png');
+const pdf = new jsPDF('p', 'mm', [80, canvas.height * 80 / canvas.width]);
+const pdfWidth = 80;
+const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+for (let i = 0; i < copies; i++) {
+pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+if (i < copies - 1) pdf.addPage();
+        }
+pdf.save('planting_receipt.pdf');
+closeModal();
+      } catch (error) {
+console.error('PDF generation error:', error);
+alert('生成收據PDF時發生錯誤，請檢查控制台並重試');
+      }
+    }
+function openSignatureModal(id) {
+currentReceiptId = id;
+document.body.classList.add('modal-open');
+document.getElementById('signature-modal').classList.add('active');
+initializeSignatureCanvas();
+    }
+function closeSignatureModal() {
+document.getElementById('signature-modal').classList.remove('active');
+document.body.classList.remove('modal-open');
+clearSignature();
+    }
+function saveSignature() {
+const canvas = document.getElementById('signature-canvas');
+const tempCanvas = document.createElement('canvas');
+tempCanvas.width = canvas.height;
+tempCanvas.height = canvas.width;
+const tempCtx = tempCanvas.getContext('2d');
+tempCtx.translate(0, canvas.width);
+tempCtx.rotate(-Math.PI / 2);
+tempCtx.drawImage(canvas, 0, 0);
+const signatureData = tempCanvas.toDataURL('image/png');
+const img = document.getElementById(`signature-${currentReceiptId}`);
+img.src = signatureData;
+img.style.display = 'block';
+img.previousElementSibling.style.display = 'none';
+closeSignatureModal();
+    }
+function clearSignature() {
+const canvas = document.getElementById('signature-canvas');
+const ctx = canvas.getContext('2d');
+ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+function initializeSignatureCanvas() {
+const canvas = document.getElementById('signature-canvas');
+canvas.width = 560;
+canvas.height = 300;
+const ctx = canvas.getContext('2d');
+ctx.lineWidth = 5;
+ctx.strokeStyle = '#000';
+ctx.lineCap = 'round';
+ctx.clearRect(0, 0, canvas.width, canvas.height);
+let isDrawing = false;
+let lastX = 0;
+let lastY = 0;
+function getPosition(e) {
+const rect = canvas.getBoundingClientRect();
+const scaleX = canvas.width / rect.width;
+const scaleY = canvas.height / rect.height;
+if (e.type.includes('touch')) {
+return {
+x: (e.touches[0].clientX - rect.left) * scaleX,
+y: (e.touches[0].clientY - rect.top) * scaleY
+          };
+        }
+return {
+x: (e.clientX - rect.left) * scaleX,
+y: (e.clientY - rect.top) * scaleY
+        };
+      }
+function startDrawing(e) {
+e.preventDefault();
+isDrawing = true;
+const pos = getPosition(e);
+lastX = pos.x;
+lastY = pos.y;
+ctx.beginPath();
+ctx.moveTo(lastX, lastY);
+      }
+function draw(e) {
+if (!isDrawing) return;
+e.preventDefault();
+const pos = getPosition(e);
+ctx.lineTo(pos.x, pos.y);
+ctx.stroke();
+lastX = pos.x;
+lastY = pos.y;
+      }
+function stopDrawing() {
+isDrawing = false;
+      }
+canvas.removeEventListener('mousedown', startDrawing);
+canvas.removeEventListener('mousemove', draw);
+canvas.removeEventListener('mouseup', stopDrawing);
+canvas.removeEventListener('touchstart', startDrawing);
+canvas.removeEventListener('touchmove', draw);
+canvas.removeEventListener('touchend', stopDrawing);
+canvas.addEventListener('mousedown', startDrawing);
+canvas.addEventListener('mousemove', draw);
+canvas.addEventListener('mouseup', stopDrawing);
+canvas.addEventListener('touchstart', startDrawing);
+canvas.addEventListener('touchmove', draw);
+canvas.addEventListener('touchend', stopDrawing);
+    }
+function editTempRecord(index) {
+const record = tempPlantingRecords[index];
+document.getElementById('planting-farmer').value = record.farmer;
+showTab('database-fields');
+loadFieldCheckboxes(record.farmer);
+document.getElementById('planting-area').value = record.area;
+document.getElementById('planting-single-buy').value = record.singleBuy > 0 ? record.singleBuy : '';
+document.getElementById('planting-quantity').value = record.quantity;
+document.getElementById('planting-self-transport').checked = record.selfTransport;
+document.getElementById('planting-remarks').value = record.remarks !== '無' ? record.remarks : '';
+record.lands.forEach(land => {
+  const checkbox = document.querySelector(`#planting-field-checkboxes input[value="${land}"]`);
+  if (checkbox) checkbox.checked = true;
+});
+tempPlantingRecords.splice(index, 1);
+renderTempRecords();
+    }
+function deleteTempRecord(index) {
+if (confirm('確定要刪除此記錄嗎？')) {
+tempPlantingRecords.splice(index, 1);
+renderTempRecords();
+      }
+    }
+function closeEditModal() {
+document.getElementById('edit-modal').classList.remove('active');
+    }
+document.addEventListener('DOMContentLoaded', () => {
+renderRecords();
+renderTempRecords();
+initializeFarmerAutocomplete();
+document.getElementById('search').addEventListener('input', renderRecords);
+document.getElementById('date-filter').addEventListener('change', renderRecords);
+showTab('database-fields');
+    });
+</script>
+</body>
+</html>
+```
