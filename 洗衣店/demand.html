@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>洗衣店電子化管理系統 ─ 需求說明書</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #00aaff;       /* 清新藍 */
+      --primary-dark: #0077cc;
+      --accent: #ff9500;         /* 活力橙 */
+      --green: #34c759;
+      --light: #f8fbff;
+      --gray: #e0e7ff;
+      --dark: #1e3a5f;
+    }
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background: linear-gradient(135deg, #f0f8ff 0%, #e6f4ff 100%);
+      color: #333;
+      margin: 0;
+      padding: 0;
+      line-height: 1.7;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    header {
+      text-align: center;
+      padding: 60px 20px 40px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      border-radius: 0 0 40px 40px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 3.2rem;
+      margin: 0;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    h1 span { font-size: 2.8rem; display: block; margin-top: 10px; }
+    .tagline { font-size: 1.3rem; margin: 15px 0 0; opacity: 0.95; }
+
+    section {
+      background: white;
+      border-radius: 20px;
+      padding: 35px;
+      margin: 40px 0;
+      box-shadow: 0 8px 25px rgba(0,170,255,0.12);
+      border: 1px solid var(--gray);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    section:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 15px 40px rgba(0,170,255,0.2);
+    }
+
+    h2 {
+      color: var(--primary-dark);
+      font-family: 'Poppins', sans-serif;
+      font-size: 2.1rem;
+      margin: 0 0 25px;
+      padding-left: 15px;
+      border-left: 6px solid var(--accent);
+      position: relative;
+    }
+    h2::before {
+      content: "🧼";
+      position: absolute;
+      left: -35px;
+      top: 0;
+      font-size: 1.8rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 25px 0;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid #e0f0ff;
+    }
+    th {
+      background: linear-gradient(to right, var(--primary), #4fc3f7);
+      color: white;
+      font-weight: 600;
+    }
+    tr:nth-child(even) { background: #f8fdff; }
+
+    .note, .highlight-box {
+      background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+      border-left: 6px solid var(--primary);
+      padding: 20px 25px;
+      border-radius: 12px;
+      margin: 25px 0;
+      font-size: 1.05rem;
+    }
+
+    ul.check {
+      list-style: none;
+      padding-left: 0;
+    }
+    ul.check li {
+      margin: 12px 0;
+      padding-left: 35px;
+      position: relative;
+      font-size: 1.05rem;
+    }
+    ul.check li::before {
+      content: "✅";
+      position: absolute;
+      left: 0;
+      top: 2px;
+      font-size: 1.4rem;
+    }
+
+    .btn-demo {
+      display: inline-block;
+      background: var(--accent);
+      color: white;
+      padding: 14px 32px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: bold;
+      margin: 20px auto;
+      display: block;
+      width: fit-content;
+      box-shadow: 0 5px 15px rgba(255,149,0,0.3);
+      transition: all 0.3s;
+    }
+    .btn-demo:hover {
+      transform: scale(1.08);
+      background: #ffaa00;
+    }
+
+    footer {
+      text-align: center;
+      padding: 30px;
+      color: #666;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>洗衣店電子化管理系統</h1>
+  <span class="tagline">告別紙本，擁抱智慧乾淨未來</span>
+</header>
+
+<div class="container">
+
+  <section>
+    <h2>系統核心價值</h2>
+    <div class="note">
+      <strong>讓店員更快、更準、顧客更滿意！</strong><br>
+      操作直覺、切換自由、報表即時、列印漂亮 ─ 這就是我們要做的。
+    </div>
+  </section>
+
+  <section>
+    <h2>操作流程一目了然</h2>
+    <ol style="font-size:1.1rem; padding-left:25px;">
+      <li>客人進店 → 快速判斷會員（8折/9折/特殊）</li>
+      <li>會員掃碼/輸入手機 → 秀出點數餘額</li>
+      <li>非會員？30秒現場建檔</li>
+      <li>選洗衣類型 → 可混搭多筆訂單（現場+店內+外包）</li>
+      <li>一鍵完成 → 漂亮客戶聯一次印完（含取件時間、餘額）</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>四大洗衣類型對照表</h2>
+    <table>
+      <tr>
+        <th>類型</th>
+        <th>計價</th>
+        <th>編號</th>
+        <th>列印</th>
+        <th>關鍵日期</th>
+      </tr>
+      <tr>
+        <td>現場洗</td>
+        <td>按籃</td>
+        <td>日流水 第X位</td>
+        <td>客戶聯＋存根聯</td>
+        <td>交件日期</td>
+      </tr>
+      <tr>
+        <td>專業洗-店內</td>
+        <td>衣物資料庫</td>
+        <td>Sxxxx</td>
+        <td>客戶聯＋存根聯</td>
+        <td>交件日期</td>
+      </tr>
+      <tr>
+        <td>專業洗-外包</td>
+        <td>衣物資料庫</td>
+        <td>Pxxxx</td>
+        <td>客戶聯＋存根聯＋外包聯</td>
+        <td>送回日期＋交件日期</td>
+      </tr>
+      <tr>
+        <td>純洗/烘/燙</td>
+        <td>籃 或 10元/3分</td>
+        <td>日流水或流水號</td>
+        <td>客戶聯＋存根聯（視情況）</td>
+        <td>交件日期</td>
+      </tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>前台功能</h2>
+    <ul class="check">
+      <li>任何畫面都能隨時建會員、續會、儲值</li>
+      <li>訂單自由混搭切換（先外包再現場洗都OK）</li>
+      <li>每筆訂單設「放置位置」（A-1、C-3...）</li>
+      <li>專業洗專屬「棉被胎」統計</li>
+      <li>加購項目資料庫（低溫烘、特殊洗劑、急件、裝衣袋...）</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>日期與狀態追蹤</h2>
+    <ul class="check">
+      <li>外包專屬「預計送回店內日期」</li>
+      <li>一鍵標記：已送回店內 / 客人已取件（必填日期）</li>
+      <li>按送洗日期查詢 → 秀出誰還沒來拿（方便電話提醒）</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>後台報表</h2>
+    <table>
+      <tr><th>報表項目</th><th>內容</th><th>支援週/月</th></tr>
+      <tr><td>現場洗收入</td><td>現金本累計</td><td>✓</td></tr>
+      <tr><td>店內專業洗</td><td>S本／實收</td><td>✓</td></tr>
+      <tr><td>外包專業洗</td><td>P本／原價（不折扣）</td><td>✓</td></tr>
+      <tr><td>外包回件</td><td>每日／累計 張數・件數・金額</td><td>✓</td></tr>
+      <tr><td>業績總覽</td><td>S、P、入會續會（會員專業洗不重複計）</td><td>✓</td></tr>
+      <tr><td>棉被胎統計</td><td>件數（分店內/外包）</td><td>✓</td></tr>
+    </table>
+    <div class="highlight-box">
+      未來可擴充：簡訊自動提醒取件、會員App查訂單進度
+    </div>
+  </section>
+
+  <section style="text-align:center;">
+    <a href="#" class="btn-demo">立即討論開發計畫 →</a>
+    <p style="margin-top:20px; color:#555;">版本：2.0 炫砲升級版　　日期：2026年2月　　期待與您合作！</p>
+  </section>
+
+</div>
+
+<footer>
+  洗衣店數位轉型，從這裡開始，讓每件衣服都乾淨又智慧 ✨
+</footer>
+
+</body>
+</html>
