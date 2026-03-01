@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>洗衣店 POS 系統 (完整版)</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1117;--bg2:#1a1d27;--bg3:#222536;--border:#2e3347;--accent:#4f8ef7;--green:#2ecc71;--yellow:#f0c040;--red:#e74c3c;--orange:#e67e22;--purple:#a78de8;--text:#e8eaf0;--text2:#8b90a7;--text3:#5a5f75;--card:#1e2132;--radius:10px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);font-size:16px;min-height:100vh}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;z-index:200}
+.logo{font-size:19px;font-weight:700;color:var(--accent);letter-spacing:1px}
+.topnav{display:flex;gap:3px}
+.tnav{padding:6px 13px;border-radius:6px;border:none;background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;font-size:15px;transition:.15s}
+.tnav:hover{background:var(--bg3);color:var(--text)}
+.tnav.active{background:var(--accent);color:#fff}
+.datetime{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--text2)}
+.main{display:flex;height:calc(100vh - 52px)}
+.content{flex:1;overflow-y:auto;padding:18px}
+.sidebar{width:330px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px}
+.card-title{font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
+.btn{padding:8px 14px;border-radius:7px;border:none;cursor:pointer;font-family:inherit;font-size:15px;font-weight:500;display:inline-flex;align-items:center;gap:5px;transition:.15s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#3a7be0}
+.btn-ghost{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--border)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-danger:hover{background:#c0392b}
+.btn-success{background:var(--green);color:#fff}
+.btn-success:hover{background:#27ae60}
+.btn-warn{background:var(--orange);color:#fff}
+.btn-sm{padding:5px 10px;font-size:14px}
+.btn-xs{padding:3px 8px;font-size:13px;border-radius:5px}
+.btn-block{display:flex;width:100%;justify-content:center}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.fg{margin-bottom:11px}
+.fl{display:block;font-size:14px;color:var(--text2);margin-bottom:4px}
+.fi{width:100%;padding:7px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:15px}
+.fi:focus{outline:none;border-color:var(--accent)}
+.fi::placeholder{color:var(--text3)}
+.frow{display:flex;gap:10px;align-items:flex-end}
+.frow .fg{flex:1;margin-bottom:0}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:13px;font-weight:600}
+.b-blue{background:rgba(79,142,247,.15);color:var(--accent)}
+.b-green{background:rgba(46,204,113,.15);color:var(--green)}
+.b-yellow{background:rgba(240,192,64,.15);color:var(--yellow)}
+.b-red{background:rgba(231,76,60,.15);color:var(--red)}
+.b-purple{background:rgba(167,141,232,.15);color:var(--purple)}
+.b-gray{background:var(--bg3);color:var(--text2)}
+.b-orange{background:rgba(230,126,34,.15);color:var(--orange)}
+.mode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.mode-btn{padding:14px 8px;border-radius:var(--radius);border:2px solid var(--border);background:var(--bg3);cursor:pointer;text-align:center;transition:.15s;font-family:inherit}
+.mode-btn:hover{border-color:var(--accent);background:rgba(79,142,247,.08)}
+.mode-btn.active{border-color:var(--accent);background:rgba(79,142,247,.12)}
+.mode-btn .micon{font-size:24px;margin-bottom:4px}
+.mode-btn .mname{font-size:14px;font-weight:600;color:var(--text)}
+.mode-btn .msub{font-size:12px;color:var(--text3);margin-top:2px}
+.member-types{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.mtype-btn{padding:14px 8px;border-radius:var(--radius);border:2px solid var(--border);background:var(--bg3);cursor:pointer;text-align:center;transition:.15s;font-family:inherit}
+.mtype-btn:hover{border-color:var(--accent);background:rgba(79,142,247,.1)}
+.mtype-btn .mticon{font-size:26px}
+.mtype-btn .mtname{font-size:15px;font-weight:600;margin-top:6px;color:var(--text)}
+.mtype-btn .mtsub{font-size:13px;color:var(--text3);margin-top:3px}
+.member-info-card{background:linear-gradient(135deg,rgba(79,142,247,.12),rgba(124,92,191,.08));border:1px solid rgba(79,142,247,.3);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px}
+.mi-name{font-size:18px;font-weight:700}
+.mi-phone{font-size:14px;color:var(--text2);margin-top:2px}
+.mi-row{display:flex;gap:20px;margin-top:10px}
+.mi-stat-val{font-size:18px;font-weight:700;color:var(--accent);font-family:'JetBrains Mono',monospace}
+.mi-stat-label{font-size:12px;color:var(--text3)}
+.mi-actions{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.order-items{flex:1;overflow-y:auto;padding:12px}
+.order-item{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:8px;position:relative}
+.oi-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;padding-right:35px}
+.oi-name{font-weight:600;font-size:15px;padding-right:20px}
+.oi-price{font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--accent);font-weight:600}
+.oi-sub{font-size:13px;color:var(--text2);line-height:1.6}
+.oi-del{position:absolute;top:8px;right:8px;background:none;border:none;color:var(--red);cursor:pointer;font-size:18px;padding:2px 5px;border-radius:4px}
+.oi-del:hover{color:#fff;background:var(--red)}
+.cart-total{border-top:1px solid var(--border);padding:14px}
+.total-row{display:flex;justify-content:space-between;margin-bottom:5px;font-size:15px}
+.total-row.final{font-size:18px;font-weight:700;color:var(--green);border-top:1px solid var(--border);padding-top:8px;margin-top:4px}
+.product-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-height:220px;overflow-y:auto;margin-bottom:4px}
+.product-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;cursor:pointer;transition:.15s}
+.product-card:hover{border-color:var(--accent);background:rgba(79,142,247,.08)}
+.pc-name{font-size:15px;font-weight:600}
+.pc-price{font-size:14px;color:var(--accent);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.addon-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:6px}
+.addon-chip{padding:5px 10px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);cursor:pointer;font-size:14px;transition:.15s;user-select:none}
+.addon-chip:hover{border-color:var(--accent);background:rgba(79,142,247,.15);color:var(--accent)}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:8px 10px;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border)}
+td{padding:9px 10px;font-size:15px;border-bottom:1px solid rgba(46,51,71,.5)}
+tr:hover td{background:rgba(255,255,255,.02)}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center}
+.stat-val{font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.stat-label{font-size:13px;color:var(--text2);margin-top:3px}
+.tabs{display:flex;gap:3px;border-bottom:1px solid var(--border);margin-bottom:14px}
+.tab{padding:8px 14px;border:none;background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;font-size:15px;border-bottom:2px solid transparent;margin-bottom:-1px;transition:.15s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:12px;width:100%;max-width:480px;max-height:88vh;overflow-y:auto}
+.modal-header{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-title{font-size:17px;font-weight:700}
+.modal-close{background:none;border:none;color:var(--text2);cursor:pointer;font-size:20px;padding:2px 6px;border-radius:4px}
+.modal-close:hover{color:var(--text)}
+.modal-body{padding:18px}
+.modal-footer{padding:14px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.sep{border:none;border-top:1px solid var(--border);margin:12px 0}
+.flex{display:flex}
+.items-center{align-items:center}
+.justify-between{justify-content:space-between}
+.gap-8{gap:8px}
+.gap-4{gap:4px}
+.mt-8{margin-top:8px}
+.mb-8{margin-bottom:8px}
+.font-mono{font-family:'JetBrains Mono',monospace}
+.text-accent{color:var(--accent)}
+.text-green{color:var(--green)}
+.text-red{color:var(--red)}
+.text-yellow{color:var(--yellow)}
+.text-sm{font-size:14px;color:var(--text2)}
+.fw-bold{font-weight:700}
+.hidden{display:none!important}
+input[type=number]{-moz-appearance:textfield}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.qty-ctrl{display:flex;align-items:center;gap:6px;margin-top:8px}
+.qty-ctrl span{min-width:24px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:15px}
+.drag-item{cursor:move}
+.payment-type{display:flex;gap:8px;margin:12px 0}
+.payment-btn{flex:1;padding:12px;border:2px solid var(--border);background:var(--bg3);border-radius:8px;cursor:pointer;font-weight:600;text-align:center;transition:.15s}
+.payment-btn.active{border-color:var(--accent);background:rgba(79,142,247,.15);color:var(--accent)}
+.search-box{display:flex;gap:8px;margin-bottom:12px}
+.search-box .fi{flex:1}
+/* 提醒標籤 */
+.reminder-badge{background:rgba(240,192,64,.2);color:var(--yellow);border:1px solid var(--yellow);padding:2px 8px;border-radius:20px;font-size:12px;margin-left:8px}
+/* PRINT STYLES */
+@media print {
+body *{visibility:hidden}
+#printArea,#printArea *{visibility:visible}
+#printArea{position:fixed;left:0;top:0;width:100%;background:#fff;color:#000;padding:12px;font-family:'Noto Sans TC',sans-serif;font-size:14px; display: block !important;}
+.rshop{text-align:center;font-size:18px;font-weight:700;margin-bottom:8px}
+.rphone{text-align:center;font-size:13px;color:#555;margin-bottom:8px}
+.rhr{border:none;border-top:1px dashed #999;margin:8px 0}
+.rrow{display:flex;justify-content:space-between;margin-bottom:4px;font-size:14px}
+.rtitle{font-size:15px;font-weight:700;text-align:center;margin:8px 0}
+.rnum{font-size:26px;font-weight:700;text-align:center;letter-spacing:2px;margin:8px 0;padding:4px 0}
+.rnote{font-size:12px;color:#777;margin-top:12px;border-top:1px dashed #ccc;padding-top:8px}
+.rdate{text-align:center;font-size:12px;color:#999;margin-top:8px}
+.print-section{page-break-after:always}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="printArea" style="display:none"></div>
+<script>
+// ============================================================
+// DATA STORE
+// ============================================================
+const Store = {
+shopName: '清潔美洗衣坊',
+shopPhone: '02-2345-6789',
+shopNote: '取件時請攜帶本收據，逾期未取酌收保管費。如有問題請來電洽詢。',
+dailyCounter: 5,
+sCounter: 3,
+pCounter: 2,
+lastDailyDate: '',
+// 被胎提醒設定（可編輯）
+blanketReminderMonths: 2,
+// 被胎清洗記錄
+blanketRecords: [
+  {id:'BR001',memberId:'002',memberName:'林美玲',date:'2026-01-15',nextReminderDate:'2026-03-15',remark:'單人棉被'},
+  {id:'BR002',memberId:'003',memberName:'王大華',date:'2026-02-01',nextReminderDate:'2026-04-01',remark:'雙人棉被'},
+],
+// 交易記錄
+transactions: [
+    {id:'TR001',date:todayStr(),type:'membership_join',amount:1000,paymentType:'cash',memberId:'001',memberName:'陳小明',remark:'入會費(金卡)'},
+    {id:'TR002',date:todayStr(),type:'membership_renew',amount:300,paymentType:'cash',memberId:'002',memberName:'林美玲',remark:'續會費'},
+    {id:'TR003',date:todayStr(),type:'deposit',amount:500,paymentType:'cash',memberId:'003',memberName:'王大華',remark:'訂金'},
+],
+members: [
+    {id:'001',name:'陳小明',phone:'0912345678',level:'gold',points:120,discount:0.8,balance:500,joinDate:'2026-01-01',joinAmount:1000,lastRenewDate:'2026-01-01'},
+    {id:'002',name:'林美玲',phone:'0933111222',level:'silver',points:45,discount:0.9,balance:1200,joinDate:'2026-01-15',joinAmount:1000,lastRenewDate:'2026-01-15'},
+    {id:'003',name:'王大華',phone:'0966777888',level:'special',points:0,discount:0.75,balance:800,joinDate:'2026-02-01',joinAmount:1000,lastRenewDate:'2026-02-01'},
+],
+products: [
+    {id:'PRD01',name:'大衣',price:350,category:'professional',unit:'件',isBlanket:false},
+    {id:'PRD02',name:'西裝外套',price:280,category:'professional',unit:'件',isBlanket:false},
+    {id:'PRD03',name:'棉被（單人）',price:450,category:'professional',unit:'件',isBlanket:true},
+    {id:'PRD04',name:'棉被（雙人）',price:600,category:'professional',unit:'件',isBlanket:true},
+    {id:'PRD05',name:'羽絨服',price:320,category:'professional',unit:'件',isBlanket:false},
+    {id:'PRD06',name:'西裝褲',price:180,category:'professional',unit:'件',isBlanket:false},
+    {id:'PRD07',name:'裙子',price:160,category:'professional',unit:'件',isBlanket:false},
+    {id:'PRD08',name:'上衣/T恤',price:150,category:'professional',unit:'件',isBlanket:false},
+    {id:'PRD09',name:'現場洗',price:80,category:'walkin',unit:'籃',isBlanket:false},
+    {id:'PRD10',name:'現場烘',price:60,category:'walkin',unit:'籃',isBlanket:false},
+    {id:'PRD11',name:'純洗',price:80,category:'wash',unit:'籃',isBlanket:false},
+    {id:'PRD12',name:'純烘',price:60,category:'dry',unit:'籃',isBlanket:false},
+    {id:'PRD13',name:'純燙',price:100,category:'iron',unit:'件',isBlanket:false},
+],
+addons: [
+    {id:'ADD01',name:'低溫烘多次',price:50},
+    {id:'ADD02',name:'裝衣袋',price:20},
+    {id:'ADD03',name:'去漬加工',price:80},
+    {id:'ADD04',name:'補縫加工',price:60},
+    {id:'ADD05',name:'特殊洗劑',price:40},
+    {id:'ADD06',name:'急件加收',price:100},
+    {id:'ADD07',name:'折包服務',price:30},
+],
+zones: ['A-1','A-2','A-3','B-1','B-2','B-3','C-1','C-2','C-3','D-1','D-2','D-3'],
+orders: [
+    {id:'ORD001',orderNum:'S0001',type:'store',status:'done',customerName:'陳小明',phone:'0912345678',memberId:'001',items:[{name:'大衣',price:350,qty:1,addons:[],isBlanket:false}],total:280,origTotal:350,discount:0.8,date:todayStr(),pickupDate:addDays(3),zone:'A-1',blanketCount:0,remark:'',doneDate:addDays(1)+' 08:00',paidAmount:280,paymentType:'cash',memberBalanceUsed:0},
+    {id:'ORD002',orderNum:'P0001',type:'outsource',status:'returned',customerName:'林美玲',phone:'0933111222',memberId:'002',items:[{name:'棉被（單人）',price:450,qty:1,addons:[],isBlanket:true}],total:405,origTotal:450,discount:0.9,date:todayStr(),pickupDate:addDays(4),zone:'B-2',blanketCount:1,remark:'',returnDate:addDays(2)+' 09:00',paidAmount:405,paymentType:'member',memberBalanceUsed:405},
+    {id:'ORD003',orderNum:'6',type:'walkin',status:'collected',customerName:'王大華',phone:'0966777888',memberId:null,items:[{name:'現場洗',price:80,qty:2,addons:[],isBlanket:false}],total:160,origTotal:160,discount:1,date:todayStr(),pickupDate:todayStr(),zone:'C-3',blanketCount:0,remark:'',collectedDate:addDays(0)+' 17:00',paidAmount:160,paymentType:'cash',memberBalanceUsed:0},
+    {id:'ORD004',orderNum:'S0002',type:'store',status:'pending',customerName:'李小姐',phone:'0922334455',memberId:null,items:[{name:'西裝外套',price:280,qty:1,addons:[],isBlanket:false}],total:280,origTotal:280,discount:1,date:todayStr(),pickupDate:addDays(3),zone:'A-2',blanketCount:0,remark:'',paidAmount:280,paymentType:'cash',memberBalanceUsed:0},
+],
+discountLevels:{gold:0.8,silver:0.9},
+getNextDailyNum(){
+  if (this.lastDailyDate !== todayStr()) {
+    this.dailyCounter = 0;
+    this.lastDailyDate = todayStr();
+  }
+  return String(++this.dailyCounter);
+},
+getNextS(){ return 'S'+String(++this.sCounter).padStart(4,'0') },
+getNextP(){ return 'P'+String(++this.pCounter).padStart(4,'0') },
+findMember(q){
+  q=(q||'').replace(/-/g,'').trim().toLowerCase();
+  return this.members.find(m=>m.id===q||m.phone===q||m.phone.replace(/-/g,'')===q||m.name.toLowerCase().includes(q));
+},
+searchMembers(keyword){
+  if(!keyword) return this.members;
+  const k = keyword.replace(/-/g,'').trim().toLowerCase();
+  return this.members.filter(m => 
+    m.id.toLowerCase().includes(k) || 
+    m.name.toLowerCase().includes(k) || 
+    m.phone.replace(/-/g,'').toLowerCase().includes(k)
+  );
+},
+addOrder(o){ this.orders.unshift(o) },
+updateOrderStatus(id,s,extra){ const o=this.orders.find(x=>x.id===id); if(o){ o.status=s; if(extra) Object.assign(o,extra) } },
+revertOrderStatus(id){ this.updateOrderStatus(id,'pending',{}); },
+addTransaction(t){ this.transactions.unshift(t) },
+// 被胎提醒相關
+addBlanketRecord(r){ this.blanketRecords.unshift(r) },
+updateBlanketReminderMonths(months){ this.blanketReminderMonths = months },
+};
+// ============================================================
+// STATE
+// ============================================================
+let S = {
+page:'pos',
+customerType:null,
+memberData:null,
+memberSearch:'',
+guestName:'',guestPhone:'',
+specialDiscount:0.75,
+guestDiscount:null,
+currentMode:'walkin',
+cartItems:[],
+pickupDate:addDays(3),
+zone:'A-1',
+outsendDate:todayStr(),
+returnDate:addDays(2),
+remark:'',
+filterStartDate: todayStr(),
+filterEndDate: todayStr(),
+filterStartTime: '00:00',
+filterEndTime: '23:59',
+filterStatus:'all',
+filterType:'all',
+filterCustomer:'',
+orderSort:'newest',
+settingsTab:'products',
+statsPeriod:'daily',
+statsStartDate: todayStr(),
+statsEndDate: todayStr(),
+modal:null,
+modalData:{},
+overrideDiscount:1,
+paymentType:'cash',
+memberSearchKeyword:'',
+// 記錄是否剛剛結帳失敗，保留購物車
+checkoutCancelled: false,
+};
+// ============================================================
+// HELPER
+// ============================================================
+function todayStr(){ return new Date().toISOString().slice(0,10) }
+function addDays(n){ const d=new Date(); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10) }
+function addMonths(dateStr, months){
+  const d = new Date(dateStr);
+  d.setMonth(d.getMonth() + months);
+  return d.toISOString().slice(0,10);
+}
+function uid(){ return 'ORD'+Date.now() }
+function getPeriodFilter() { return o => o.date >= S.statsStartDate && o.date <= S.statsEndDate; }
+function getTimeFilter(o){
+  const orderTime = new Date(o.timestamp||o.date);
+  const startTime = new Date(`${o.date}T${S.filterStartTime}:00`);
+  const endTime = new Date(`${o.date}T${S.filterEndTime}:59`);
+  return orderTime >= startTime && orderTime <= endTime;
+}
+function render(){ 
+  document.getElementById('app').innerHTML = buildApp(); 
+  schedClock(); 
+  // 結帳取消後，保留購物車狀態
+  if(S.checkoutCancelled) {
+    S.checkoutCancelled = false;
+  }
+}
+function schedClock(){
+const el=document.getElementById('clk');
+if(!el) return;
+const n=new Date();
+el.textContent=n.toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit'})+' '+n.toTimeString().slice(0,8);
+setTimeout(schedClock,1000);
+}
+// ============================================================
+// BUILD APP
+// ============================================================
+function buildApp(){
+return `
+  <div>
+${buildTopbar()}
+    <div class="main no-print">
+${S.page==='pos'?buildPOSMain():''}
+${S.page==='orders'?buildOrdersPage():''}
+${S.page==='stats'?buildStatsPage():''}
+${S.page==='settings'?buildSettingsPage():''}
+    </div>
+${S.modal?buildModal():''}
+  </div>`;
+}
+function buildTopbar(){
+const tabs=[{k:'pos',l:'📋 收單'},{k:'orders',l:'📦 訂單管理'},{k:'stats',l:'📊 統計報表'},{k:'settings',l:'⚙️ 設定'}];
+return `<div class="topbar">
+    <div class="flex items-center gap-8">
+      <div class="logo">🫧 ${Store.shopName}</div>
+      <nav class="topnav">
+${tabs.map(t=>`<button class="tnav ${S.page===t.k?'active':''}" onclick="go('${t.k}')">${t.l}</button>`).join('')}
+      </nav>
+    </div>
+    <div class="flex items-center gap-8">
+      <span id="clk" class="datetime"></span>
+      <button class="btn btn-ghost btn-sm" onclick="openModal('newMember')">👤 新增會員</button>
+    </div>
+  </div>`;
+}
+// ============================================================
+// POS PAGE
+// ============================================================
+function buildPOSMain(){
+return `
+  <div class="content">
+${buildCustomerSection()}
+${S.customerType ? buildOrderSection() : ''}
+  </div>
+${S.customerType ? buildSidebar() : '<div class="sidebar" style="align-items:center;justify-content:center"><div class="text-sm" style="padding:40px;text-align:center;color:var(--text3)">請先選擇顧客身份</div></div>'}`;
+}
+function buildCustomerSection(){
+if(!S.customerType){
+return `<div class="card">
+      <div class="card-title">步驟一：顧客身份</div>
+      <div class="member-types">
+        <button class="mtype-btn" onclick="setCT('member')"><div class="mticon">⭐</div><div class="mtname">會員</div><div class="mtsub">8折 / 9折</div></button>
+        <button class="mtype-btn" onclick="setCT('guest')"><div class="mticon">👤</div><div class="mtname">非會員</div><div class="mtsub">原價</div></button>
+        <button class="mtype-btn" onclick="setCT('special')"><div class="mticon">💎</div><div class="mtname">特殊客戶</div><div class="mtsub">特殊折扣</div></button>
+      </div>
+    </div>`;
+  }
+if(S.customerType==='member'&&!S.memberData){
+return `<div class="card">
+      <div class="card-title flex justify-between" style="display:flex;justify-content:space-between">
+        <span>🔍 查詢會員</span>
+        <button class="btn btn-ghost btn-xs" onclick="setCT(null)">← 返回</button>
+      </div>
+      <div class="frow mt-8">
+        <div class="fg"><input class="fi" id="msInput" placeholder="姓名 / 手機 / 編號" value="${S.memberSearch}" oninput="S.memberSearch=this.value" onkeydown="if(event.key==='Enter')searchMember()"></div>
+        <button class="btn btn-primary" onclick="searchMember()">查詢</button>
+      </div>
+      <div id="msResult" class="mt-8"></div>
+    </div>`;
+  }
+if(S.memberData){
+const m=S.memberData;
+const lvl={gold:'金卡 8折',silver:'銀卡 9折',special:`特殊 ${Math.round(m.discount*10)}折`}[m.level]||m.level;
+// 檢查是否有被胎提醒
+const blanketReminders = Store.blanketRecords.filter(r => r.memberId === m.id && new Date(r.nextReminderDate) <= new Date());
+return `<div class="member-info-card">
+      <div class="flex justify-between items-center">
+        <div>
+          <div class="mi-name">${m.name} <span class="badge b-purple">${lvl}</span>
+          ${blanketReminders.length>0?`<span class="reminder-badge" title="${blanketReminders.map(r=>r.remark+'需清洗').join('、')}">⚠️ 被胎待洗</span>`:''}
+          </div>
+          <div class="mi-phone">📱 ${m.phone} &nbsp;·&nbsp; 編號：${m.id}</div>
+          <div class="mi-phone">📅 入會：${m.joinDate||'-'} / 上次續會：${m.lastRenewDate||'-'}</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="resetCustomer()">更換顧客</button>
+      </div>
+      <div class="mi-row">
+        <div><div class="mi-stat-val">$${m.balance}</div><div class="mi-stat-label">儲值金</div></div>
+        <div><div class="mi-stat-val">${m.points}</div><div class="mi-stat-label">點數</div></div>
+        <div><div class="mi-stat-val">${Math.round(m.discount*10)}折</div><div class="mi-stat-label">折扣</div></div>
+      </div>
+      <div class="mi-actions">
+        <button class="btn btn-sm btn-primary" onclick="openModal('deposit','${m.id}')">💰 補訂金</button>
+        <button class="btn btn-sm btn-success" onclick="openModal('renewMember','${m.id}')">🔄 續會</button>
+        <button class="btn btn-sm btn-warn" onclick="openModal('blanketReminder','${m.id}')">🧺 記錄被胎清洗</button>
+      </div>
+    </div>`;
+  }
+return `<div class="card">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+      <span>${S.customerType==='special'?'💎 特殊客戶':'👤 非會員'}</span>
+      <button class="btn btn-ghost btn-xs" onclick="setCT(null)">← 返回</button>
+    </div>
+    <div class="frow" style="margin-top:8px">
+      <div class="fg"><label class="fl" for="guestName">姓名（選填）</label><input class="fi" id="guestName" placeholder="姓名" value="${S.guestName}" oninput="S.guestName=this.value"></div>
+      <div class="fg"><label class="fl" for="guestPhone">手機（選填）</label><input class="fi" id="guestPhone" placeholder="0912-345-678" value="${S.guestPhone}" oninput="S.guestPhone=this.value"></div>
+    </div>
+${S.customerType==='special' || S.customerType==='guest'?`<div class="fg"><label class="fl" for="nonMemberDiscount">折扣（選填，如8為八折）</label><input type="number" min="1" max="10" step="0.5" class="fi" id="nonMemberDiscount" placeholder="8" value="${S.customerType==='special'?Math.round(S.specialDiscount*10): (S.customerType==='guest' && S.guestDiscount? Math.round(S.guestDiscount*10) :'')}" oninput="updateDiscountInput(this, '${S.customerType}')"></div>`:''}
+  </div>`;
+}
+function updateDiscountInput(el, type){
+let val = parseFloat(el.value);
+if(isNaN(val)) val = '';
+if(val > 10) val = 10;
+if(val < 1) val = 1;
+S[type==='special'?'specialDiscount':'guestDiscount'] = val ? val/10 : '';
+render();
+}
+function buildOrderSection(){
+const catMap={walkin:'walkin',store:'professional',outsource:'professional',wash:'wash',dry:'dry',iron:'iron'};
+const cat=catMap[S.currentMode]||'walkin';
+const prods=Store.products.filter(p=>p.category===cat);
+return `<div class="card">
+    <div class="card-title">步驟二：選擇洗衣模式</div>
+    <div class="mode-grid">
+${mb('walkin','🪣','現場洗','投幣/自助')}
+${mb('store','👔','專業洗-店內','S 流水號')}
+${mb('outsource','📦','專業洗-外包','P 流水號')}
+${mb('wash','💧','純洗','')}
+${mb('dry','🌀','純烘','')}
+${mb('iron','🔥','純燙','')}
+    </div>
+    <div class="card-title">商品 / 服務 <span class="text-sm">（點擊加入訂單）</span></div>
+    <div class="product-list">
+${prods.map(p=>`<div class="product-card" onclick="addToCart('${p.id}')">
+        <div class="pc-name">${p.name}</div>
+        <div class="pc-price">$${p.price} / ${p.unit}</div>
+      </div>`).join('')}
+    </div>
+    <div class="sep"></div>
+    <div class="card-title">加購項目 <span class="text-sm">（點擊加入訂單）</span></div>
+    <div class="addon-list">
+${Store.addons.map(a=>`<div class="addon-chip" onclick="addAddonAsItem('${a.id}')">${a.name} +$${a.price}</div>`).join('')}
+    </div>
+    <div class="sep"></div>
+    <div class="frow">
+      <div class="fg"><label class="fl" for="pickupDate">預計取件日期</label><input type="date" class="fi" id="pickupDate" value="${S.pickupDate}" oninput="S.pickupDate=this.value"></div>
+      <div class="fg"><label class="fl" for="zone">放置位置</label><select class="fi" id="zone" onchange="S.zone=this.value">
+${Store.zones.map(z=>`<option value="${z}" ${S.zone===z?'selected':''}>${z}</option>`).join('')}
+      </select></div>
+    </div>
+${S.currentMode==='outsource'?`<div class="frow">
+      <div class="fg"><label class="fl" for="outsendDate">外包送出日期</label><input type="date" class="fi" id="outsendDate" value="${S.outsendDate}" oninput="S.outsendDate=this.value"></div>
+      <div class="fg"><label class="fl" for="returnDate">預計送回店日期</label><input type="date" class="fi" id="returnDate" value="${S.returnDate}" oninput="S.returnDate=this.value"></div>
+    </div>`:''}
+    <div class="fg"><label class="fl" for="remark">備註</label><input class="fi" id="remark" placeholder="備註（選填）" value="${S.remark}" oninput="S.remark=this.value"></div>
+  </div>`;
+}
+function mb(k,icon,name,sub){
+return `<button class="mode-btn ${S.currentMode===k?'active':''}" onclick="S.currentMode='${k}';render()">
+    <div class="micon">${icon}</div><div class="mname">${name}</div>${sub?`<div class="msub">${sub}</div>`:''}
+  </button>`;
+}
+// ============================================================
+// SIDEBAR
+// ============================================================
+function buildSidebar(){
+const items=S.cartItems;
+const {sub, addT, gross, discountable, disc, final, discSave} = calculateTotals(items);
+const showOverride = S.customerType === 'special' || S.customerType === 'member';
+return `<div class="sidebar">
+    <div style="padding:12px 14px;border-bottom:1px solid var(--border);font-weight:700;font-size:14px;flex-shrink:0">🛒 本次訂單</div>
+    <div class="order-items">
+${items.length===0?`<div style="padding:32px;text-align:center;color:var(--text3);font-size:13px">尚未加入任何項目</div>`:''}
+${items.map((item,idx)=>`<div class="order-item">
+        <button class="oi-del" onclick="removeItem(${idx})">✕</button>
+        <div class="oi-header" style="padding-right:35px">
+          <div class="oi-name">${item.name}</div>
+          <div class="oi-price">$${item.price*item.qty}</div>
+        </div>
+        <div class="oi-sub">
+          <span class="badge ${modeBadge(item.mode)}">${modeLabel(item.mode)}</span>
+          &nbsp;×${item.qty}
+${item.zone?' · '+item.zone:''}
+          · 單價: <input type="number" class="fi" style="width:60px" value="${item.price}" oninput="updateItemPrice(${idx},this.value)">
+        </div>
+        <div class="qty-ctrl">
+          <button class="btn btn-ghost btn-xs" onclick="chgQty(${idx},-1)">－</button>
+          <span>${item.qty}</span>
+          <button class="btn btn-ghost btn-xs" onclick="chgQty(${idx},1)">＋</button>
+        </div>
+      </div>`).join('')}
+    </div>
+    <div class="cart-total" style="flex-shrink:0">
+      <div class="total-row"><span>小計</span><span>$${sub}</span></div>
+${addT>0?`<div class="total-row"><span>加購</span><span>$${addT}</span></div>`:''}
+${showOverride?`<div class="fg"><label class="fl" for="overrideDiscount">調整折扣</label><input type="number" min="0.1" max="1" step="0.05" class="fi" id="overrideDiscount" value="${S.overrideDiscount}" oninput="S.overrideDiscount=parseFloat(this.value)||1;render()"></div>`:''}
+${disc<1?`<div class="total-row" style="color:var(--yellow)"><span>折扣 (${Math.round(disc*10)}折)</span><span>-$${discSave}</span></div>`:''}
+      <div class="total-row final"><span>實收</span><span>$${final}</span></div>
+      <button class="btn btn-success btn-block mt-8" onclick="checkout()" ${items.length===0?'disabled':''}>🧾 結帳並列印收據</button>
+      <button class="btn btn-ghost btn-block" style="margin-top:6px;font-size:12px" onclick="clearCart()">🗑 清除全部</button>
+    </div>
+  </div>`;
+}
+function calculateTotals(items) {
+const sub = items.reduce((s,i)=>s+(i.isAddon?0:i.price*i.qty),0);
+const addT = items.reduce((s,i)=>s+(i.isAddon?i.price*i.qty: (i.addons||[]).reduce((a,b)=>a+b.price,0)),0);
+const gross = sub + addT;
+let disc = getDiscount() * S.overrideDiscount;
+const discountable = items.reduce((s,i) => {
+let ip = i.price * i.qty;
+if (i.isAddon || i.mode === 'iron') ip = 0;
+return s + ip;
+  },0);
+const nonDiscountable = gross - discountable;
+const discounted = Math.round(discountable * disc);
+const final = discounted + nonDiscountable;
+const discSave = discountable - discounted;
+return {sub, addT, gross, discountable, disc, final, discSave};
+}
+function modeBadge(m){return{walkin:'b-blue',store:'b-green',outsource:'b-purple',wash:'b-blue',dry:'b-blue',iron:'b-yellow',addon:'b-orange'}[m]||'b-gray'}
+function modeLabel(m){return{walkin:'現場洗',store:'專業-店內',outsource:'專業-外包',wash:'純洗',dry:'純烘',iron:'純燙',addon:'加購'}[m]||m}
+function typeFromMode(m){return{walkin:'walkin',wash:'walkin',dry:'walkin',iron:'store',store:'store',outsource:'outsource',addon:'walkin'}[m]||'walkin'}
+// ============================================================
+// ORDERS PAGE (完整版)
+// ============================================================
+function buildOrdersPage(){
+let filtered=Store.orders.filter(o=>{
+const dOk = o.date >= S.filterStartDate && o.date <= S.filterEndDate;
+const sOk=S.filterStatus==='all'||o.status===S.filterStatus;
+const tOk=S.filterType==='all'||o.type===S.filterType;
+const cOk=!S.filterCustomer || o.customerName.includes(S.filterCustomer) || o.phone.includes(S.filterCustomer);
+return dOk && sOk && tOk && cOk && getTimeFilter(o);
+  });
+if(S.orderSort==='oldest'){
+filtered.sort((a,b)=> new Date(a.date) - new Date(b.date));
+} else {
+filtered.sort((a,b)=> new Date(b.date) - new Date(a.date));
+}
+if(S.filterStatus==='collected'){
+filtered.sort((a,b)=>new Date(b.collectedDate||b.pickupDate)-new Date(a.collectedDate||a.pickupDate));
+}
+if(S.filterType==='walkin'){
+  filtered.sort((a,b) => parseInt(a.orderNum,10)||0 - parseInt(b.orderNum,10)||0);
+}
+const cts={pending:0,done:0,returned:0,collected:0,unpaid:0};
+Store.orders.forEach(o=>{if(cts[o.status]!==undefined)cts[o.status]++});
+const sMap={pending:{l:'待洗',c:'b-yellow'},done:{l:'已洗好',c:'b-green'},returned:{l:'已回件',c:'b-blue'},collected:{l:'已取件',c:'b-gray'},unpaid:{l:'欠費',c:'b-red'}};
+const tMap={walkin:{l:'一般',c:'b-blue'},store:{l:'S-店內',c:'b-green'},outsource:{l:'P-外包',c:'b-purple'}};
+return `<div class="content" style="max-width:100%">
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-val text-yellow">${cts.pending}</div><div class="stat-label">待洗</div></div>
+      <div class="stat-card"><div class="stat-val text-green">${cts.done}</div><div class="stat-label">已洗好</div></div>
+      <div class="stat-card"><div class="stat-val text-accent">${cts.returned}</div><div class="stat-label">已回件</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--text2)">${cts.collected}</div><div class="stat-label">已取件</div></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <div class="card-title" style="margin:0">訂單列表</div>
+        <div class="flex gap-8" style="flex-wrap:wrap;gap:8px">
+          <div class="fg"><label class="fl">開始日期</label><input type="date" class="fi" value="${S.filterStartDate}" onchange="S.filterStartDate=this.value;render()"></div>
+          <div class="fg"><label class="fl">結束日期</label><input type="date" class="fi" value="${S.filterEndDate}" onchange="S.filterEndDate=this.value;render()"></div>
+          <div class="fg"><label class="fl">開始時間</label><input type="time" class="fi" value="${S.filterStartTime}" onchange="S.filterStartTime=this.value;render()"></div>
+          <div class="fg"><label class="fl">結束時間</label><input type="time" class="fi" value="${S.filterEndTime}" onchange="S.filterEndTime=this.value;render()"></div>
+          <select class="fi" style="width:130px" onchange="S.filterStatus=this.value;render()">
+            <option value="all" ${S.filterStatus==='all'?'selected':''}>全部狀態</option>
+            <option value="pending" ${S.filterStatus==='pending'?'selected':''}>待洗</option>
+            <option value="done" ${S.filterStatus==='done'?'selected':''}>已洗好</option>
+            <option value="returned" ${S.filterStatus==='returned'?'selected':''}>已回件</option>
+            <option value="collected" ${S.filterStatus==='collected'?'selected':''}>已取件</option>
+            <option value="unpaid" ${S.filterStatus==='unpaid'?'selected':''}>欠費</option>
+          </select>
+          <select class="fi" style="width:130px" onchange="S.filterType=this.value;render()">
+            <option value="all" ${S.filterType==='all'?'selected':''}>全部類型</option>
+            <option value="walkin" ${S.filterType==='walkin'?'selected':''}>一般</option>
+            <option value="store" ${S.filterType==='store'?'selected':''}>S-店內</option>
+            <option value="outsource" ${S.filterType==='outsource'?'selected':''}>P-外包</option>
+          </select>
+          <input class="fi" style="width:150px" placeholder="搜顧客名/手機" value="${S.filterCustomer}" oninput="S.filterCustomer=this.value;render()">
+          <select class="fi" style="width:130px" onchange="S.orderSort=this.value;render()">
+            <option value="newest" ${S.orderSort==='newest'?'selected':''}>最新先</option>
+            <option value="oldest" ${S.orderSort==='oldest'?'selected':''}>最舊先</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>單號</th><th>類型</th><th>顧客</th><th>會員編號</th><th>手機</th><th>取件日</th><th>位置</th><th>原價</th><th>實收</th><th>付款方式</th><th>會員餘額</th><th>狀態</th><th>操作</th></tr></thead>
+          <tbody>
+${filtered.map(o=>`<tr onclick="showOrderDetail('${o.id}')">
+              <td class="font-mono fw-bold">${o.orderNum}</td>
+              <td><span class="badge ${(tMap[o.type]||{c:'b-gray'}).c}">${(tMap[o.type]||{l:o.type}).l}</span></td>
+              <td>${o.customerName||'-'}</td>
+              <td>${o.memberId||'-'}</td>
+              <td>${o.phone||'-'}</td>
+              <td>${o.pickupDate||'-'}</td>
+              <td><select class="fi" style="width:80px" onchange="updateZone('${o.id}',this.value)">
+${Store.zones.map(z=>`<option value="${z}" ${o.zone===z?'selected':''}>${z}</option>`).join('')}
+              </select></td>
+              <td class="font-mono" style="color:var(--text2)">$${o.origTotal}</td>
+              <td class="font-mono text-green fw-bold">
+                ${o.status==='unpaid' ? `$${o.paidAmount||0} / $${o.total}` : `$${o.total}`}
+              </td>
+              <td><span class="badge ${o.paymentType==='cash'?'b-blue':'b-purple'}">${o.paymentType==='cash'?'現金':'會員扣款'}</span></td>
+              <td class="font-mono">${o.memberId ? (Store.members.find(m=>m.id===o.memberId)?.balance||0) : '-'}</td>
+              <td><span class="badge ${(sMap[o.status]||{c:'b-gray'}).c}">${(sMap[o.status]||{l:o.status}).l}</span>
+${o.doneDate ? `<br><small>洗好: ${o.doneDate}</small>` : ''}
+${o.returnDate ? `<br><small>回件: ${o.returnDate}</small>` : ''}
+${o.collectedDate ? `<br><small>取件: ${o.collectedDate}</small>` : ''}
+${o.status==='unpaid' && o.remark ? `<br><small style="color:var(--red)">欠費：${o.remark}</small>` : ''}
+              </td>
+              <td>
+                <div class="flex gap-4">
+${o.status==='pending'?`<button class="btn btn-xs btn-success" onclick="event.stopImmediatePropagation();openModal('setDoneDate','${o.id}')">✓ 已洗好</button>`:''}
+${o.status==='done'&&o.type==='outsource'?`<button class="btn btn-xs btn-warn" onclick="event.stopImmediatePropagation();openModal('setReturnedDate','${o.id}')">回件確認</button>`:''}
+${(o.status==='done'||o.status==='returned')?`<button class="btn btn-xs btn-primary" onclick="event.stopImmediatePropagation();openModal('setCollectedDate','${o.id}')">已取件</button>`:''}
+${o.status!=='pending'?`<button class="btn btn-xs btn-warn" onclick="event.stopImmediatePropagation();revertOrderStatus('${o.id}')">恢復待洗</button>`:''}
+${o.status !== 'unpaid' ? `<button class="btn btn-xs btn-danger" onclick="event.stopImmediatePropagation();openModal('setUnpaid','${o.id}')">欠費</button>` : ''}
+${o.status === 'unpaid' ? `<button class="btn btn-xs btn-success" onclick="event.stopImmediatePropagation();openModal('paySupplement','${o.id}')">補繳</button>` : ''}
+                  <button class="btn btn-xs btn-ghost" onclick="event.stopImmediatePropagation();openModal('editOrder','${o.id}')">編輯</button>
+                  <button class="btn btn-xs btn-ghost" onclick="event.stopImmediatePropagation();reprintOrder('${o.id}')">補印</button>
+                  <button class="btn btn-xs btn-danger" onclick="event.stopImmediatePropagation();delOrder('${o.id}')">刪除</button>
+                </div>
+              </td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+${filtered.length===0?`<div class="text-sm" style="padding:24px;text-align:center">無符合條件的訂單</div>`:''}
+      </div>
+    </div>
+  </div>`;
+}
+function showOrderDetail(id){
+const o = Store.orders.find(x=>x.id===id);
+if(!o) return;
+S.modal = 'orderDetail';
+S.modalData = id;
+render();
+}
+// ============================================================
+// STATS PAGE (完整統計報表 - 業績本 + 現金本)
+// ============================================================
+function buildStatsPage(){
+const filterFn = getPeriodFilter();
+const filteredOrders = Store.orders.filter(filterFn);
+const filteredTransactions = Store.transactions.filter(filterFn);
+// 訂單統計
+const walkin = filteredOrders.filter(o=>o.type==='walkin');
+const store = filteredOrders.filter(o=>o.type==='store');
+const outs = filteredOrders.filter(o=>o.type==='outsource');
+// 現金收入統計
+const cashFromOrders = filteredOrders.reduce((s,o) => s + (o.paymentType==='cash' ? (o.total||0) : 0), 0);
+const cashFromMembership = filteredTransactions
+  .filter(t => t.paymentType === 'cash')
+  .reduce((s,t) => s + (t.amount || 0), 0);
+const totalCash = cashFromOrders + cashFromMembership;
+// 會員扣款統計
+const memberFromOrders = filteredOrders.reduce((s,o) => s + (o.paymentType==='member' ? (o.total||0) : 0), 0);
+// 各類別現金明細
+const cashWalkin = walkin.filter(o=>o.paymentType==='cash').reduce((s,o)=>s+o.total,0);
+const cashStore = store.filter(o=>o.paymentType==='cash').reduce((s,o)=>s+o.total,0);
+const cashOuts = outs.filter(o=>o.paymentType==='cash').reduce((s,o)=>s+o.total,0);
+// 入會/續會/訂金統計
+const membershipJoin = filteredTransactions.filter(t=>t.type==='membership_join').reduce((s,t)=>s+t.amount,0);
+const membershipRenew = filteredTransactions.filter(t=>t.type==='membership_renew').reduce((s,t)=>s+t.amount,0);
+const deposit = filteredTransactions.filter(t=>t.type==='deposit').reduce((s,t)=>s+t.amount,0);
+const totalMembershipCash = membershipJoin + membershipRenew + deposit;
+// 業績本：會員入會/續會 + 非會員專業洗訂單
+const nonMemberStoreOrders = store.filter(o => !o.memberId && o.paymentType==='cash');
+const nonMemberOutsOrders = outs.filter(o => !o.memberId && o.paymentType==='cash');
+const performanceBook = {
+  membershipJoin: filteredTransactions.filter(t=>t.type==='membership_join'),
+  membershipRenew: filteredTransactions.filter(t=>t.type==='membership_renew'),
+  nonMemberStoreOrders,
+  nonMemberOutsOrders,
+  total: membershipJoin + membershipRenew + 
+         nonMemberStoreOrders.reduce((s,o)=>s+o.total,0) + 
+         nonMemberOutsOrders.reduce((s,o)=>s+o.total,0)
+};
+// 現金本：現場洗的現金訂單列表
+const cashBookOrders = walkin.filter(o => o.paymentType==='cash');
+const osm=arr=>arr.reduce((s,o)=>s+(o.origTotal||o.total),0);
+const allBlankets=filteredOrders.reduce((s,o)=>s+(o.blanketCount||0),0);
+return `<div class="content">
+    <div style="font-size:16px;font-weight:700;margin-bottom:14px">📊 統計報表</div>
+    <div class="flex gap-8 mb-8">
+      <div class="fg"><label class="fl">開始日期</label><input type="date" class="fi" value="${S.statsStartDate}" onchange="S.statsStartDate=this.value;render()"></div>
+      <div class="fg"><label class="fl">結束日期</label><input type="date" class="fi" value="${S.statsEndDate}" onchange="S.statsEndDate=this.value;render()"></div>
+    </div>
+    <!-- 總營業額收入 = 業績本收入 + 現場本收入 -->
+    <div class="stat-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="stat-card"><div class="stat-val text-green">$${totalCash}</div><div class="stat-label">總現金收入</div></div>
+      <div class="stat-card"><div class="stat-val text-accent">$${memberFromOrders}</div><div class="stat-label">會員扣款</div></div>
+      <div class="stat-card"><div class="stat-val text-yellow">$${totalMembershipCash}</div><div class="stat-label">會費/訂金</div></div>
+      <div class="stat-card"><div class="stat-val">$${totalCash + memberFromOrders}</div><div class="stat-label">總實收</div></div>
+    </div>
+    <!-- 業績本收入 (會員入會/續會 + 非會員專業洗) -->
+    <div class="card">
+      <div class="card-title">📒 業績本收入 (會員入會/續會 + 非會員專業洗)</div>
+      <div class="stat-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:12px">
+        <div class="stat-card"><div class="stat-val">$${membershipJoin}</div><div class="stat-label">入會費</div></div>
+        <div class="stat-card"><div class="stat-val">$${membershipRenew}</div><div class="stat-label">續會費</div></div>
+        <div class="stat-card"><div class="stat-val">$${nonMemberStoreOrders.reduce((s,o)=>s+o.total,0)}</div><div class="stat-label">非會員店內洗</div></div>
+        <div class="stat-card"><div class="stat-val">$${nonMemberOutsOrders.reduce((s,o)=>s+o.total,0)}</div><div class="stat-label">非會員外包洗</div></div>
+      </div>
+      <div class="stat-card" style="margin-top:8px"><div class="stat-val text-green">$${performanceBook.total}</div><div class="stat-label">業績本總收入</div></div>
+      <!-- 業績本明細列表 -->
+      <div class="card-title" style="margin-top:16px">📋 業績本明細</div>
+      <div class="table-wrap" style="max-height:200px;overflow-y:auto">
+        <table>
+          <thead><tr><th>日期</th><th>類別</th><th>會員/顧客</th><th>單號</th><th>金額</th></tr></thead>
+          <tbody>
+            ${filteredTransactions.filter(t=>t.type==='membership_join'||t.type==='membership_renew').map(t=>`
+              <tr><td>${t.date}</td><td>${t.type==='membership_join'?'入會':'續會'}</td><td>${t.memberName||'-'}</td><td>${t.id}</td><td>$${t.amount}</td></tr>
+            `).join('')}
+            ${nonMemberStoreOrders.map(o=>`
+              <tr><td>${o.date}</td><td>非會員店內洗</td><td>${o.customerName}</td><td>${o.orderNum}</td><td>$${o.total}</td></tr>
+            `).join('')}
+            ${nonMemberOutsOrders.map(o=>`
+              <tr><td>${o.date}</td><td>非會員外包洗</td><td>${o.customerName}</td><td>${o.orderNum}</td><td>$${o.total}</td></tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <!-- 現金本收入 (現場洗現金訂單) -->
+    <div class="card">
+      <div class="card-title">📕 現金本收入 (現場洗現金訂單)</div>
+      <div class="stat-card"><div class="stat-val text-green">$${cashWalkin}</div><div class="stat-label">現場洗現金收入</div></div>
+      <div class="card-title" style="margin-top:16px">📋 現金本明細</div>
+      <div class="table-wrap" style="max-height:200px;overflow-y:auto">
+        <table>
+          <thead><tr><th>日期</th><th>單號</th><th>顧客</th><th>項目</th><th>金額</th></tr></thead>
+          <tbody>
+            ${cashBookOrders.map(o=>`
+              <tr><td>${o.date}</td><td>${o.orderNum}</td><td>${o.customerName}</td><td>${o.items.map(i=>i.name).join('、')}</td><td>$${o.total}</td></tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-val text-yellow">${allBlankets}</div><div class="stat-label">棉被/被胎 件數</div></div>
+      <div class="stat-card"><div class="stat-val text-green">$${totalCash + memberFromOrders}</div><div class="stat-label">總實收</div></div>
+      <div class="stat-card"><div class="stat-val text-accent">$${osm(filteredOrders)}</div><div class="stat-label">總業績（原價）</div></div>
+    </div>
+  </div>`;
+}
+// ============================================================
+// SETTINGS PAGE
+// ============================================================
+function buildSettingsPage(){
+const t=S.settingsTab;
+return `<div class="content">
+    <div class="tabs">
+${[['products','🛍 商品/服務'],['addons','➕ 加購項目'],['members','👥 會員管理'],['zones','📍 放置區域'],['shop','🏪 店家設定'],['reminders','⏰ 提醒設定']].map(([k,l])=>`<button class="tab ${t===k?'active':''}" onclick="S.settingsTab='${k}';render()">${l}</button>`).join('')}
+    </div>
+${t==='products'?buildSetProducts():''}
+${t==='addons'?buildSetAddons():''}
+${t==='members'?buildSetMembers():''}
+${t==='zones'?buildSetZones():''}
+${t==='shop'?buildSetShop():''}
+${t==='reminders'?buildSetReminders():''}
+  </div>`;
+}
+function buildSetProducts(){
+const catL={walkin:'現場洗',professional:'專業洗',wash:'純洗',dry:'純烘',iron:'純燙'};
+return `<div class="card">
+    <div class="flex justify-between items-center mb-8"><div class="card-title" style="margin:0">商品 / 服務資料庫</div><button class="btn btn-primary btn-sm" onclick="openModal('addProduct')">＋ 新增</button></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>名稱</th><th>類別</th><th>單位</th><th>定價</th><th>棉被類</th><th>操作</th></tr></thead>
+      <tbody>${Store.products.map(p=>`<tr>
+        <td>${p.name}</td>
+        <td><span class="badge b-gray">${catL[p.category]||p.category}</span></td>
+        <td>${p.unit}</td>
+        <td class="font-mono">$${p.price}</td>
+        <td>${p.isBlanket?'<span class="badge b-yellow">是</span>':'-'}</td>
+        <td><div class="flex gap-4">
+          <button class="btn btn-xs btn-ghost" onclick="openModal('editProduct','${p.id}')">編輯</button>
+          <button class="btn btn-xs btn-danger" onclick="delProduct('${p.id}')">刪除</button>
+        </div></td>
+      </tr>`).join('')}</tbody>
+    </table></div>
+  </div>`;
+}
+function buildSetAddons(){
+return `<div class="card">
+    <div class="flex justify-between items-center mb-8"><div class="card-title" style="margin:0">加購項目資料庫</div><button class="btn btn-primary btn-sm" onclick="openModal('addAddon')">＋ 新增</button></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>名稱</th><th>價格</th><th>操作</th></tr></thead>
+      <tbody>${Store.addons.map(a=>`<tr>
+        <td>${a.name}</td>
+        <td class="font-mono">$${a.price}</td>
+        <td><div class="flex gap-4">
+          <button class="btn btn-xs btn-ghost" onclick="openModal('editAddon','${a.id}')">編輯</button>
+          <button class="btn btn-xs btn-danger" onclick="delAddon('${a.id}')">刪除</button>
+        </div></td>
+      </tr>`).join('')}</tbody>
+    </table></div>
+  </div>`;
+}
+function buildSetMembers(){
+const lvlMap={gold:'金卡 8折',silver:'銀卡 9折',special:'特殊折扣'};
+const filteredMembers = Store.searchMembers(S.memberSearchKeyword);
+return `<div class="card">
+    <div class="flex justify-between items-center mb-8"><div class="card-title" style="margin:0">會員管理</div><button class="btn btn-primary btn-sm" onclick="openModal('newMember')">＋ 新增會員</button></div>
+    <div class="search-box">
+      <input class="fi" placeholder="搜尋姓名 / 手機 / 編號" value="${S.memberSearchKeyword}" oninput="S.memberSearchKeyword=this.value;render()">
+      <button class="btn btn-primary" onclick="S.memberSearchKeyword='';render()">清除</button>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>編號</th><th>姓名</th><th>手機</th><th>等級</th><th>點數</th><th>儲值金</th><th>折扣</th><th>操作</th></tr></thead>
+      <tbody>${filteredMembers.map(m=>`<tr>
+        <td class="font-mono">${m.id}</td>
+        <td>${m.name}</td>
+        <td>${m.phone}</td>
+        <td><span class="badge b-purple">${lvlMap[m.level]||m.level}</span></td>
+        <td>${m.points}</td>
+        <td>$${m.balance}</td>
+        <td>${Math.round(m.discount*10)}折</td>
+        <td><div class="flex gap-4">
+          <button class="btn btn-xs btn-ghost" onclick="openModal('editMember','${m.id}')">編輯</button>
+          <button class="btn btn-xs btn-danger" onclick="delMember('${m.id}')">刪除</button>
+        </div></td>
+      </tr>`).join('')}</tbody>
+    </table></div>
+    ${filteredMembers.length===0?`<div class="text-sm" style="padding:16px;text-align:center">無符合條件的會員</div>`:''}
+  </div>`;
+}
+function buildSetZones(){
+return `<div class="card">
+    <div class="card-title">放置區域管理</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+${Store.zones.map((z,i)=>`<div class="drag-item" draggable="true" ondragstart="dragStart(event,${i})" ondrop="drop(event,${i})" ondragover="dragOver(event)" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 10px;display:flex;align-items:center;gap:8px">
+        <span>${z}</span>
+        <button style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:0" onclick="delZone(${i})">✕</button>
+      </div>`).join('')}
+    </div>
+    <div class="flex gap-8">
+      <input class="fi" id="nzInput" placeholder="新增區域（如 E-1）" style="width:180px">
+      <button class="btn btn-primary btn-sm" onclick="addZone()">＋ 新增</button>
+    </div>
+  </div>`;
+}
+function buildSetShop(){
+return `<div class="card">
+    <div class="card-title">店家基本設定</div>
+    <div class="fg"><label class="fl" for="ssName">店名</label><input class="fi" id="ssName" value="${Store.shopName}"></div>
+    <div class="fg"><label class="fl" for="ssPhone">電話</label><input class="fi" id="ssPhone" value="${Store.shopPhone}"></div>
+    <div class="fg"><label class="fl" for="ssNote">收據注意事項</label><textarea class="fi" id="ssNote" rows="3" style="resize:vertical">${Store.shopNote}</textarea></div>
+    <button class="btn btn-primary" onclick="saveShop()">💾 儲存設定</button>
+  </div>`;
+}
+function buildSetReminders(){
+return `<div class="card">
+    <div class="card-title">⏰ 被胎清洗提醒設定</div>
+    <div class="fg">
+      <label class="fl">提醒週期 (月)</label>
+      <input type="number" class="fi" id="reminderMonths" value="${Store.blanketReminderMonths}" min="1" max="12">
+    </div>
+    <div class="card-title" style="margin-top:16px">📋 被胎清洗記錄</div>
+    <div class="table-wrap" style="max-height:300px;overflow-y:auto">
+      <table>
+        <thead><tr><th>日期</th><th>會員</th><th>備註</th><th>下次提醒</th></tr></thead>
+        <tbody>
+          ${Store.blanketRecords.map(r=>`
+            <tr>
+              <td>${r.date}</td>
+              <td>${r.memberName}</td>
+              <td>${r.remark}</td>
+              <td>${r.nextReminderDate} ${new Date(r.nextReminderDate) <= new Date()?'⚠️':''}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+    <button class="btn btn-primary mt-8" onclick="saveReminderSettings()">💾 儲存提醒設定</button>
+  </div>`;
+}
+// ============================================================
+// MODALS
+// ============================================================
+function buildModal(){
+const m = S.modal;
+const d = S.modalData || {};
+if(m==='newMember') return mWrap('👤 新增會員 (可輸入訂金)', mMemberBody({}, true), `<button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveMember(null)">建立</button>`);
+if(m==='editMember'){
+  const obj = Store.members.find(x=>x.id===d) || {};
+  return mWrap('✏️ 編輯會員', mMemberBody(obj, false), `<button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveMember('${d}')">儲存</button>`);
+}
+if(m==='deposit'){
+  const member = Store.members.find(x=>x.id===d);
+  return mWrap(`💰 補訂金 - ${member?.name}`, `
+    <div class="fg"><label class="fl">訂金金額</label><input type="number" class="fi" id="depositAmount" value="500"></div>
+    <div class="fg"><label class="fl">付款方式</label><select class="fi" id="depositPayment">
+      <option value="cash">現金</option>
+      <option value="member">會員扣款</option>
+    </select></div>
+    <div class="fg"><label class="fl">備註</label><input class="fi" id="depositRemark" placeholder="選填"></div>
+  `, `<button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveDeposit('${d}')">確認收款</button>`);
+}
+if(m==='renewMember'){
+  const member = Store.members.find(x=>x.id===d);
+  return mWrap(`🔄 續會 - ${member?.name}`, `
+    <div class="fg"><label class="fl">續會金額</label><input type="number" class="fi" id="renewAmount" value="300"></div>
+    <div class="fg"><label class="fl">付款方式</label><select class="fi" id="renewPayment">
+      <option value="cash">現金</option>
+      <option value="member">會員扣款</option>
+    </select></div>
+    <div class="fg"><label class="fl">備註</label><input class="fi" id="renewRemark" placeholder="選填"></div>
+  `, `<button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveRenew('${d}')">確認續會</button>`);
+}
+if(m==='blanketReminder'){
+  const member = Store.members.find(x=>x.id===d);
+  return mWrap(`🧺 記錄被胎清洗 - ${member?.name}`, `
+    <div class="fg"><label class="fl">清洗日期</label><input type="date" class="fi" id="blanketDate" value="${todayStr()}"></div>
+    <div class="fg"><label class="fl">備註 (例如:單人棉被)</label><input class="fi" id="blanketRemark" placeholder="輸入被胎描述"></div>
+    <div class="fg"><label class="fl">下次提醒 (自動計算)</label><input type="date" class="fi" id="nextReminderDate" value="${addMonths(todayStr(), Store.blanketReminderMonths)}" readonly></div>
+  `, `<button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveBlanketRecord('${d}')">儲存記錄</button>`);
+}
+if(m==='orderDetail') {
+  const o = Store.orders.find(x=>x.id===d) || {};
+  return mWrap('訂單明細', buildOrderDetailBody(o), `<button class="btn btn-ghost" onclick="closeModal()">關閉</button><button class="btn btn-primary" onclick="reprintOrder('${d}');closeModal()">補印</button>`);
+}
+if(m==='editOrder') {
+  const o = Store.orders.find(x=>x.id===d) || {};
+  return mWrap('編輯訂單', buildEditOrderBody(o), `<button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveEditedOrder('${d}')">儲存並補印</button>`);
+}
+if(m==='transferItem'){
+  const o = Store.orders.find(x=>x.id===d) || {items:[]};
+  return mWrap('轉單項目', buildTransferItemBody(o), `<button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="confirmTransferItem('${d}')">確認轉單</button>`);
+}
+if(m==='setDoneDate') return mWrap('設定已洗好日期與時間', mDateTimeBody('doneDate'), `<button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="confirmUpdStat('${d}','done')">確認</button>`);
+if(m==='setReturnedDate') return mWrap('設定已回件日期與時間', mDateTimeBody('returnDate'), `<button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="confirmUpdStat('${d}','returned')">確認</button>`);
+if(m==='setCollectedDate') return mWrap('設定已取件日期與時間', mDateTimeBody('collectedDate'), `<button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="confirmUpdStat('${d}','collected')">確認</button>`);
+if(m==='setUnpaid') return mWrap('標記欠費', `
+<div class="fg"><label class="fl" for="unpaidRemark">欠費備註</label><input class="fi" id="unpaidRemark" placeholder="欠費原因"></div>
+<div class="fg"><label class="fl" for="unpaidPaid">已收金額（可輸入0）</label><input type="number" class="fi" id="unpaidPaid" value="0" placeholder="本次實收"></div>
+`, `<button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-danger" onclick="confirmSetUnpaid('${d}')">確認欠費</button>`);
+if(m==='paySupplement') {
+  const o = Store.orders.find(x=>x.id===d) || {};
+  return mWrap('補繳欠費', `
+<div class="fg"><label class="fl" for="supplementAmount">本次補繳金額</label><input type="number" class="fi" id="supplementAmount" placeholder="輸入補繳金額"></div>
+<div style="background:var(--bg3);padding:10px;border-radius:6px;margin-bottom:12px">
+  <strong>目前狀態：</strong> 已收 $${o.paidAmount||0} / 應收 $${o.total||0}<br>
+  <small>補足後若達應收金額將自動標記已取件</small>
+</div>
+`, `<button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-success" onclick="confirmPaySupplement('${d}')">確認補繳</button>`);
+}
+if(m==='checkoutPayment') {
+  return mWrap('選擇付款方式', `
+    <div style="margin-bottom:12px">請選擇付款方式</div>
+    <div class="payment-type">
+      <button class="payment-btn ${S.paymentType==='cash'?'active':''}" onclick="S.paymentType='cash';render()">💵 現金</button>
+      <button class="payment-btn ${S.paymentType==='member'?'active':''}" onclick="S.paymentType='member';render()">👤 會員扣款</button>
+    </div>
+    ${S.paymentType==='member'&&S.memberData?`<div class="fg mt-8"><strong>目前餘額：$${S.memberData.balance}</strong></div>`:''}
+    <div class="fg mt-8"><button class="btn btn-warn btn-block" onclick="cancelCheckout()">❌ 取消結帳 (保留購物車)</button></div>
+  `, `<button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-success" onclick="finishCheckout()">確認結帳</button>`);
+}
+if(m==='addProduct') return mWrap('新增商品', mProductBody({}), `<button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveProduct(null)">建立</button>`);
+if(m==='editProduct'){
+  const p = Store.products.find(x=>x.id===d) || {};
+  return mWrap('編輯商品', mProductBody(p), `<button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveProduct('${d}')">儲存</button>`);
+}
+if(m==='addAddon') return mWrap('新增加購項目', mAddonBody({}), `<button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveAddon(null)">建立</button>`);
+if(m==='editAddon'){
+  const a = Store.addons.find(x=>x.id===d) || {};
+  return mWrap('編輯加購項目', mAddonBody(a), `<button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveAddon('${d}')">儲存</button>`);
+}
+return '';
+}
+function mWrap(title,body,footer){
+return `<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <div class="modal-header"><div class="modal-title">${title}</div><button class="modal-close" onclick="closeModal()">✕</button></div>
+      <div class="modal-body">${body}</div>
+      <div class="modal-footer">${footer}</div>
+    </div>
+  </div>`;
+}
+// 會員表單 (新增訂金欄位)
+function mMemberBody(m, showDeposit){
+  const level = m.level || 'gold';
+  const discountVal = m.discount ? Math.round(m.discount*10) : 8;
+  const depositField = showDeposit ? `
+    <div class="fg"><label class="fl">訂金金額 (選填)</label><input type="number" class="fi" id="mfDeposit" value="0"></div>
+    <div class="fg"><label class="fl">訂金付款方式</label><select class="fi" id="mfDepositPayment">
+      <option value="cash">現金</option>
+      <option value="member">會員扣款</option>
+    </select></div>
+  ` : '';
+  return `<div class="fg"><label class="fl">姓名</label><input class="fi" id="mfName" value="${m.name||''}"></div>
+<div class="fg"><label class="fl">手機</label><input class="fi" id="mfPhone" value="${m.phone||''}"></div>
+<div class="fg"><label class="fl">等級</label><select class="fi" id="mfLevel" onchange="toggleSpecialDiscount(this)">
+<option value="gold" ${level==='gold'?'selected':''}>金卡 (8折)</option>
+<option value="silver" ${level==='silver'?'selected':''}>銀卡 (9折)</option>
+<option value="special" ${level==='special'?'selected':''}>特殊折扣</option>
+</select></div>
+<div class="fg" id="specialDiscField" style="${level!=='special'?'display:none':''}"><label class="fl">特殊折扣 (1~10)</label><input type="number" min="1" max="10" step="0.5" class="fi" id="mfDiscount" value="${discountVal}"></div>
+<div class="fg"><label class="fl">點數</label><input type="number" class="fi" id="mfPoints" value="${m.points||0}"></div>
+<div class="fg"><label class="fl">儲值金</label><input type="number" class="fi" id="mfBalance" value="${m.balance||0}"></div>
+${depositField}`;
+}
+function mProductBody(p){
+  return `<div class="fg"><label class="fl">名稱</label><input class="fi" id="pfName" value="${p.name||''}"></div>
+<div class="fg"><label class="fl">類別</label><select class="fi" id="pfCat">
+<option value="walkin" ${p.category==='walkin'?'selected':''}>現場洗</option>
+<option value="professional" ${p.category==='professional'?'selected':''}>專業洗</option>
+<option value="wash" ${p.category==='wash'?'selected':''}>純洗</option>
+<option value="dry" ${p.category==='dry'?'selected':''}>純烘</option>
+<option value="iron" ${p.category==='iron'?'selected':''}>純燙</option>
+</select></div>
+<div class="fg"><label class="fl">單位</label><input class="fi" id="pfUnit" value="${p.unit||'件'}"></div>
+<div class="fg"><label class="fl">價格</label><input type="number" class="fi" id="pfPrice" value="${p.price||0}"></div>
+<div class="fg"><label class="fl">是否為棉被類</label><select class="fi" id="pfBlanket">
+<option value="false" ${!p.isBlanket?'selected':''}>否</option>
+<option value="true" ${p.isBlanket?'selected':''}>是</option>
+</select></div>`;
+}
+function mAddonBody(a){
+  return `<div class="fg"><label class="fl">名稱</label><input class="fi" id="afName" value="${a.name||''}"></div>
+<div class="fg"><label class="fl">價格</label><input type="number" class="fi" id="afPrice" value="${a.price||0}"></div>`;
+}
+function mDateTimeBody(field){
+  return `<div class="fg"><label class="fl">日期</label><input type="date" class="fi" id="mdDate" value="${todayStr()}"></div>
+<div class="fg"><label class="fl">時間</label><input type="time" class="fi" id="mdTime" value="${new Date().toTimeString().slice(0,5)}"></div>`;
+}
+function buildOrderDetailBody(o){
+  if(!o || !Array.isArray(o.items)) return `<div style="color:var(--red);padding:20px">訂單資料異常</div>`;
+  return `<div style="font-size:15px">
+    <div><strong>單號：</strong>${o.orderNum}</div>
+    <div><strong>顧客：</strong>${o.customerName} ${o.memberId?`(${o.memberId})`:''}</div>
+    <div><strong>狀態：</strong><span class="badge b-green">${o.status}</span></div>
+    <div><strong>付款方式：</strong>${o.paymentType==='cash'?'現金':'會員扣款'}</div>
+    <div style="margin:12px 0;border-top:1px solid var(--border);padding-top:8px">
+      ${o.items.map(i=>`<div>${i.name} ×${i.qty}　$${i.price*i.qty}</div>`).join('')}
+    </div>
+    <div><strong>原價：</strong>$${o.origTotal}　<strong>實收：</strong>$${o.total}</div>
+  </div>`;
+}
+function buildEditOrderBody(o){
+return `<div class="fg"><label class="fl" for="editRemark">備註</label><input class="fi" id="editRemark" value="${o.remark||''}"></div>
+<div class="fg"><button class="btn btn-warn btn-block" onclick="openModal('transferItem','${o.id||''}')">轉單項目（可轉多件）</button></div>`;
+}
+function buildTransferItemBody(o){
+  return `<div>
+    <div class="card-title">選擇要轉單的項目（可勾選多件或全部）</div>
+    ${(o.items || []).map((i,idx)=>`<div class="flex items-center gap-8 mb-8">
+      <input type="checkbox" id="transfer${idx}" style="width:20px;height:20px">
+      <label for="transfer${idx}" style="flex:1">${i ? i.name : '未知項目'} ×${i ? i.qty : 0}</label>
+    </div>`).join('')}
+    <div class="fg"><label class="fl" for="transferType">轉到類型</label><select class="fi" id="transferType">
+      <option value="store">S-店內</option>
+      <option value="outsource">P-外包</option>
+    </select></div>
+    <div class="fg"><label class="fl" for="transferToOrder">轉到現有訂單（選填，輸入單號）</label><input class="fi" id="transferToOrder" placeholder="例如 S0005 或 7"></div>
+  </div>`;
+}
+// ============================================================
+// 結帳取消（保留購物車）
+// ============================================================
+function cancelCheckout(){
+  S.checkoutCancelled = true;
+  closeModal();
+  // 不重新渲染購物車，保留原狀
+}
+// ============================================================
+// 轉單功能
+// ============================================================
+function confirmTransferItem(id){
+const checkboxes = document.querySelectorAll('[id^=transfer]');
+const selectedItems = [];
+checkboxes.forEach((cb, idx) => { if(cb.checked) selectedItems.push(idx); });
+if(selectedItems.length === 0) { alert('請至少勾選一件要轉單的衣服'); return; }
+const newType = document.getElementById('transferType').value;
+const toOrderNum = document.getElementById('transferToOrder').value.trim();
+const o = Store.orders.find(x=>x.id===id);
+if(!o) return;
+const transferredItems = selectedItems.map(idx => o.items[idx]).filter(item => item && typeof item.price === 'number');
+o.items = o.items.filter((_,idx) => !selectedItems.includes(idx));
+const safeTotal = (arr) => arr.reduce((s, i) => s + (i && typeof i.price === 'number' ? i.price * (i.qty || 1) : 0), 0);
+o.total = safeTotal(o.items);
+o.origTotal = o.total;
+o.paidAmount = o.paidAmount || o.total;
+if(toOrderNum) {
+  const targetOrder = Store.orders.find(x=>x.orderNum===toOrderNum);
+  if(targetOrder) {
+    targetOrder.items = [...targetOrder.items, ...transferredItems];
+    targetOrder.total = safeTotal(targetOrder.items);
+    targetOrder.origTotal = targetOrder.total;
+    targetOrder.blanketCount = (targetOrder.blanketCount || 0) + transferredItems.reduce((s,item)=>s + (item.isBlanket ? item.qty : 0), 0);
+    if(targetOrder.status==='unpaid') targetOrder.paidAmount = targetOrder.paidAmount || 0;
+  } else {
+    alert('找不到該單號，請確認輸入正確');
+    return;
+  }
+} else {
+  const newOrderNum = newType === 'store' ? Store.getNextS() : Store.getNextP();
+  const newTotal = safeTotal(transferredItems);
+  const newOrder = {
+    id: uid(),
+    orderNum: newOrderNum,
+    type: newType,
+    status: 'pending',
+    customerName: o.customerName,
+    phone: o.phone,
+    memberId: o.memberId,
+    items: transferredItems,
+    total: newTotal,
+    origTotal: newTotal,
+    discount: 1,
+    date: todayStr(),
+    pickupDate: o.pickupDate,
+    zone: o.zone,
+    blanketCount: transferredItems.reduce((s,item)=>s + (item.isBlanket ? item.qty : 0), 0),
+    remark: '轉單自 ' + o.orderNum,
+    paidAmount: 0,
+    paymentType: 'cash',
+    memberBalanceUsed: 0
+  };
+  Store.addOrder(newOrder);
+}
+closeModal();
+render();
+reprintOrder(id);
+}
+// ============================================================
+// 結帳功能
+// ============================================================
+function checkout(){
+if(S.cartItems.length===0) return;
+S.modal = 'checkoutPayment';
+S.modalData = {};
+render();
+}
+function finishCheckout(){
+  if(S.cartItems.length===0) return;
+  const items=S.cartItems;
+  const groups = {walkin: [], store: [], outsource: []};
+  items.forEach(i => {
+    const t = typeFromMode(i.mode);
+    groups[t].push(i);
+  });
+  const createdOrders = [];
+  const customerName = S.memberData?.name || S.guestName || '非會員';
+  const phone = S.memberData?.phone || S.guestPhone || '';
+  const memberId = S.memberData?.id || null;
+  let disc = getDiscount() * S.overrideDiscount;
+  Object.keys(groups).forEach(type => {
+    const gitems = groups[type];
+    if (gitems.length === 0) return;
+    const {gross, discountable} = calculateTotals(gitems);
+    const nonDiscountable = gross - discountable;
+    const gfinal = Math.round(discountable * disc) + nonDiscountable;
+    const blanketCount = gitems.filter(i=>i.isBlanket).reduce((s,i)=>s+i.qty,0);
+    let orderNum;
+    if (type === 'walkin') orderNum = Store.getNextDailyNum();
+    else if (type === 'store') orderNum = Store.getNextS();
+    else if (type === 'outsource') orderNum = Store.getNextP();
+    const order = {
+      id: uid(),
+      orderNum,
+      type,
+      status: 'pending',
+      customerName,
+      phone,
+      memberId,
+      items: gitems.map(i=>({name:i.name,price:i.price,qty:i.qty,addons:i.addons||[],isBlanket:!!i.isBlanket})),
+      total: gfinal,
+      origTotal: gross,
+      discount: disc,
+      date: todayStr(),
+      timestamp: new Date().toISOString(),
+      pickupDate: S.pickupDate,
+      zone: S.zone,
+      blanketCount,
+      remark: S.remark,
+      paidAmount: gfinal,
+      paymentType: S.paymentType,
+      memberBalanceUsed: S.paymentType==='member' ? gfinal : 0
+    };
+    if (type === 'outsource') {
+      order.outsendDate = S.outsendDate;
+      order.returnDate = S.returnDate;
+    }
+    Store.addOrder(order);
+    createdOrders.push(order);
+    if(S.paymentType==='member' && S.memberData){
+      S.memberData.balance = Math.max(0, S.memberData.balance - gfinal);
+    }
+  });
+  doPrintMultiple(createdOrders, customerName, phone);
+  S.cartItems=[]; S.remark='';
+  S.overrideDiscount=1;
+  S.paymentType='cash';
+  closeModal();
+  render();
+}
+function doPrintMultiple(orders, customerName, phone) {
+let printContent = '';
+printContent += buildPrintSection('客戶存根聯', orders, true, customerName, phone);
+orders.forEach(o => {
+printContent += buildPrintSection(`店裡存根聯 - ${modeLabel(o.type)}`, [o], false, customerName, phone);
+  });
+const outsourceOrder = orders.find(o => o.type === 'outsource');
+if (outsourceOrder) {
+printContent += buildPrintSection('外包存根聯', [outsourceOrder], false, customerName, phone);
+  }
+document.getElementById('printArea').innerHTML = printContent;
+window.print();
+}
+function buildPrintSection(title, orders, isCustomer, customerName, phone) {
+let itemRows = '';
+let total = 0;
+let origTotal = 0;
+let discSave = 0;
+let numSections = '';
+let dates = '';
+orders.forEach(o => {
+o.items.forEach(i => {
+const addStr = (i.addons||[]).length > 0 ? ` (加：${i.addons.map(a=>a.name).join('、')})` : '';
+itemRows += `<div class="rrow"><span>${i.name}×${i.qty}${addStr}</span><span>$${i.price*i.qty}</span></div>`;
+    });
+total += o.total;
+origTotal += o.origTotal;
+discSave += o.origTotal - o.total;
+if (isCustomer) {
+numSections += `<div class="rrow"><span>${modeLabel(o.type)} 編號</span><span>${o.orderNum}</span></div>`;
+dates += o.pickupDate ? `<div class="rrow"><span>${modeLabel(o.type)} 取件日</span><span>${o.pickupDate}</span></div>` : '';
+    }
+  });
+const disc = orders[0]?.discount || 1;
+const memberPts = S.memberData ? `<div class="rrow"><span>會員剩餘點數</span><span>${S.memberData.points}點</span></div>` : '';
+const doneDateRow = orders.map(o => o.doneDate ? `<div class="rrow"><span>已洗好</span><span>${o.doneDate}</span></div>` : '').join('');
+const returnedDateRow = orders.map(o => o.returnDate ? `<div class="rrow"><span>已回件</span><span>${o.returnDate}</span></div>` : '').join('');
+const collectedDateRow = orders.map(o => o.collectedDate ? `<div class="rrow"><span>已取件</span><span>${o.collectedDate}</span></div>` : '').join('');
+let numStr = orders.map(o => o.orderNum).join(' / ');
+return `
+    <div class="print-section">
+      <div class="rshop">${Store.shopName}</div>
+      <div class="rphone">${Store.shopPhone}</div>
+      <hr class="rhr">
+      <div class="rtitle">${title}</div>
+      <hr class="rhr">
+      <div class="rrow"><span>顧客</span><span>${customerName}</span></div>
+${phone?`<div class="rrow"><span>手機</span><span>${phone}</span></div>`:''}
+${memberPts}
+      <hr class="rhr">
+${itemRows}
+      <hr class="rhr">
+${origTotal!==total?`<div class="rrow"><span>折扣（${Math.round(disc*10)}折）</span><span style="color:#c00">-$${discSave}</span></div>`:''}
+      <div class="rrow" style="font-weight:700;font-size:14px"><span>實收金額</span><span>$${total}</span></div>
+      <hr class="rhr">
+      <div class="rrow"><span>取件編號</span><span></span></div>
+      <div class="rnum">${numStr}</div>
+${numSections}
+${dates}
+${orders[0]?.zone?`<div class="rrow"><span>放置位置</span><span>${orders[0].zone}</span></div>`:''}
+${doneDateRow}
+${returnedDateRow}
+${collectedDateRow}
+${orders[0]?.remark?`<div class="rrow"><span>備註</span><span>${orders[0].remark}</span></div>`:''}
+      <div class="rnote">${Store.shopNote}</div>
+      <div class="rdate">日期：${todayStr()}</div>
+    </div>`;
+}
+function reprintOrder(id){
+const o=Store.orders.find(x=>x.id===id);
+if(o) doPrintMultiple([o], o.customerName, o.phone);
+}
+// ============================================================
+// 補訂金、續會功能
+// ============================================================
+function saveDeposit(memberId){
+const amount = parseInt(document.getElementById('depositAmount')?.value) || 0;
+const paymentType = document.getElementById('depositPayment')?.value;
+const remark = document.getElementById('depositRemark')?.value || '';
+const member = Store.members.find(m=>m.id===memberId);
+if(amount <= 0){ alert('請輸入有效金額'); return; }
+if(paymentType === 'member' && member){
+  if(member.balance < amount){ alert('會員餘額不足'); return; }
+  member.balance -= amount;
+}
+// 新增交易記錄
+const transaction = {
+  id: 'TR' + Date.now(),
+  date: todayStr(),
+  type: 'deposit',
+  amount,
+  paymentType,
+  memberId,
+  memberName: member.name,
+  remark: remark || '補訂金'
+};
+Store.addTransaction(transaction);
+alert('訂金收款完成！');
+closeModal();
+render();
+}
+function saveRenew(memberId){
+const amount = parseInt(document.getElementById('renewAmount')?.value) || 0;
+const paymentType = document.getElementById('renewPayment')?.value;
+const remark = document.getElementById('renewRemark')?.value || '';
+const member = Store.members.find(m=>m.id===memberId);
+if(amount <= 0){ alert('請輸入有效金額'); return; }
+if(paymentType === 'member' && member){
+  if(member.balance < amount){ alert('會員餘額不足'); return; }
+  member.balance -= amount;
+}
+// 更新會員續會日期
+member.lastRenewDate = todayStr();
+// 新增交易記錄
+const transaction = {
+  id: 'TR' + Date.now(),
+  date: todayStr(),
+  type: 'membership_renew',
+  amount,
+  paymentType,
+  memberId,
+  memberName: member.name,
+  remark: remark || '續會費'
+};
+Store.addTransaction(transaction);
+alert('續會完成！');
+closeModal();
+render();
+}
+// ============================================================
+// 被胎提醒功能
+// ============================================================
+function saveBlanketRecord(memberId){
+const date = document.getElementById('blanketDate')?.value;
+const remark = document.getElementById('blanketRemark')?.value || '被胎清洗';
+const nextDate = addMonths(date, Store.blanketReminderMonths);
+const member = Store.members.find(m=>m.id===memberId);
+if(!date){ alert('請選擇日期'); return; }
+const record = {
+  id: 'BR' + Date.now(),
+  memberId,
+  memberName: member.name,
+  date,
+  nextReminderDate: nextDate,
+  remark
+};
+Store.addBlanketRecord(record);
+alert('被胎清洗記錄已儲存，下次提醒日期：' + nextDate);
+closeModal();
+render();
+}
+function saveReminderSettings(){
+const months = parseInt(document.getElementById('reminderMonths')?.value) || 2;
+Store.updateBlanketReminderMonths(months);
+alert('提醒設定已更新');
+render();
+}
+// ============================================================
+// 其他動作
+// ============================================================
+function saveEditedOrder(id){
+  const remarkEl = document.getElementById('editRemark');
+  const remark = remarkEl ? remarkEl.value.trim() : '';
+  const o = Store.orders.find(x => x.id === id);
+  if(o) o.remark = remark;
+  closeModal();
+  reprintOrder(id);
+  render();
+}
+function confirmUpdStat(id,s){
+const date = document.getElementById('mdDate')?.value;
+const time = document.getElementById('mdTime')?.value;
+if(!date || !time) { alert('請選擇日期與時間'); return; }
+let extra = {};
+const dt = date + ' ' + time;
+if(s==='done') extra.doneDate = dt;
+if(s==='returned') extra.returnDate = dt;
+if(s==='collected') extra.collectedDate = dt;
+Store.updateOrderStatus(id,s,extra);
+closeModal();
+render();
+}
+function confirmSetUnpaid(id){
+const remark = document.getElementById('unpaidRemark')?.value || '未繳款';
+const paid = parseInt(document.getElementById('unpaidPaid')?.value) || 0;
+const o = Store.orders.find(x=>x.id===id);
+if(o){
+  o.status = 'unpaid';
+  o.remark = remark;
+  o.paidAmount = paid;
+}
+closeModal();
+render();
+}
+function confirmPaySupplement(id){
+const amt = parseInt(document.getElementById('supplementAmount')?.value) || 0;
+const o = Store.orders.find(x=>x.id===id);
+if(o && amt > 0){
+  o.paidAmount = (o.paidAmount || 0) + amt;
+  if(o.paidAmount >= o.total){
+    o.status = 'collected';
+    o.collectedDate = todayStr() + ' ' + new Date().toTimeString().slice(0,5);
+  }
+}
+closeModal();
+render();
+}
+// ============================================================
+// CRUD + 其他
+// ============================================================
+function saveMember(existId){
+const name=document.getElementById('mfName')?.value?.trim();
+const phone=document.getElementById('mfPhone')?.value?.trim();
+const level=document.getElementById('mfLevel')?.value;
+const points=parseInt(document.getElementById('mfPoints')?.value)||0;
+const balance=parseInt(document.getElementById('mfBalance')?.value)||0;
+let discount;
+if (level === 'gold') discount = 0.8;
+else if (level === 'silver') discount = 0.9;
+else {
+const discSelect = document.getElementById('mfDiscount');
+discount = discSelect ? parseFloat(discSelect.value) / 10 : 0.75;
+}
+if(!name || !phone){ alert('請填寫姓名與手機'); return; }
+if(existId){
+const m=Store.members.find(x=>x.id===existId);
+if(m){
+m.name=name;
+m.phone=phone;
+m.level=level;
+m.points=points;
+m.balance=balance;
+m.discount=discount;
+    }
+  } else {
+const id=String(Store.members.length+1).padStart(3,'0');
+const joinDate = todayStr();
+const joinAmount = 1000; // 預設入會費
+// 處理訂金
+const deposit = parseInt(document.getElementById('mfDeposit')?.value) || 0;
+const depositPayment = document.getElementById('mfDepositPayment')?.value;
+Store.members.push({id,name,phone,level,points,discount,balance,joinDate,lastRenewDate:joinDate,joinAmount});
+// 新增入會交易
+Store.addTransaction({
+  id: 'TR' + Date.now(),
+  date: todayStr(),
+  type: 'membership_join',
+  amount: joinAmount,
+  paymentType: deposit > 0 ? depositPayment : 'cash',
+  memberId: id,
+  memberName: name,
+  remark: '入會費'
+});
+// 如果有訂金，另外記錄
+if(deposit > 0){
+  Store.addTransaction({
+    id: 'TR' + (Date.now()+1),
+    date: todayStr(),
+    type: 'deposit',
+    amount: deposit,
+    paymentType: depositPayment,
+    memberId: id,
+    memberName: name,
+    remark: '入會訂金'
+  });
+}
+  }
+closeModal();
+render();
+}
+function delMember(id){ if(confirm('確定刪除此會員？')){ Store.members=Store.members.filter(m=>m.id!==id); render() } }
+function saveProduct(existId){
+const name=document.getElementById('pfName')?.value?.trim();
+const cat=document.getElementById('pfCat')?.value;
+const unit=document.getElementById('pfUnit')?.value||'件';
+const price=parseInt(document.getElementById('pfPrice')?.value)||0;
+const isBlanket=document.getElementById('pfBlanket')?.value==='true';
+if(!name){ alert('請填寫名稱'); return }
+if(existId){
+const p=Store.products.find(x=>x.id===existId);
+if(p){ p.name=name;p.category=cat;p.unit=unit;p.price=price;p.isBlanket=isBlanket }
+  } else {
+Store.products.push({id:'PRD'+Date.now(),name,category:cat,unit,price,isBlanket});
+  }
+closeModal();
+render();
+}
+function delProduct(id){ if(confirm('確定刪除此商品？')){ Store.products=Store.products.filter(p=>p.id!==id); render() } }
+function saveAddon(existId){
+const name=document.getElementById('afName')?.value?.trim();
+const price=parseInt(document.getElementById('afPrice')?.value)||0;
+if(!name){ alert('請填寫名稱'); return }
+if(existId){
+const a=Store.addons.find(x=>x.id===existId);
+if(a){ a.name=name;a.price=price }
+  } else {
+Store.addons.push({id:'ADD'+Date.now(),name,price});
+  }
+closeModal();
+render();
+}
+function delAddon(id){ if(confirm('確定刪除此加購項目？')){ Store.addons=Store.addons.filter(a=>a.id!==id); render() } }
+function addZone(){ const v=document.getElementById('nzInput')?.value?.trim(); if(v&&!Store.zones.includes(v)){ Store.zones.push(v); render() } }
+function delZone(i){ Store.zones.splice(i,1); render() }
+function dragStart(ev,i){ ev.dataTransfer.setData('text/plain',i); }
+function dragOver(ev){ ev.preventDefault(); }
+function drop(ev,targetI){
+const sourceI = ev.dataTransfer.getData('text/plain');
+if(sourceI === '') return;
+const temp = Store.zones[sourceI];
+Store.zones.splice(sourceI,1);
+Store.zones.splice(targetI,0,temp);
+render();
+}
+function saveShop(){
+Store.shopName=document.getElementById('ssName')?.value||Store.shopName;
+Store.shopPhone=document.getElementById('ssPhone')?.value||Store.shopPhone;
+Store.shopNote=document.getElementById('ssNote')?.value||Store.shopNote;
+alert('設定已儲存！'); render();
+}
+function updateZone(id,v){ const o=Store.orders.find(x=>x.id===id); if(o) o.zone=v; }
+function delOrder(id){ if(confirm('確定刪除此訂單？')){ Store.orders=Store.orders.filter(x=>x.id!==id); render() } }
+function revertOrderStatus(id){
+Store.revertOrderStatus(id);
+render();
+}
+function go(p){ S.page=p; render() }
+function openModal(m,d){ S.modal=m; S.modalData=d||{}; render() }
+function closeModal(){ S.modal=null; S.modalData={}; render() }
+function setCT(t){ S.customerType=t; S.memberData=null; S.memberSearch=''; S.guestName=''; S.guestPhone=''; S.overrideDiscount=1; S.guestDiscount=null; render() }
+function resetCustomer(){ S.customerType=null; S.memberData=null; S.cartItems=[]; S.overrideDiscount=1; render() }
+function searchMember(){
+const q=document.getElementById('msInput')?.value||S.memberSearch;
+const m=Store.findMember(q);
+if(m){ S.memberData=m; render() }
+else {
+const el=document.getElementById('msResult');
+if(el) el.innerHTML=`<div class="text-sm text-red">找不到會員，請確認姓名/手機/編號</div>`;
+  }
+}
+function toggleSpecialDiscount(sel){
+  const f = document.getElementById('specialDiscField');
+  if(f) f.style.display = sel.value==='special' ? 'block' : 'none';
+}
+function getDiscount(){
+if(S.memberData) return S.memberData.discount;
+if(S.customerType==='special') return S.specialDiscount || 1;
+if(S.customerType==='guest') return S.guestDiscount || 1;
+return 1;
+}
+function addToCart(pid){
+const p=Store.products.find(x=>x.id===pid);
+if(!p) return;
+S.cartItems.push({id:pid,name:p.name,price:p.price,qty:1,mode:S.currentMode,addons:[],zone:S.zone,pickupDate:S.pickupDate,isBlanket:p.isBlanket||false,isAddon:false});
+render();
+}
+function addAddonAsItem(aid){
+const a=Store.addons.find(x=>x.id===aid);
+if(!a) return;
+S.cartItems.push({id:'addon'+aid,name:`加購: ${a.name}`,price:a.price,qty:1,mode:'addon',addons:[],zone:S.zone,pickupDate:S.pickupDate,isBlanket:false,isAddon:true});
+render();
+}
+function removeItem(idx){ S.cartItems.splice(idx,1); render() }
+function chgQty(idx,d){ S.cartItems[idx].qty=Math.max(1,S.cartItems[idx].qty+d); render() }
+function updateItemPrice(idx,v){ S.cartItems[idx].price = parseInt(v)||0; render() }
+function clearCart(){ if(confirm('確定清除所有項目？')){ S.cartItems=[]; S.remark=''; render() } }
+// ============================================================
+// 鍵盤 + 啟動
+// ============================================================
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&S.modal) closeModal() });
+render();
+</script>
+</body>
+</html>
