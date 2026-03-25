@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>蓋好賣 - 後台用戶審核</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);
+color: #1a202c;
+line-height: 1.6;
+min-height: 100vh;
+}
+.sidebar {
+width: 280px; height: 100vh; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
+position: fixed; padding: 40px 20px; box-shadow: 4px 0 24px rgba(0,0,0,0.1); z-index: 100;
+}
+.logo { font-size: 2.4rem; font-weight: 800; margin-bottom: 50px; text-align: center;
+background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);
+-webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.sidebar ul { list-style: none; }
+.sidebar ul li {
+padding: 18px 20px; margin-bottom: 12px; font-size: 1.05rem; cursor: pointer;
+border-radius: 12px; transition: all 0.3s cubic-bezier(0.4,0.2,1); color: #4a5568; font-weight: 500;
+}
+.sidebar ul li:hover { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: white;
+transform: translateX(5px); box-shadow: 0 4px 12px rgba(30,58,138,0.4);
+}
+.sidebar ul li.active { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: white;
+box-shadow: 0 4px 12px rgba(30,58,138,0.4);
+}
+.content { margin-left: 280px; padding: 60px 60px; min-height: 100vh; }
+.header { margin-bottom: 50px; }
+.header h1 { color: white; font-size: 2.4rem; font-weight: 700; margin-bottom: 12px; text-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+.header p { color: rgba(255,255,255,0.9); font-size: 1.1rem; }
+.stats-grid {
+display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; margin-bottom: 40px;
+}
+.stat-card {
+background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 30px;
+border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+border: 1px solid rgba(255,255,255,0.3);
+}
+.stat-value { font-size: 2.5rem; font-weight: 800; margin-bottom: 8px; }
+.stat-value.active { color: #10b981; }
+.stat-value.pending { color: #f59e0b; }
+.stat-value.expiring { color: #ef4444; }
+.stat-label { color: #718096; font-size: 0.95rem; font-weight: 600; }
+.card {
+background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 40px;
+border-radius: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); margin-bottom: 30px;
+border: 1px solid rgba(255,255,255,0.3);
+}
+.card h2 { font-size: 1.8rem; margin-bottom: 30px; color: #2d3748; font-weight: 700; }
+.search-bar {
+display: flex; gap: 15px; margin-bottom: 30px; flex-wrap: wrap;
+}
+.search-bar input {
+flex: 1; padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px;
+font-size: 1rem; transition: all 0.2s; min-width: 250px;
+}
+.search-bar input:focus { outline: none; border-color: #1e3a8a; box-shadow: 0 0 0 3px rgba(30,58,138,0.1); }
+.search-bar select {
+padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px;
+font-size: 1rem; min-width: 150px; cursor: pointer;
+}
+.btn {
+padding: 16px 28px; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600;
+cursor: pointer; transition: all 0.3s; white-space: nowrap;
+}
+.btn-primary { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: white;
+box-shadow: 0 4px 12px rgba(30,58,138,0.3);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(30,58,138,0.4); }
+.btn-success { background: #10b981; color: white; padding: 10px 20px; font-size: 0.9rem; }
+.btn-success:hover { background: #059669; }
+.btn-danger { background: #ef4444; color: white; padding: 10px 20px; font-size: 0.9rem; }
+.btn-danger:hover { background: #dc2626; }
+.btn-warning { background: #f59e0b; color: white; }
+.btn-warning:hover { background: #d97706; }
+.btn-info { background: #3b82f6; color: white; padding: 10px 20px; font-size: 0.9rem; }
+.btn-info:hover { background: #2563eb; }
+.user-table {
+width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden;
+}
+.user-table thead {
+background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+}
+.user-table th {
+padding: 18px 20px; text-align: left; font-weight: 700; color: #2d3748; font-size: 0.95rem;
+}
+.user-table td {
+padding: 18px 20px; border-top: 1px solid #e2e8f0; font-size: 0.95rem;
+}
+.user-table tbody tr {
+transition: all 0.2s;
+}
+.user-table tbody tr:hover {
+background: #f7fafc;
+}
+.user-table tbody tr.expiring-soon {
+background: #fef3c7;
+}
+.status-badge {
+display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;
+}
+.status-active { background: #d1fae5; color: #065f46; }
+.status-pending { background: #fef3c7; color: #92400e; }
+.category-badge {
+display: inline-block; padding: 4px 12px; border-radius: 16px; font-size: 0.85rem; font-weight: 600;
+margin-right: 5px;
+}
+.category-房仲 { background: #dbeafe; color: #1e40af; }
+.category-車商 { background: #fce7f3; color: #9f1239; }
+.category-電商 { background: #dcfce7; color: #166534; }
+.category-團購族 { background: #fed7aa; color: #9a3412; }
+.action-buttons {
+display: flex; gap: 8px; flex-wrap: wrap;
+}
+.modal {
+display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);
+z-index: 1000; align-items: center; justify-content: center;
+}
+.modal.show { display: flex; }
+.modal-content {
+background: white; padding: 40px; border-radius: 24px; max-width: 600px; width: 90%;
+box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto;
+}
+.modal-content h3 { font-size: 1.6rem; margin-bottom: 20px; color: #2d3748; }
+.form-group { margin-bottom: 25px; }
+.form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #2d3748; }
+.form-group input, .form-group select, .form-group textarea {
+width: 100%; padding: 14px; border: 2px solid #e2e8f0; border-radius: 10px;
+font-size: 1rem; transition: all 0.2s; font-family: inherit;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+outline: none; border-color: #1e3a8a; box-shadow: 0 0 0 3px rgba(30,58,138,0.1);
+}
+.form-group textarea {
+min-height: 100px; resize: vertical;
+}
+.category-checkboxes {
+display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 10px;
+}
+.category-checkboxes label {
+padding: 12px; background: #f7fafc; border-radius: 10px; cursor: pointer;
+display: flex; align-items: center; gap: 10px; border: 2px solid #e2e8f0;
+transition: all 0.2s;
+}
+.category-checkboxes label:hover {
+background: #edf2f7; border-color: #cbd5e0;
+}
+.category-checkboxes input[type="checkbox"]:checked + span {
+font-weight: 700; color: #1e3a8a;
+}
+.modal-buttons {
+display: flex; gap: 12px; justify-content: flex-end; margin-top: 30px;
+}
+.btn-secondary { background: #e2e8f0; color: #4a5568; }
+.btn-secondary:hover { background: #cbd5e0; }
+.expiry-warning {
+color: #ef4444; font-weight: 600; font-size: 0.9rem;
+}
+.expiry-normal {
+color: #718096; font-size: 0.9rem;
+}
+.info-box {
+background: #e0e7ff; padding: 15px; border-radius: 10px; margin-bottom: 20px;
+color: #1e3a8a; font-size: 0.95rem; border-left: 4px solid #1e3a8a;
+}
+</style>
+</head>
+<body>
+<div class="sidebar">
+<div class="logo">👑 後台管理</div>
+<ul>
+<li class="active">✅ 用戶審核</li>
+<!-- <li onclick="alert('功能開發中')">📊 數據統計</li>
+<li onclick="alert('功能開發中')">⚙️ 系統設定</li>
+<li onclick="alert('功能開發中')">📝 操作日誌</li> -->
+<li onclick="window.location.href='index.html'">🔙 返回前台</li>
+</ul>
+</div>
+<div class="content">
+<div class="header">
+<h1>用戶審核系統</h1>
+<p>審核新用戶申請、管理到期日與用戶分類</p>
+</div>
+<div class="stats-grid">
+<div class="stat-card">
+<div class="stat-value active" id="activeCount">0</div>
+<div class="stat-label">已啟用用戶</div>
+</div>
+<div class="stat-card">
+<div class="stat-value pending" id="pendingCount">0</div>
+<div class="stat-label">待審核用戶</div>
+</div>
+<div class="stat-card">
+<div class="stat-value expiring" id="expiringCount">0</div>
+<div class="stat-label">一週內到期</div>
+</div>
+</div>
+<div class="card">
+<h2>用戶列表</h2>
+<div class="search-bar">
+<input type="text" id="searchInput" placeholder="搜尋用戶名稱、Email 或電話..." oninput="filterUsers()">
+<select id="statusFilter" onchange="filterUsers()">
+<option value="all">全部狀態</option>
+<option value="active">已啟用</option>
+<option value="pending">待審核</option>
+</select>
+<select id="categoryFilter" onchange="filterUsers()">
+<option value="all">全部類別</option>
+<option value="房仲">🏠 房仲</option>
+<option value="車商">🚗 車商</option>
+<option value="電商">🛍️ 電商</option>
+<option value="團購族">👥 團購族</option>
+</select>
+<button class="btn btn-warning" onclick="showExpiringUsers()">⚠️ 近一週到期通知</button>
+<button class="btn btn-primary" onclick="openAddUserModal()">➕ 新增用戶</button>
+</div>
+<div style="overflow-x: auto;">
+<table class="user-table">
+<thead>
+<tr>
+<th>用戶ID</th>
+<th>用戶名稱</th>
+<th>客戶類別</th>
+<th>Email</th>
+<th>電話</th>
+<th>到期日</th>
+<th>狀態</th>
+<th>帳號限制</th>
+<th>註冊日期</th>
+<th>操作</th>
+</tr>
+</thead>
+<tbody id="userTableBody">
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- 新增/編輯用戶 Modal -->
+<div class="modal" id="userModal">
+<div class="modal-content">
+<h3 id="modalTitle">新增用戶</h3>
+<div class="form-group">
+<label>用戶名稱 *</label>
+<input type="text" id="userName" placeholder="請輸入用戶名稱">
+</div>
+<div class="form-group">
+<label>Email *</label>
+<input type="email" id="userEmail" placeholder="請輸入 Email">
+</div>
+<div class="form-group">
+<label>電話</label>
+<input type="tel" id="userPhone" placeholder="請輸入電話號碼">
+</div>
+<div class="form-group">
+<label>客戶類別 *（可多選）</label>
+<div class="category-checkboxes">
+<label>
+<input type="checkbox" value="房仲" onchange="updateCategorySelection()">
+<span>🏠 房仲</span>
+</label>
+<label>
+<input type="checkbox" value="車商" onchange="updateCategorySelection()">
+<span>🚗 車商</span>
+</label>
+<label>
+<input type="checkbox" value="電商" onchange="updateCategorySelection()">
+<span>🛍️ 電商</span>
+</label>
+<label>
+<input type="checkbox" value="團購族" onchange="updateCategorySelection()">
+<span>👥 團購族</span>
+</label>
+</div>
+</div>
+<div class="form-group">
+<label>到期日 *</label>
+<input type="date" id="userExpiry">
+</div>
+<div class="form-group">
+<label>帳號數量限制 *</label>
+<select id="accountLimit" onchange="toggleCustomLimit()">
+<option value="1">1</option>
+<option value="15">15</option>
+<option value="30">30</option>
+<option value="unlimited">無限</option>
+<option value="custom">自訂</option>
+</select>
+<input type="number" id="customLimit" placeholder="輸入自訂數量" style="display:none; margin-top:10px;" min="1">
+</div>
+<div class="form-group">
+<label>狀態 *</label>
+<select id="userStatus">
+<option value="pending">待審核</option>
+<option value="active">已啟用</option>
+</select>
+</div>
+<div class="form-group">
+<label>備註</label>
+<textarea id="userNote" placeholder="選填，例如：特殊需求、合約備註等"></textarea>
+</div>
+<div class="modal-buttons">
+<button class="btn btn-secondary" onclick="closeUserModal()">取消</button>
+<button class="btn btn-primary" onclick="saveUser()">儲存</button>
+</div>
+</div>
+</div>
+<!-- 延期 Modal -->
+<div class="modal" id="extendModal">
+<div class="modal-content">
+<h3>延長到期日</h3>
+<div class="info-box">
+<strong id="extendUserInfo"></strong>
+</div>
+<div class="form-group">
+<label>目前到期日</label>
+<input type="text" id="currentExpiry" disabled style="background:#f7fafc;">
+</div>
+<div class="form-group">
+<label>新到期日 *</label>
+<input type="date" id="newExpiry">
+</div>
+<div class="form-group">
+<label>延期原因</label>
+<textarea id="extendReason" placeholder="選填，例如：續約、補償等"></textarea>
+</div>
+<div class="modal-buttons">
+<button class="btn btn-secondary" onclick="closeExtendModal()">取消</button>
+<button class="btn btn-primary" onclick="confirmExtend()">確認延期</button>
+</div>
+</div>
+</div>
+<!-- 到期通知 Modal -->
+<div class="modal" id="notifyModal">
+<div class="modal-content">
+<h3>⚠️ 一週內到期用戶通知</h3>
+<div class="info-box">
+以下用戶將在一週內到期，建議主動聯繫續約
+</div>
+<div id="expiringList" style="max-height:400px;overflow-y:auto;"></div>
+<div class="modal-buttons">
+<button class="btn btn-secondary" onclick="closeNotifyModal()">關閉</button>
+<button class="btn btn-primary" onclick="exportExpiringUsers()">📋 匯出名單</button>
+</div>
+</div>
+</div>
+<script>
+let users = [];
+let editingUserId = null;
+let extendingUserId = null;
+// 初始化示範數據
+function initUsers() {
+const today = new Date();
+users = [
+{
+id: 1, name: '王小明房仲', email: 'wang@example.com', phone: '0912345678',
+categories: ['房仲'], status: 'active', accountLimit: '1',
+expiry: new Date(today.getTime() + 3*24*60*60*1000).toISOString().split('T')[0],
+date: '2024-01-15', note: '大型房仲公司'
+        },
+{
+id: 2, name: '李美麗車行', email: 'lee@example.com', phone: '0923456789',
+categories: ['車商'], status: 'active', accountLimit: '15',
+expiry: new Date(today.getTime() + 25*24*60*60*1000).toISOString().split('T')[0],
+date: '2024-02-20', note: ''
+        },
+{
+id: 3, name: '陳大偉商城', email: 'chen@example.com', phone: '0934567890',
+categories: ['電商'], status: 'pending', accountLimit: '30',
+expiry: new Date(today.getTime() + 60*24*60*60*1000).toISOString().split('T')[0],
+date: '2024-11-01', note: '新申請待審核'
+        },
+{
+id: 4, name: '林小芳團購', email: 'lin@example.com', phone: '0945678901',
+categories: ['團購族'], status: 'active', accountLimit: 'unlimited',
+expiry: new Date(today.getTime() + 5*24*60*60*1000).toISOString().split('T')[0],
+date: '2024-10-15', note: ''
+        },
+{
+id: 5, name: '張志明多角化', email: 'chang@example.com', phone: '0956789012',
+categories: ['房仲', '電商'], status: 'active', accountLimit: '50',
+expiry: new Date(today.getTime() + 90*24*60*60*1000).toISOString().split('T')[0],
+date: '2024-09-10', note: '同時經營房仲與電商'
+        },
+];
+renderUsers();
+updateStats();
+}
+function renderUsers() {
+const tbody = document.getElementById('userTableBody');
+const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+const statusFilter = document.getElementById('statusFilter').value;
+const categoryFilter = document.getElementById('categoryFilter').value;
+const filtered = users.filter(user => {
+const matchSearch = user.name.toLowerCase().includes(searchTerm) ||
+user.email.toLowerCase().includes(searchTerm) ||
+user.phone.includes(searchTerm);
+const matchStatus = statusFilter === 'all' || user.status === statusFilter;
+const matchCategory = categoryFilter === 'all' || user.categories.includes(categoryFilter);
+return matchSearch && matchStatus && matchCategory;
+    });
+tbody.innerHTML = filtered.map(user => {
+const daysUntilExpiry = getDaysUntilExpiry(user.expiry);
+const isExpiringSoon = daysUntilExpiry <= 7 && daysUntilExpiry >= 0;
+const rowClass = isExpiringSoon ? 'expiring-soon' : '';
+const limitDisplay = user.accountLimit === 'unlimited' ? '無限' : user.accountLimit;
+return `
+        <tr class="${rowClass}">
+            <td>#${user.id}</td>
+            <td><strong>${user.name}</strong></td>
+            <td>${user.categories.map(c => `<span class="category-badge category-${c}">${getCategoryIcon(c)} ${c}</span>`).join('')}</td>
+            <td>${user.email}</td>
+            <td>${user.phone}</td>
+            <td>
+                <div class="${isExpiringSoon ? 'expiry-warning' : 'expiry-normal'}">
+${user.expiry}
+${isExpiringSoon ? `<br><small>⚠️ 剩 ${daysUntilExpiry} 天</small>` : ''}
+                </div>
+            </td>
+            <td><span class="status-badge status-${user.status}">${getStatusText(user.status)}</span></td>
+            <td>${limitDisplay}</td>
+            <td>${user.date}</td>
+            <td>
+                <div class="action-buttons">
+${user.status === 'pending' ?
+`<button class="btn btn-success" onclick="approveUser(${user.id})">✓ 通過</button>
+                         <button class="btn btn-danger" onclick="rejectUser(${user.id})">✗ 拒絕</button>` :
+`<button class="btn btn-info" onclick="openExtendModal(${user.id})">📅 延期</button>`
+}
+                    <button class="btn btn-warning" onclick="editUser(${user.id})">✏️ 編輯</button>
+                </div>
+            </td>
+        </tr>
+    `;
+    }).join('');
+}
+function getCategoryIcon(category) {
+const icons = {
+'房仲': '🏠',
+'車商': '🚗',
+'電商': '🛍️',
+'團購族': '👥'
+    };
+return icons[category] || '';
+}
+function getStatusText(status) {
+return status === 'active' ? '已啟用' : '待審核';
+}
+function getDaysUntilExpiry(expiryDate) {
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+const expiry = new Date(expiryDate);
+expiry.setHours(0, 0, 0, 0);
+const diff = expiry - today;
+return Math.ceil(diff / (1000 * 60 * 60 * 24));
+}
+function updateStats() {
+document.getElementById('activeCount').textContent = users.filter(u => u.status === 'active').length;
+document.getElementById('pendingCount').textContent = users.filter(u => u.status === 'pending').length;
+const expiringCount = users.filter(u => {
+const days = getDaysUntilExpiry(u.expiry);
+return days <= 7 && days >= 0 && u.status === 'active';
+    }).length;
+document.getElementById('expiringCount').textContent = expiringCount;
+}
+function filterUsers() {
+renderUsers();
+}
+function approveUser(id) {
+const user = users.find(u => u.id === id);
+if(user && confirm(`確定要通過「${user.name}」的申請嗎？`)) {
+user.status = 'active';
+renderUsers();
+updateStats();
+alert(`✓ 用戶 ${user.name} 已通過審核並啟用`);
+    }
+}
+function rejectUser(id) {
+const user = users.find(u => u.id === id);
+if(user && confirm(`確定要拒絕「${user.name}」的申請嗎？此操作將刪除該用戶。`)) {
+users = users.filter(u => u.id !== id);
+renderUsers();
+updateStats();
+alert(`✗ 已拒絕用戶 ${user.name} 的申請`);
+    }
+}
+function editUser(id) {
+editingUserId = id;
+const user = users.find(u => u.id === id);
+if(user) {
+document.getElementById('modalTitle').textContent = '編輯用戶';
+document.getElementById('userName').value = user.name;
+document.getElementById('userEmail').value = user.email;
+document.getElementById('userPhone').value = user.phone;
+document.getElementById('userExpiry').value = user.expiry;
+document.getElementById('userStatus').value = user.status;
+document.getElementById('userNote').value = user.note || '';
+// 設定類別多選
+document.querySelectorAll('.category-checkboxes input[type="checkbox"]').forEach(cb => {
+cb.checked = user.categories.includes(cb.value);
+        });
+// 設定帳號限制
+const limitSelect = document.getElementById('accountLimit');
+const customInput = document.getElementById('customLimit');
+if (['1', '15', '30', 'unlimited'].includes(user.accountLimit)) {
+limitSelect.value = user.accountLimit;
+customInput.style.display = 'none';
+customInput.value = '';
+} else {
+limitSelect.value = 'custom';
+customInput.style.display = 'block';
+customInput.value = user.accountLimit;
+}
+document.getElementById('userModal').classList.add('show');
+    }
+}
+function openAddUserModal() {
+editingUserId = null;
+document.getElementById('modalTitle').textContent = '新增用戶';
+document.getElementById('userName').value = '';
+document.getElementById('userEmail').value = '';
+document.getElementById('userPhone').value = '';
+document.getElementById('userExpiry').value = '';
+document.getElementById('userStatus').value = 'pending';
+document.getElementById('userNote').value = '';
+// 清空類別選擇
+document.querySelectorAll('.category-checkboxes input[type="checkbox"]').forEach(cb => {
+cb.checked = false;
+    });
+// 清空帳號限制
+document.getElementById('accountLimit').value = '1';
+document.getElementById('customLimit').style.display = 'none';
+document.getElementById('customLimit').value = '';
+document.getElementById('userModal').classList.add('show');
+}
+function closeUserModal() {
+document.getElementById('userModal').classList.remove('show');
+}
+function updateCategorySelection() {
+// 可以在這裡添加額外的邏輯
+}
+function toggleCustomLimit() {
+const select = document.getElementById('accountLimit');
+const customInput = document.getElementById('customLimit');
+if (select.value === 'custom') {
+customInput.style.display = 'block';
+} else {
+customInput.style.display = 'none';
+customInput.value = '';
+}
+}
+function saveUser() {
+const name = document.getElementById('userName').value.trim();
+const email = document.getElementById('userEmail').value.trim();
+const phone = document.getElementById('userPhone').value.trim();
+const expiry = document.getElementById('userExpiry').value;
+const status = document.getElementById('userStatus').value;
+const note = document.getElementById('userNote').value.trim();
+const categories = Array.from(document.querySelectorAll('.category-checkboxes input[type="checkbox"]:checked'))
+                        .map(cb => cb.value);
+const limitSelect = document.getElementById('accountLimit').value;
+let accountLimit = limitSelect;
+if (limitSelect === 'custom') {
+const customValue = document.getElementById('customLimit').value.trim();
+if (!customValue || isNaN(customValue) || parseInt(customValue) < 1) {
+alert('請輸入有效的自訂帳號數量（至少1）');
+return;
+}
+accountLimit = customValue;
+}
+if(!name || !email || !expiry || categories.length === 0) {
+alert('請填寫所有必填欄位（姓名、Email、客戶類別、到期日）');
+return;
+    }
+if(editingUserId) {
+const user = users.find(u => u.id === editingUserId);
+if(user) {
+user.name = name;
+user.email = email;
+user.phone = phone;
+user.categories = categories;
+user.expiry = expiry;
+user.status = status;
+user.note = note;
+user.accountLimit = accountLimit;
+alert('✓ 用戶資料已更新');
+        }
+    } else {
+const newId = Math.max(...users.map(u => u.id), 0) + 1;
+users.push({
+id: newId,
+name,
+email,
+phone,
+categories,
+expiry,
+status,
+note,
+accountLimit,
+date: new Date().toISOString().split('T')[0]
+        });
+alert('✓ 用戶已新增');
+    }
+renderUsers();
+updateStats();
+closeUserModal();
+}
+function openExtendModal(id) {
+extendingUserId = id;
+const user = users.find(u => u.id === id);
+if(user) {
+document.getElementById('extendUserInfo').textContent = `用戶：${user.name}（${user.categories.join('、')}）`;
+document.getElementById('currentExpiry').value = user.expiry;
+document.getElementById('newExpiry').value = '';
+document.getElementById('extendReason').value = '';
+document.getElementById('extendModal').classList.add('show');
+    }
+}
+function closeExtendModal() {
+document.getElementById('extendModal').classList.remove('show');
+}
+function confirmExtend() {
+const newExpiry = document.getElementById('newExpiry').value;
+const reason = document.getElementById('extendReason').value.trim();
+if(!newExpiry) {
+alert('請選擇新的到期日');
+return;
+    }
+const user = users.find(u => u.id === extendingUserId);
+if(user) {
+const oldExpiry = user.expiry;
+user.expiry = newExpiry;
+if (reason) {
+user.note = (user.note ? user.note + '\n' : '') + `延期原因: ${reason}`;
+}
+renderUsers();
+updateStats();
+alert(`✓ 已延長到期日\n用戶：${user.name}\n原到期: ${oldExpiry}\n新到期: ${newExpiry}`);
+closeExtendModal();
+    }
+}
+function showExpiringUsers() {
+const expiringUsers = users.filter(u => u.status === 'active' && getDaysUntilExpiry(u.expiry) <= 7 && getDaysUntilExpiry(u.expiry) >= 0);
+const listDiv = document.getElementById('expiringList');
+listDiv.innerHTML = expiringUsers.map(user => {
+const days = getDaysUntilExpiry(user.expiry);
+return `<div style="margin-bottom: 20px; padding: 15px; background: #fef3c7; border-radius: 10px;">
+      <strong>${user.name}</strong> (ID: ${user.id})<br>
+      類別: ${user.categories.join(', ')}<br>
+      Email: ${user.email}<br>
+      電話: ${user.phone}<br>
+      到期日: ${user.expiry} (剩 ${days} 天)<br>
+      備註: ${user.note || '無'}
+    </div>`;
+  }).join('');
+document.getElementById('notifyModal').classList.add('show');
+}
+function closeNotifyModal() {
+document.getElementById('notifyModal').classList.remove('show');
+}
+function exportExpiringUsers() {
+const expiringUsers = users.filter(u => u.status === 'active' && getDaysUntilExpiry(u.expiry) <= 7 && getDaysUntilExpiry(u.expiry) >= 0);
+let csvContent = "data:text/csv;charset=utf-8,";
+csvContent += "ID,名稱,類別,Email,電話,到期日,剩餘天數,註冊日期,備註\n";
+expiringUsers.forEach(user => {
+const days = getDaysUntilExpiry(user.expiry);
+csvContent += `${user.id},"${user.name}","${user.categories.join(';')}","${user.email}","${user.phone}",${user.expiry},${days},${user.date},"${user.note || ''}"\n`;
+  });
+const encodedUri = encodeURI(csvContent);
+const link = document.createElement("a");
+link.setAttribute("href", encodedUri);
+link.setAttribute("download", "expiring_users.csv");
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
+}
+initUsers();
+</script>
+</body>
+</html>
