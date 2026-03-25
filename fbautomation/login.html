@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智富系統 - 系統登入</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --gold: #C9A84C;
+            --gold-light: #F0C040;
+            --gold-bright: #FFD700;
+            --gold-dark: #8B6914;
+            --gold-pale: #FFF8DC;
+            --black: #0A0A0A;
+            --black-border: #1E1E1E;
+            --white: #FFFFFF;
+            --gray: #888888;
+            --bill-bg:     #1a1200;
+            --bill-deep:   #100d00;
+            --bill-mid:    #2d2200;
+            --bill-border: #8B6914;
+            --bill-line:   rgba(201,168,76,0.45);
+            --bill-text:   #FFF8DC;
+            --bill-muted:  rgba(201,168,76,0.6);
+            --bill-dim:    rgba(139,105,20,0.7);
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--black);
+            color: var(--white);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--black); }
+        ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 3px; }
+
+        /* ===== BACKGROUND ===== */
+        .bg-glow {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0;
+            background:
+                radial-gradient(ellipse at 50% 30%, rgba(201,168,76,0.09) 0%, transparent 60%),
+                radial-gradient(ellipse at 10% 80%, rgba(255,215,0,0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 90% 10%, rgba(201,168,76,0.06) 0%, transparent 50%);
+        }
+
+        .bg-grid {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0;
+            background-image:
+                linear-gradient(rgba(201,168,76,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(201,168,76,0.04) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        /* Gold particles */
+        .particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .particle {
+            position: absolute;
+            width: 3px; height: 3px;
+            background: var(--gold-bright);
+            border-radius: 50%;
+            box-shadow: 0 0 6px rgba(255,215,0,0.6);
+            animation: particle-float 18s infinite;
+            opacity: 0;
+        }
+
+        @keyframes particle-float {
+            0%   { transform: translateY(100vh) translateX(0) scale(0); opacity: 0; }
+            10%  { opacity: 0.7; }
+            90%  { opacity: 0.5; }
+            100% { transform: translateY(-80px) translateX(60px) scale(1); opacity: 0; }
+        }
+
+        /* ===== CONTAINER ===== */
+        .container {
+            position: relative; z-index: 2;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        /* ===== LOGO AREA ===== */
+        .logo-area {
+            text-align: center;
+            margin-bottom: 36px;
+            animation: fadeDown 0.6s ease-out;
+        }
+
+        @keyframes fadeDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo-icon-wrap {
+            width: 72px; height: 72px;
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold-bright));
+            border-radius: 20px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 2.2rem; font-weight: 900; color: var(--black);
+            box-shadow: 0 0 30px rgba(201,168,76,0.5), 0 8px 24px rgba(0,0,0,0.4);
+            margin-bottom: 16px;
+            animation: iconGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes iconGlow {
+            0%,100% { box-shadow: 0 0 30px rgba(255,215,0,0.4), 0 8px 24px rgba(0,0,0,0.4); }
+            50%      { box-shadow: 0 0 55px rgba(255,215,0,0.75), 0 8px 24px rgba(0,0,0,0.4); }
+        }
+
+        .logo-name {
+            font-size: 2rem; font-weight: 900;
+            background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            letter-spacing: 4px; line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .logo-sub {
+            font-size: 0.65rem; color: var(--gold); letter-spacing: 4px; opacity: 0.65;
+        }
+
+        /* ===== LOGIN CARD ===== */
+        .login-card {
+            width: 100%; max-width: 460px;
+            background: var(--bill-bg);
+            background-image:
+                repeating-linear-gradient(0deg,   rgba(201,168,76,0.05) 0px, rgba(201,168,76,0.05) 1px, transparent 1px, transparent 5px),
+                repeating-linear-gradient(90deg,  rgba(201,168,76,0.05) 0px, rgba(201,168,76,0.05) 1px, transparent 1px, transparent 5px),
+                repeating-linear-gradient(45deg,  rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 1px, transparent 1px, transparent 14px),
+                linear-gradient(160deg, #0d0b00 0%, #1a1200 30%, #2d2200 60%, #1a1200 85%, #0d0b00 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(139,105,20,0.5);
+            padding: 44px 40px;
+            position: relative;
+            box-shadow:
+                0 0 0 1px rgba(201,168,76,0.08),
+                0 24px 70px rgba(0,0,0,0.7),
+                0 0 60px rgba(201,168,76,0.06);
+            animation: fadeUp 0.7s ease-out both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(32px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-card::before {
+            content: '';
+            position: absolute; inset: 8px;
+            border: 1px solid rgba(139,105,20,0.2);
+            border-radius: 8px;
+            pointer-events: none;
+        }
+
+        /* ===== FORM TITLE ===== */
+        .form-title {
+            text-align: center;
+            font-size: 0.95rem;
+            letter-spacing: 5px;
+            color: var(--bill-muted);
+            margin-bottom: 32px;
+            font-family: 'Georgia', serif;
+            text-transform: uppercase;
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+        }
+
+        .form-title::before, .form-title::after {
+            content: '';
+            flex: 1; max-width: 50px; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold-dark));
+        }
+
+        .form-title::after {
+            background: linear-gradient(90deg, var(--gold-dark), transparent);
+        }
+
+        /* ===== FORM ===== */
+        .form-group { margin-bottom: 22px; position: relative; }
+
+        .form-group label {
+            display: block;
+            color: var(--bill-muted);
+            font-size: 0.78rem;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            font-family: 'Georgia', serif;
+        }
+
+        .form-group label i { margin-right: 6px; }
+
+        .input-wrapper { position: relative; }
+
+        .input-icon {
+            position: absolute;
+            left: 16px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--gold-dark);
+            font-size: 0.9rem;
+            transition: color 0.3s;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .input-wrapper:focus-within .input-icon { color: var(--gold); }
+
+        .form-group input,
+        .form-input {
+            width: 100%;
+            padding: 14px 16px 14px 44px;
+            background: rgba(10,8,0,0.6);
+            border: 1px solid rgba(139,105,20,0.4);
+            border-radius: 8px;
+            color: var(--bill-text);
+            font-size: 0.95rem;
+            font-family: 'Microsoft JhengHei', sans-serif;
+            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+        }
+
+        /* modal inputs — no left icon */
+        .form-input { padding: 14px 16px; }
+
+        .form-group input::placeholder,
+        .form-input::placeholder { color: rgba(201,168,76,0.3); }
+
+        .form-group input:focus,
+        .form-input:focus {
+            outline: none;
+            border-color: var(--gold);
+            background: rgba(26,18,0,0.85);
+            box-shadow: 0 0 0 3px rgba(201,168,76,0.12), 0 0 20px rgba(201,168,76,0.08);
+        }
+
+        /* Select */
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23C9A84C'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 18px;
+            padding-right: 44px;
+            background-color: rgba(10,8,0,0.6);
+        }
+
+        .form-select option { background: #1a1200; color: var(--bill-text); }
+
+        /* ===== REMEMBER ROW ===== */
+        .remember-forgot {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 28px;
+        }
+
+        .remember-me {
+            display: flex; align-items: center; gap: 8px;
+            color: var(--bill-muted); font-size: 0.85rem; cursor: pointer;
+            user-select: none;
+        }
+
+        .remember-me input[type="checkbox"] {
+            width: 15px; height: 15px;
+            accent-color: var(--gold); cursor: pointer;
+        }
+
+        /* ===== BUTTONS ===== */
+        .login-btn, .btn-primary {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-family: 'Microsoft JhengHei', 'Georgia', serif;
+            cursor: pointer;
+            position: relative; overflow: hidden;
+            background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold-bright) 50%, var(--gold) 100%);
+            color: var(--black);
+            box-shadow: 0 4px 20px rgba(201,168,76,0.35), 0 2px 0 rgba(0,0,0,0.4);
+            transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+        }
+
+        .login-btn::before, .btn-primary::before {
+            content: '';
+            position: absolute; top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+            transition: left 0.5s;
+        }
+
+        .login-btn:hover::before, .btn-primary:hover::before { left: 100%; }
+
+        .login-btn:hover, .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 35px rgba(201,168,76,0.5), 0 2px 0 rgba(0,0,0,0.4);
+        }
+
+        .login-btn:active, .btn-primary:active { transform: translateY(-1px); }
+
+        .btn {
+            padding: 16px 20px; border: none; border-radius: 8px;
+            font-size: 1rem; font-weight: 700; cursor: pointer;
+            transition: all 0.4s; letter-spacing: 2px;
+            position: relative; overflow: hidden;
+        }
+
+        /* ===== SIGNUP LINK ===== */
+        .signup-link {
+            text-align: center; margin-top: 24px;
+            color: var(--bill-muted); font-size: 0.88rem;
+        }
+
+        .signup-link a {
+            color: var(--gold-bright);
+            text-decoration: none; font-weight: 700; margin-left: 5px;
+            transition: all 0.3s;
+        }
+
+        .signup-link a:hover { text-shadow: 0 0 12px rgba(255,215,0,0.7); }
+
+        /* ===== FEATURES ===== */
+        .features {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 12px; margin-top: 28px; padding-top: 28px;
+            border-top: 1px solid rgba(139,105,20,0.25);
+        }
+
+        .feature-item {
+            text-align: center; padding: 14px 8px;
+            background: rgba(10,8,0,0.4);
+            border: 1px solid rgba(139,105,20,0.2);
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .feature-item:hover {
+            background: rgba(26,18,0,0.8);
+            border-color: rgba(201,168,76,0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3), 0 0 14px rgba(201,168,76,0.1);
+        }
+
+        .feature-icon {
+            font-size: 1.3rem; margin-bottom: 8px; display: block;
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold-bright));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .feature-text {
+            font-size: 0.78rem; color: var(--bill-muted); letter-spacing: 1px;
+        }
+
+        /* ===== LOADING OVERLAY ===== */
+        .loading-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.88);
+            backdrop-filter: blur(8px);
+            display: none; justify-content: center; align-items: center;
+            z-index: 9999; flex-direction: column; gap: 18px;
+        }
+
+        .loading-overlay.show { display: flex; }
+
+        .spinner {
+            width: 56px; height: 56px;
+            border: 3px solid rgba(201,168,76,0.15);
+            border-top: 3px solid var(--gold-bright);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .spinner-text {
+            color: var(--bill-muted); font-size: 0.82rem; letter-spacing: 3px;
+        }
+
+        /* ===== MODAL ===== */
+        .modal {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.82);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            justify-content: center; align-items: center;
+            padding: 20px; overflow-y: auto;
+        }
+
+        .modal.show {
+            display: flex;
+            animation: modal-fade-in 0.3s ease-out;
+        }
+
+        @keyframes modal-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+        .modal-content {
+            background: var(--bill-bg);
+            background-image:
+                repeating-linear-gradient(0deg,   rgba(201,168,76,0.04) 0px, rgba(201,168,76,0.04) 1px, transparent 1px, transparent 5px),
+                repeating-linear-gradient(90deg,  rgba(201,168,76,0.04) 0px, rgba(201,168,76,0.04) 1px, transparent 1px, transparent 5px),
+                linear-gradient(160deg, #0d0b00 0%, #1a1200 40%, #2d2200 70%, #0d0b00 100%);
+            border: 1px solid rgba(139,105,20,0.5);
+            border-radius: 16px;
+            padding: 48px 40px;
+            width: 100%; max-width: 500px;
+            box-shadow: 0 0 80px rgba(0,0,0,0.85), 0 0 40px rgba(201,168,76,0.06);
+            position: relative;
+            animation: modal-slide-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            margin: auto;
+            max-height: 90vh; overflow-y: auto;
+        }
+
+        .modal-content::before {
+            content: ''; position: absolute; inset: 8px;
+            border: 1px solid rgba(139,105,20,0.18);
+            border-radius: 8px; pointer-events: none;
+        }
+
+        @keyframes modal-slide-up {
+            from { opacity: 0; transform: translateY(40px) scale(0.95); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-close {
+            position: absolute; top: 18px; right: 22px;
+            background: rgba(139,105,20,0.2);
+            border: 1px solid rgba(139,105,20,0.4);
+            color: var(--gold);
+            font-size: 1rem; cursor: pointer;
+            width: 34px; height: 34px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s; z-index: 10;
+        }
+
+        .modal-close:hover {
+            background: rgba(201,168,76,0.2);
+            border-color: var(--gold);
+            transform: scale(1.1);
+        }
+
+        .modal-title {
+            text-align: center;
+            font-size: 1.6rem; font-weight: 900;
+            background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 6px; letter-spacing: 4px;
+            font-family: 'Georgia', serif;
+        }
+
+        .modal-subtitle {
+            text-align: center;
+            font-size: 0.68rem; color: var(--bill-muted);
+            letter-spacing: 4px; margin-bottom: 32px;
+            text-transform: uppercase; font-family: 'Georgia', serif;
+        }
+
+        /* Checkbox */
+        .checkbox-group {
+            display: flex; align-items: flex-start; gap: 10px; margin-top: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 15px; height: 15px;
+            accent-color: var(--gold); cursor: pointer;
+            margin-top: 2px; flex-shrink: 0;
+        }
+
+        .checkbox-group label {
+            color: var(--bill-muted); font-size: 0.88rem; cursor: pointer; line-height: 1.5;
+        }
+
+        .checkbox-group a { color: var(--gold-bright); text-decoration: none; font-weight: 600; }
+        .checkbox-group a:hover { text-decoration: underline; }
+
+        /* Messages */
+        .success-message {
+            background: rgba(76,175,80,0.12);
+            border: 1px solid rgba(76,175,80,0.35);
+            color: #A5D6A7; padding: 14px; border-radius: 8px;
+            text-align: center; font-weight: 600; margin-top: 18px;
+            animation: fade-in 0.5s ease-out; font-size: 0.88rem;
+        }
+
+        .error-message {
+            background: rgba(244,67,54,0.1);
+            border: 1px solid rgba(244,67,54,0.35);
+            color: #EF9A9A; padding: 12px; border-radius: 8px;
+            text-align: center; font-weight: 600; margin-top: 14px;
+            font-size: 0.88rem; animation: shake 0.5s ease-out;
+        }
+
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            25%      { transform: translateX(-8px); }
+            75%      { transform: translateX(8px); }
+        }
+
+        small {
+            display: block; margin-top: 5px;
+            color: var(--bill-muted); font-size: 0.76rem;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 640px) {
+            .login-card { padding: 32px 22px; }
+            .logo-icon-wrap { width: 58px; height: 58px; font-size: 1.7rem; }
+            .logo-name { font-size: 1.6rem; }
+            .features { grid-template-columns: 1fr; gap: 8px; }
+            .modal-content { padding: 32px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-glow"></div>
+    <div class="bg-grid"></div>
+    <div class="particles" id="particles"></div>
+
+    <div class="container">
+
+        <!-- LOGO -->
+        <div class="logo-area">
+            <div class="logo-icon-wrap">智</div>
+            <div class="logo-name">智富系統</div>
+            <div class="logo-sub">ZHIFU AI SYSTEM · 2025</div>
+        </div>
+
+        <!-- LOGIN CARD -->
+        <div class="login-card">
+            <div class="form-title">系統登入</div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email"><i class="fa-solid fa-user"></i>帳號</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-envelope input-icon"></i>
+                        <input type="text" id="email" placeholder="輸入您的 Email 或電話" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password"><i class="fa-solid fa-lock"></i>密碼</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock input-icon"></i>
+                        <input type="password" id="password" placeholder="輸入您的密碼" required>
+                    </div>
+                </div>
+
+                <div class="remember-forgot">
+                    <label class="remember-me">
+                        <input type="checkbox" id="remember">
+                        <span>記住我</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="login-btn">
+                    <i class="fa-solid fa-arrow-right-to-bracket" style="margin-right:8px;"></i>立即登入
+                </button>
+            </form>
+
+            <div class="signup-link">
+                還沒有帳號？<a href="#" id="signupLink">立即註冊</a>
+            </div>
+
+            <div class="features">
+                <div class="feature-item">
+                    <span class="feature-icon"><i class="fa-solid fa-bolt"></i></span>
+                    <div class="feature-text">快速發文</div>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon"><i class="fa-solid fa-chart-bar"></i></span>
+                    <div class="feature-text">數據分析</div>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon"><i class="fa-solid fa-brain"></i></span>
+                    <div class="feature-text">AI 智能</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Registration Modal -->
+    <div class="modal" id="registrationModal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="modal-title">立即註冊</h3>
+            <div class="modal-subtitle">FREE TRIAL · 3 DAYS</div>
+            <form id="trialForm">
+                <div class="form-group">
+                    <label for="regName"><i class="fa-solid fa-user"></i>姓名 *</label>
+                    <input type="text" id="regName" name="name" required placeholder="請輸入您的姓名" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="regPhone"><i class="fa-solid fa-mobile-screen"></i>手機號碼 *</label>
+                    <input type="tel" id="regPhone" name="phone" required placeholder="請輸入手機號碼（例：0912345678）" pattern="[0-9]{10}" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="regEmail"><i class="fa-solid fa-envelope"></i>電子信箱 *</label>
+                    <input type="email" id="regEmail" name="email" required placeholder="請輸入電子信箱" class="form-input">
+                    <small>試用帳號密碼將寄送至此信箱</small>
+                </div>
+                <div class="form-group">
+                    <label for="regAddress"><i class="fa-solid fa-location-dot"></i>地址</label>
+                    <input type="text" id="regAddress" name="address" placeholder="請輸入地址（選填）" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="regIndustry"><i class="fa-solid fa-briefcase"></i>產業別 *</label>
+                    <select id="regIndustry" name="industry" required class="form-input form-select">
+                        <option value="">請選擇您的產業</option>
+                        <option value="房仲業">房仲業</option>
+                        <option value="車仲業">車仲業</option>
+                        <option value="貸款業">貸款業</option>
+                        <option value="遊戲私服">遊戲私服</option>
+                        <option value="保險業">保險業</option>
+                        <option value="直銷業">直銷業</option>
+                        <option value="電商">電商</option>
+                        <option value="其他">其他</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" name="terms" required id="terms">
+                        <label for="terms">我已閱讀並同意 <a href="#" onclick="event.preventDefault();">服務條款</a> 和 <a href="#" onclick="event.preventDefault();">隱私政策</a></label>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fa-solid fa-gift" style="margin-right:8px;"></i>立即免費試用 3 天
+                </button>
+                <div id="formMessage" style="margin-top: 20px; display: none;"></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="spinner-text">處理中...</div>
+    </div>
+
+    <script>
+        // Create floating gold particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 40; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.animationDelay = Math.random() * 18 + 's';
+                p.style.animationDuration = (Math.random() * 10 + 12) + 's';
+                container.appendChild(p);
+            }
+        }
+        createParticles();
+
+        // Handle login
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            document.getElementById('loadingOverlay').classList.add('show');
+            setTimeout(() => {
+                document.getElementById('loadingOverlay').classList.remove('show');
+                alert('登入成功！歡迎回來 ' + email);
+                // window.location.href = 'dashboard.html';
+            }, 2000);
+        });
+
+        // Modal functions
+        function openModal() {
+            document.getElementById('registrationModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('registrationModal').classList.remove('show');
+            document.body.style.overflow = '';
+            const formMessage = document.getElementById('formMessage');
+            formMessage.style.display = 'none';
+            formMessage.innerHTML = '';
+        }
+
+        function showFormMessage(type, msg) {
+            const el = document.getElementById('formMessage');
+            el.innerHTML = `<div class="${type}-message">${msg}</div>`;
+            el.style.display = 'block';
+        }
+
+        // Handle registration form submission
+        document.getElementById('trialForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const name     = document.getElementById('regName').value;
+            const phone    = document.getElementById('regPhone').value;
+            const email    = document.getElementById('regEmail').value;
+            const address  = document.getElementById('regAddress').value;
+            const industry = document.getElementById('regIndustry').value;
+            const termsChecked = document.getElementById('terms').checked;
+
+            const phoneRegex = /^[0-9]{10}$/;
+            if (!phoneRegex.test(phone)) {
+                showFormMessage('error', '請輸入正確的手機號碼格式（10 位數字）');
+                return;
+            }
+            if (!termsChecked) {
+                showFormMessage('error', '請先閱讀並同意服務條款和隱私政策');
+                return;
+            }
+            if (!industry) {
+                showFormMessage('error', '請選擇您的產業別');
+                return;
+            }
+
+            console.log('表單提交中...', { name, phone, email, address, industry });
+            document.getElementById('loadingOverlay').classList.add('show');
+
+            setTimeout(() => {
+                document.getElementById('loadingOverlay').classList.remove('show');
+                showFormMessage('success', `註冊成功！我們已將在24小時內將試用帳號資訊寄送至 ${email}，請查收您的信箱。`);
+                document.getElementById('trialForm').reset();
+                setTimeout(() => { closeModal(); }, 3000);
+            }, 2000);
+        });
+
+        document.getElementById('signupLink').addEventListener('click', function(e) { e.preventDefault(); openModal(); });
+        document.getElementById('modalClose').addEventListener('click', function(e) { e.preventDefault(); closeModal(); });
+        document.getElementById('registrationModal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && document.getElementById('registrationModal').classList.contains('show')) closeModal();
+        });
+
+        // Input scale animation
+        const inputs = document.querySelectorAll('input[type="text"], input[type="password"], input[type="email"], input[type="tel"]');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                if (this.parentElement.classList.contains('input-wrapper')) this.parentElement.style.transform = 'scale(1.02)';
+            });
+            input.addEventListener('blur', function() {
+                if (this.parentElement.classList.contains('input-wrapper')) this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+
+        // Form validation feedback
+        const trialFormInputs = document.querySelectorAll('#trialForm input[required], #trialForm select[required]');
+        trialFormInputs.forEach(input => {
+            input.addEventListener('invalid', function(e) {
+                e.preventDefault();
+                this.style.borderColor = 'rgba(244,67,54,0.8)';
+                setTimeout(() => { this.style.borderColor = ''; }, 2000);
+            });
+            input.addEventListener('input', function() {
+                if (this.validity.valid) {
+                    this.style.borderColor = 'rgba(201,168,76,0.7)';
+                    setTimeout(() => { this.style.borderColor = ''; }, 1000);
+                }
+            });
+        });
+
+        document.querySelector('#trialForm .btn-primary').addEventListener('click', function(e) {
+            console.log('提交按鈕被點擊了！');
+        });
+    </script>
+</body>
+</html>

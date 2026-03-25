@@ -1,0 +1,1986 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>自動養號管理系統</title>
+<style>
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+body {
+font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+min-height: 100vh;
+display: flex;
+}
+.sidebar {
+width: 280px;
+height: 100vh;
+background: rgba(255, 255, 255, 0.95);
+backdrop-filter: blur(10px);
+position: fixed;
+padding: 30px 20px;
+box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1);
+z-index: 100;
+}
+.logo {
+font-size: 2.4rem;
+font-weight: 800;
+margin-bottom: 40px;
+text-align: center;
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+}
+.sidebar ul {
+list-style: none;
+}
+.sidebar ul li {
+padding: 12px 20px;
+margin-bottom: 8px;
+font-size: 1.05rem;
+cursor: pointer;
+border-radius: 12px;
+transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+color: #4a5568;
+font-weight: 500;
+}
+.sidebar ul li:hover {
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+color: white;
+transform: translateX(5px);
+box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+.sidebar ul li.active {
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+color: white;
+box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+.main-content {
+margin-left: 280px;
+padding: 40px 50px;
+flex: 1;
+min-height: 100vh;
+}
+.container {
+max-width: 1000px;
+margin: 0 auto;
+}
+.header {
+margin-bottom: 40px;
+}
+.header h1 {
+color: rgb(255, 255, 255);
+font-size: 2.2rem;
+font-weight: 700;
+margin-bottom: 8px;
+text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+.version {
+display: inline-block;
+background: linear-gradient(135deg, #667eea, #764ba2);
+color: white;
+padding: 0.3rem 1rem;
+border-radius: 20px;
+font-size: 0.9rem;
+margin-top: 0.5rem;
+}
+.section {
+background: rgba(255, 255, 255, 0.95);
+border-radius: 20px;
+padding: 2.5rem;
+margin-bottom: 2rem;
+box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+}
+.section-title {
+font-size: 1.2rem;
+font-weight: 600;
+color: #374151;
+margin-bottom: 1rem;
+padding-bottom: 0.5rem;
+border-bottom: 2px solid #e5e7eb;
+}
+.form-group {
+margin-bottom: 1.5rem;
+}
+.form-label {
+display: block;
+font-size: 0.95rem;
+color: #4b5563;
+margin-bottom: 0.5rem;
+font-weight: 500;
+}
+.form-input, .form-select, .form-textarea {
+width: 100%;
+padding: 0.75rem 1rem;
+border: 2px solid #e5e7eb;
+border-radius: 10px;
+font-size: 1rem;
+transition: all 0.3s ease;
+background: white;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+outline: none;
+border-color: #667eea;
+box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+.form-textarea {
+min-height: 100px;
+resize: vertical;
+font-family: inherit;
+}
+.input-hint {
+font-size: 0.85rem;
+color: #6b7280;
+margin-top: 0.3rem;
+}
+.radio-group {
+display: flex;
+gap: 1.5rem;
+flex-wrap: wrap;
+}
+.radio-option {
+display: flex;
+align-items: flex-start;
+gap: 0.5rem;
+cursor: pointer;
+padding: 1rem;
+border: 2px solid #e5e7eb;
+border-radius: 10px;
+flex: 1;
+min-width: 200px;
+transition: all 0.3s ease;
+}
+.radio-option:hover {
+border-color: #667eea;
+background: #f9fafb;
+}
+.radio-option.active {
+border-color: #667eea;
+background: rgba(102, 126, 234, 0.1);
+}
+.radio-content {
+flex: 1;
+}
+.radio-title {
+font-weight: 600;
+color: #1f2937;
+margin-bottom: 0.3rem;
+}
+.radio-desc {
+font-size: 0.85rem;
+color: #6b7280;
+}
+.schedule-grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+gap: 1rem;
+margin-top: 1rem;
+}
+.checkbox-option {
+display: flex;
+align-items: center;
+gap: 0.5rem;
+padding: 0.75rem;
+border: 2px solid #e5e7eb;
+border-radius: 8px;
+cursor: pointer;
+transition: all 0.3s ease;
+}
+.checkbox-option:hover {
+border-color: #667eea;
+background: #f9fafb;
+}
+.checkbox-option input:checked + label {
+font-weight: 600;
+}
+.time-inputs {
+display: flex;
+flex-direction: column;
+gap: 1rem;
+margin-top: 1rem;
+}
+.time-input-row {
+display: flex;
+align-items: center;
+gap: 1rem;
+padding: 1rem;
+background: #f9fafb;
+border-radius: 10px;
+}
+.time-input-row label {
+min-width: 80px;
+font-weight: 500;
+color: #4b5563;
+}
+.time-input-row input[type="time"] {
+padding: 0.5rem;
+border: 2px solid #e5e7eb;
+border-radius: 8px;
+font-size: 0.95rem;
+}
+.time-input-row .btn-icon {
+background: none;
+border: none;
+color: #6b7280;
+cursor: pointer;
+font-size: 1.2rem;
+padding: 0.3rem;
+transition: color 0.3s ease;
+}
+.time-input-row .btn-icon:hover {
+color: #667eea;
+}
+.button-group {
+display: flex;
+gap: 1rem;
+justify-content: center;
+margin-top: 2rem;
+}
+.btn {
+padding: 1rem 2.5rem;
+font-size: 1.1rem;
+font-weight: 600;
+border: none;
+border-radius: 10px;
+cursor: pointer;
+transition: all 0.3s ease;
+}
+.btn-primary {
+background: linear-gradient(135deg, #667eea, #764ba2);
+color: white;
+box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+.btn-primary:hover {
+transform: translateY(-2px);
+box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+.btn-secondary {
+background: white;
+color: #667eea;
+border: 2px solid #667eea;
+}
+.btn-secondary:hover {
+background: #667eea;
+color: white;
+}
+.info-box {
+background: #eff6ff;
+border-left: 4px solid #3b82f6;
+padding: 1rem;
+border-radius: 8px;
+margin-top: 1rem;
+}
+.info-box-title {
+font-weight: 600;
+color: #1e40af;
+margin-bottom: 0.5rem;
+}
+.info-box-content {
+color: #1e40af;
+font-size: 0.9rem;
+}
+.modal {
+display: none;
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.5);
+backdrop-filter: blur(5px);
+z-index: 1000;
+align-items: center;
+justify-content: center;
+}
+.modal.active {
+display: flex;
+}
+.modal-content {
+background: white;
+border-radius: 20px;
+padding: 2rem;
+max-width: 600px;
+width: 90%;
+max-height: 80vh;
+overflow-y: auto;
+box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+animation: modalSlideIn 0.3s ease-out;
+}
+@keyframes modalSlideIn {
+from {
+opacity: 0;
+transform: translateY(-30px);
+}
+to {
+opacity: 1;
+transform: translateY(0);
+}
+}
+.modal-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 1.5rem;
+padding-bottom: 1rem;
+border-bottom: 2px solid #e5e7eb;
+}
+.modal-title {
+font-size: 1.5rem;
+font-weight: 600;
+color: #1f2937;
+}
+.modal-close {
+background: none;
+border: none;
+font-size: 1.5rem;
+cursor: pointer;
+color: #6b7280;
+transition: color 0.3s ease;
+}
+.modal-close:hover {
+color: #1f2937;
+}
+.account-list {
+display: flex;
+flex-direction: column;
+gap: 0.75rem;
+margin-bottom: 1.5rem;
+max-height: 300px; /* 固定高度 */
+overflow-y: auto; /* 滾輪滑動 */
+border: 2px solid #e5e7eb;
+border-radius: 10px;
+padding: 1rem;
+}
+.account-item {
+display: flex;
+align-items: center;
+gap: 1rem;
+padding: 1rem;
+border: 2px solid #e5e7eb;
+border-radius: 10px;
+cursor: pointer;
+transition: all 0.3s ease;
+}
+.account-item:hover {
+border-color: #667eea;
+background: #f9fafb;
+}
+.account-item.selected {
+border-color: #667eea;
+background: rgba(102, 126, 234, 0.1);
+}
+.account-checkbox {
+width: 20px;
+height: 20px;
+}
+.account-info {
+flex: 1;
+}
+.account-name {
+font-weight: 600;
+color: #1f2937;
+margin-bottom: 0.2rem;
+}
+.account-id {
+font-size: 0.85rem;
+color: #6b7280;
+}
+.select-all-btn {
+margin-bottom: 1rem;
+}
+.schedule-mode-btn {
+transition: all 0.3s ease;
+}
+.schedule-mode-btn.active {
+background: linear-gradient(135deg, #667eea, #764ba2);
+color: white;
+border-color: #667eea;
+}
+.weekday-detail-section {
+background: #f9fafb;
+padding: 1.5rem;
+border-radius: 10px;
+margin-top: 1.5rem;
+border: 2px solid #667eea;
+}
+.weekday-detail-title {
+font-size: 1.1rem;
+font-weight: 600;
+color: #667eea;
+margin-bottom: 1rem;
+display: flex;
+align-items: center;
+gap: 0.5rem;
+}
+.advanced-settings {
+background: #f9fafb;
+padding: 1.5rem;
+border-radius: 10px;
+margin-top: 1rem;
+}
+.behavior-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 30px; }
+.behavior-option { display: flex; align-items: center; gap: 10px; padding: 15px; background: #f7fafc; border-radius: 12px; border: 1px solid #e2e8f0; cursor: pointer; transition: all 0.2s; }
+.behavior-option:hover { border-color: #667eea; }
+.behavior-option input[type="checkbox"]:checked + label { color: #667eea; font-weight: 600; }
+.group-search-container {
+position: relative;
+margin-bottom: 1rem;
+}
+.group-search-input {
+width: 100%;
+padding: 0.75rem 1rem 0.75rem 2.5rem;
+border: 2px solid #e5e7eb;
+border-radius: 10px;
+font-size: 1rem;
+transition: all 0.3s ease;
+background: white;
+}
+.group-search-input:focus {
+outline: none;
+border-color: #667eea;
+box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+.group-search-icon {
+position: absolute;
+left: 0.75rem;
+top: 50%;
+transform: translateY(-50%);
+color: #6b7280;
+}
+.group-list {
+max-height: 300px;
+overflow-y: auto;
+border: 2px solid #e5e7eb;
+border-radius: 10px;
+}
+.group-item {
+padding: 1rem;
+border-bottom: 1px solid #e2e8f0;
+cursor: pointer;
+transition: all 0.3s ease;
+position: relative;
+}
+.group-item:last-child {
+border-bottom: none;
+}
+.group-item:hover {
+background: #f9fafb;
+border-color: #667eea;
+}
+.group-item.selected {
+background: rgba(102, 126, 234, 0.1);
+border-color: #667eea;
+}
+.group-item-name {
+font-weight: 600;
+color: #1f2937;
+margin-bottom: 0.2rem;
+}
+.group-item-count {
+font-size: 0.85rem;
+color: #6b7280;
+}
+.group-item-accounts {
+font-size: 0.8rem;
+color: #9ca3af;
+margin-top: 0.3rem;
+}
+.empty-state {
+text-align: center;
+padding: 2rem;
+color: #6b7280;
+}
+.empty-state-icon {
+font-size: 2rem;
+margin-bottom: 0.5rem;
+}
+.preset-task-section {
+margin-top: 30px;
+padding: 25px;
+background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+border-radius: 15px;
+border: 2px solid #e2e8f0;
+}
+.preset-task-section h3 {
+color: #2d3748;
+font-size: 1.3rem;
+margin-bottom: 15px;
+font-weight: 700;
+display: flex;
+align-items: center;
+gap: 10px;
+}
+.no-mode-hint {
+margin-top: 15px;
+padding: 15px;
+background: linear-gradient(135deg, #f0f9ff 0%, #f7fbff 100%);
+border-radius: 12px;
+border: 2px solid #667eea;
+}
+.no-mode-hint h4 {
+color: #667eea;
+margin-bottom: 10px;
+font-size: 1rem;
+}
+.no-mode-hint p {
+color: #4a5568;
+margin-bottom: 8px;
+font-size: 0.9rem;
+}
+.task-badge {
+display: inline-block;
+background: #667eea;
+color: white;
+padding: 4px 12px;
+border-radius: 12px;
+font-size: 0.8rem;
+font-weight: 600;
+margin-left: 10px;
+}
+.[task-badge.auto](http://task-badge.auto)-cultivate {
+background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
+}
+.direct-execution-hint {
+margin-top: 20px;
+padding: 15px;
+background: linear-gradient(135deg, #fff5f5 0%, #fff5f5 100%);
+border-radius: 12px;
+border: 2px solid #f56565;
+}
+.direct-execution-hint h4 {
+color: #f56565;
+margin-bottom: 10px;
+font-size: 1rem;
+}
+.direct-execution-hint ul {
+list-style: disc;
+padding-left: 20px;
+margin-bottom: 10px;
+}
+.direct-execution-hint li {
+color: #4a5568;
+margin-bottom: 5px;
+font-size: 0.9rem;
+}
+.preset-task-actions {
+display: flex;
+gap: 15px;
+margin-top: 20px;
+}
+.preset-task-actions .btn {
+flex: 1;
+}
+.schedule-item {
+background: white;
+border: 2px solid #e2e8f0;
+border-radius: 12px;
+padding: 20px;
+margin-bottom: 15px;
+transition: all 0.3s;
+box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.schedule-item:hover {
+border-color: #667eea;
+transform: translateY(-2px);
+box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
+}
+.schedule-item-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 15px;
+padding-bottom: 15px;
+border-bottom: 2px solid #e2e8f0;
+}
+.schedule-item-title {
+font-size: 1.2rem;
+font-weight: 700;
+color: #2d3748;
+}
+.schedule-item-actions {
+display: flex;
+gap: 10px;
+}
+.schedule-item-actions button {
+padding: 8px 16px;
+border: none;
+border-radius: 8px;
+font-size: 0.9rem;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.2s;
+}
+.btn-edit {
+background: #667eea;
+color: white;
+}
+.btn-edit:hover {
+background: #5568d3;
+transform: translateY(-1px);
+box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+.btn-delete {
+background: #f56565;
+color: white;
+}
+.btn-delete:hover {
+background: #e53e3e;
+transform: translateY(-1px);
+box-shadow: 0 2px 8px rgba(245, 101, 101, 0.3);
+}
+.schedule-item-content {
+color: #4a5568;
+font-size: 0.95rem;
+line-height: 1.8;
+}
+.schedule-item-detail {
+display: flex;
+align-items: center;
+gap: 8px;
+margin-bottom: 8px;
+}
+.schedule-item-detail strong {
+color: #2d3748;
+min-width: 120px;
+}
+.empty-schedules {
+text-align: center;
+padding: 60px 20px;
+color: #718096;
+font-size: 1.1rem;
+}
+.empty-schedules-icon {
+font-size: 4rem;
+margin-bottom: 20px;
+}
+/* 新增：scheduleName 的 CSS 樣式 */
+#scheduleName {
+width: 100%;
+padding: 0.75rem 1rem;
+border: 2px solid #e5e7eb;
+border-radius: 10px;
+font-size: 1rem;
+transition: all 0.3s ease;
+background: white;
+margin-bottom: 0.5rem;
+font-family: inherit;
+}
+#scheduleName:focus {
+outline: none;
+border-color: #667eea;
+box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+/* Modal body 樣式 */
+.modal-body {
+padding: 1.5rem 0;
+}
+/* 在 modal 中的 form-group 樣式 */
+#saveScheduleModal .form-group {
+margin-bottom: 1.5rem;
+}
+#saveScheduleModal .form-group label {
+display: block;
+font-size: 0.95rem;
+color: #4b5563;
+margin-bottom: 0.5rem;
+font-weight: 500;
+}
+#saveScheduleModal .form-group input[type="text"] {
+width: 100%;
+padding: 0.75rem 1rem;
+border: 2px solid #e5e7eb;
+border-radius: 10px;
+font-size: 1rem;
+transition: all 0.3s ease;
+background: white;
+}
+#saveScheduleModal .form-group input[type="text"]:focus {
+outline: none;
+border-color: #667eea;
+box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+@media (max-width: 768px) {
+body {
+flex-direction: column;
+}
+.sidebar {
+width: 100%;
+height: auto;
+position: static;
+box-shadow: none;
+}
+.main-content {
+margin-left: 0;
+padding: 1rem;
+}
+.radio-group {
+flex-direction: column;
+}
+.radio-option {
+min-width: 100%;
+}
+.button-group {
+flex-direction: column;
+}
+.btn {
+width: 100%;
+}
+}
+/* 新增自訂內容區塊樣式 */
+.custom-content-block {
+background: #f9fafb;
+border: 2px solid #e5e7eb;
+border-radius: 10px;
+padding: 1rem;
+margin-bottom: 1rem;
+position: relative;
+}
+.custom-content-block .form-group {
+margin-bottom: 1rem;
+}
+.custom-content-actions {
+display: flex;
+gap: 0.5rem;
+position: absolute;
+top: 1rem;
+right: 1rem;
+}
+.custom-content-actions button {
+padding: 0.5rem 1rem;
+font-size: 0.85rem;
+}
+.custom-content-selected-accounts {
+background: #eff6ff;
+padding: 0.75rem;
+border-radius: 8px;
+margin-top: 0.5rem;
+display: none;
+}
+.custom-content-selected-accounts.active {
+display: block;
+}
+</style>
+</head>
+<body>
+<div class="sidebar">
+<div class="logo">🏆 蓋好賣</div>
+<ul>
+<li onclick="window.location.href='index.html'">📊 首頁</li>
+<li onclick="window.location.href='account.html'">👤 帳號管理</li>
+<li onclick="window.location.href='schedule.html'">📝 排程管理</li>
+<li onclick="window.location.href='normalPost.html'">💬 一般社團發文</li>
+<li onclick="window.location.href='marketPlace.html'">🛒 拍賣+社團發文</li>
+<li onclick="window.location.href='addClub.html'">➕ 自動加入社團</li>
+<li class="active" onclick="window.location.href='cultivateAccount.html'">🤖 自動養號</li>
+<li onclick="window.location.href='SentMs.html'">📩 自動私訊</li>
+<li onclick="window.location.href='PostAct.html'">👍 指定貼文按讚留言</li>
+<li class="" onclick="window.location.href='scrape.html'">🕷️ 社團關鍵字爬蟲</li>
+<li onclick="window.location.href='sequentialSchedule.html'">🔄 連貫排程</li>
+</ul>
+</div>
+<div class="main-content">
+<div class="container">
+<div class="header">
+<h1>🤖 自動養號管理系統</h1>
+</div>
+<!-- 養號設定區域 -->
+<div class="section" id="basic-settings">
+<h2 class="section-title">基本設定</h2>
+<div class="form-group">
+<label class="form-label">選擇要「養號」的帳號：</label>
+<button class="btn btn-secondary" id="selectAccountBtn" style="width: auto; padding: 0.75rem 2rem;">選擇帳號</button>
+<div id="selectedAccounts" style="margin-top: 1rem; display: none;">
+<div style="background: #eff6ff; padding: 1rem; border-radius: 8px; border: 2px solid #3b82f6;">
+<div style="font-weight: 600; color: #1e40af; margin-bottom: 0.5rem;">已選擇帳號：</div>
+<div id="accountList" style="color: #1e40af;"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="nurture-settings">
+<h2 class="section-title">養號設定</h2>
+<div class="form-group">
+<label class="form-label">輸入瀏覽分鐘數：</label>
+<input type="number" class="form-input" value="10" min="1">
+<span class="input-hint">分鐘</span>
+</div>
+<div class="form-group">
+<label class="form-label">給送至個人動態內容：</label>
+<select class="form-select" id="contentType">
+<option value="none">不發文</option>
+<option value="auto">自動取收每日新聞</option>
+<option value="custom">自訂內容</option>
+</select>
+<div id="customContentArea" style="display: none; margin-top: 1rem;">
+<div class="form-group">
+<button class="btn btn-secondary" onclick="addCustomContentBlock()">+ 新增自訂內容</button>
+</div>
+<div id="customContentBlocks"></div>
+</div>
+<div class="info-box" style="margin-top: 1rem;">
+<div class="info-box-title">💡 功能說明</div>
+<div class="info-box-content">選擇「不發文」將僅進行瀏覽而不發布任何內容；「自動取收每日新聞」將自動抓取新聞發文；「自訂內容」允許輸入自訂內容並上傳圖片。</div>
+</div>
+</div>
+<div class="form-group">
+<label class="form-label">設定養號行為</label>
+<div class="behavior-options">
+<div class="behavior-option">
+<input type="checkbox" id="like" checked>
+<label for="like">👍 按讚</label>
+</div>
+<div class="behavior-option">
+<input type="checkbox" id="comment">
+<label for="comment">💬 留言</label>
+</div>
+<div class="behavior-option">
+<input type="checkbox" id="share">
+<label for="share">🔗 分享</label>
+</div>
+</div>
+<div class="form-group" id="likeProbabilityGroup" style="display:block;">
+<label class="form-label">按讚觸發機率 (%)</label>
+<input type="number" class="form-input" id="likeProbability" min="0" max="100" value="100">
+</div>
+<div class="form-group" id="commentContentGroup" style="display:none;">
+<label class="form-label">留言內容模板（支援，用逗號分隔多個文案，隨機不重複；在關鍵字模式下支援 {keyword}）</label>
+<textarea class="form-textarea" id="commentContent" placeholder="好棒的 {keyword} 分享！,謝謝～,超讚的 {keyword}！"></textarea>
+<div class="form-group" id="commentProbabilityGroup" style="display:none;">
+<label class="form-label">留言觸發機率 (%)</label>
+<input type="number" class="form-input" id="commentProbability" min="0" max="100" value="100">
+</div>
+</div>
+<div class="form-group" id="shareContentGroup" style="display:none;">
+<label class="form-label">分享文案模板（支援，用逗號分隔多個文案，隨機不重複；在關鍵字模式下支援 {keyword}）</label>
+<textarea class="form-textarea" id="shareContent" placeholder="分享這個關於 {keyword} 的有趣內容！,看看看看 {keyword} 吧～,推薦 {keyword} 相關分享"></textarea>
+<div class="form-group" id="shareProbabilityGroup" style="display:none;">
+<label class="form-label">分享觸發機率 (%)</label>
+<input type="number" class="form-input" id="shareProbability" min="0" max="100" value="100">
+</div>
+</div>
+</div>
+<div class="form-group">
+<label class="form-label">每日互動上限</label>
+<input type="number" class="form-input" id="dailyLimit" min="1" value="20">
+<div class="info-box">建議20-50，避免過度互動被封</div>
+</div>
+<div class="form-group">
+<label class="form-label" style="display: flex; align-items: center; gap: 0.5rem;">
+<input type="checkbox" id="enableKeywordCultivate" onchange="toggleKeywordSettings()">
+啟用指定關鍵字養號
+</label>
+</div>
+<div id="keywordSettings" style="display: none;">
+<div class="form-group">
+<label class="form-label">輸入關鍵字（用逗號分隔）</label>
+<input type="text" class="form-input" id="keywords" placeholder="例如: 美食,旅行,科技">
+<div class="info-box">
+<strong>說明：</strong><br>
+• 系統將搜尋關鍵字的貼文進行互動<br>
+• 行為設定將套用至關鍵字相關貼文<br>
+• 留言與分享模板可使用 {keyword} 替換為實際關鍵字
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="mode-settings">
+<h2 class="section-title">養號模式</h2>
+<div class="radio-group">
+<label class="radio-option">
+<input type="radio" name="mode" value="instant" checked>
+<div class="radio-content">
+<div class="radio-title">⚡立即養號</div>
+<div class="radio-desc">現在執行養號一次</div>
+</div>
+</label>
+<label class="radio-option">
+<input type="radio" name="mode" value="schedule">
+<div class="radio-content">
+<div class="radio-title">📅排程養號</div>
+<div class="radio-desc">指定時間固定養號</div>
+</div>
+</label>
+</div>
+<div class="advanced-settings" id="scheduleSettings" style="display: none;">
+<div class="form-group">
+<label class="form-label">排程模式選擇</label>
+<div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+<button class="btn btn-secondary schedule-mode-btn active" data-mode="start" style="flex: 1;">開始時間</button>
+<button class="btn btn-secondary schedule-mode-btn" data-mode="custom" style="flex: 1;">客製化時間</button>
+</div>
+</div>
+<!-- 開始時間模式 -->
+<div id="startTimeMode">
+<div class="form-group">
+<label class="form-label">開始時間：</label>
+<input type="time" class="form-input" value="06:10" style="width: 200px;">
+</div>
+<div class="form-group">
+<label class="form-label">每個帳號排程間隔：</label>
+<div style="display: flex; gap: 1rem; align-items: center;">
+<input type="number" class="form-input" value="15" min="1" style="width: 150px;">
+<span class="input-hint">分鐘</span>
+</div>
+</div>
+</div>
+<!-- 客製化時間模式 -->
+<div id="customTimeMode" style="display: none;">
+<div class="form-group">
+<label class="form-label">選擇日期：</label>
+<div class="schedule-grid">
+<label class="checkbox-option">
+<input type="checkbox" class="weekday-checkbox" data-day="everyday" checked>
+<span>每天</span>
+</label>
+<label class="checkbox-option">
+<input type="checkbox" class="weekday-checkbox" data-day="monday">
+<span>星期一</span>
+</label>
+<label class="checkbox-option">
+<input type="checkbox" class="weekday-checkbox" data-day="tuesday">
+<span>星期二</span>
+</label>
+<label class="checkbox-option">
+<input type="checkbox" class="weekday-checkbox" data-day="wednesday">
+<span>星期三</span>
+</label>
+<label class="checkbox-option">
+<input type="checkbox" class="weekday-checkbox" data-day="thursday">
+<span>星期四</span>
+</label>
+<label class="checkbox-option">
+<input type="checkbox" class="weekday-checkbox" data-day="friday">
+<span>星期五</span>
+</label>
+<label class="checkbox-option">
+<input type="checkbox" class="weekday-checkbox" data-day="saturday">
+<span>星期六</span>
+</label>
+<label class="checkbox-option">
+<input type="checkbox" class="weekday-checkbox" data-day="sunday">
+<span>星期日</span>
+</label>
+</div>
+</div>
+<div id="weekdayDetailContainer"></div>
+</div>
+</div>
+</div>
+<!-- 預設任務區域 -->
+<div class="preset-task-section">
+<h3>📁 預設任務管理</h3>
+<div class="info-box" style="margin-bottom: 15px; background: linear-gradient(135deg, #f0fff4 0%, #f7fff7 100%); border-left-color: #48bb78;">
+<h3 style="color: #48bb78;">如何使用預設任務？</h3>
+<ul style="list-style: disc; padding-left: 20px;">
+<li style="color: #4a5568;">點擊下方「儲存為預設任務」按鈕</li>
+<li style="color: #4a5568;">為任務取一個好記的名稱</li>
+<li style="color: #4a5568;">前往「連貫排程」頁面使用這些預設任務</li>
+<li style="color: #4a5568;">可與其他任務（發文、私訊、養號）組合執行</li>
+</ul>
+</div>
+<!-- 關於預設任務的說明 -->
+<div class="no-mode-hint">
+<h4>💡 關於預設任務</h4>
+<p>當您儲存為「預設任務」時，系統只會記錄任務的設定內容（帳號、行為、內容設定）。</p>
+<p>執行方式和排程設定將在「連貫排程」頁面中統一管理，可與其他任務組合串聯。</p>
+</div>
+<!-- 預設任務操作按鈕 -->
+<div class="preset-task-actions">
+<button class="btn btn-secondary" onclick="openViewScheduleModal()" style="background: #48bb78; color: white;">
+📋 查看現有預設任務
+</button>
+<button class="btn btn-secondary" onclick="openSaveScheduleModal()" style="background: #ed8936; color: white;">
+💾 儲存為預設任務
+</button>
+</div>
+</div>
+<!-- 直接執行 vs 預設任務提示 -->
+<div class="direct-execution-hint">
+<h4>🚀 直接執行 vs 📁 預設任務</h4>
+<ul>
+<li><strong>點擊下方「開始養號」</strong>：立即執行一次養號任務</li>
+<li><strong>點擊「儲存為預設任務」</strong>：只儲存設定，任務內容可在「連貫排程」頁面重複使用</li>
+<li>預設任務支援：多任務串聯、條件觸發、排程設定</li>
+</ul>
+</div>
+<!-- 執行按鈕 -->
+<div class="button-group">
+<button class="btn btn-secondary" onclick="cancelCultivate()">取消</button>
+<button class="btn btn-primary" onclick="submitCultivate()">🚀 開始養號</button>
+</div>
+</div>
+</div>
+<!-- 帳號選擇彈窗 -->
+<div class="modal" id="accountModal">
+<div class="modal-content">
+<div class="modal-header">
+<h2 class="modal-title">選擇帳號</h2>
+<button class="modal-close" onclick="closeAccountModal()">×</button>
+</div>
+<button class="btn btn-secondary select-all-btn" onclick="toggleSelectAll()">全選 / 取消全選</button>
+<button class="btn btn-primary" onclick="openGroupModal()" style="margin-bottom: 1rem;">選擇帳號組合</button>
+<!-- 添加搜尋框 -->
+<div class="group-search-container">
+<span class="group-search-icon">🔍</span>
+<input type="text" id="accountSearch" class="group-search-input" placeholder="搜尋帳號名稱..." oninput="filterAccounts()">
+</div>
+<div class="account-list" id="accountListContainer"></div>
+<div class="button-group" style="margin-top: 1.5rem;">
+<button class="btn btn-secondary" onclick="closeAccountModal()">取消</button>
+<button class="btn btn-primary" onclick="confirmAccountSelection()">確認選擇</button>
+</div>
+</div>
+</div>
+<!-- 帳號組合選擇模態 -->
+<div id="groupModal" class="modal">
+<div class="modal-content">
+<div class="modal-header">
+<h2 class="modal-title">選擇帳號組合</h2>
+<button class="modal-close" onclick="closeGroupModal()">×</button>
+</div>
+<div class="group-search-container">
+<span class="group-search-icon">🔍</span>
+<input type="text" id="groupSearch" class="group-search-input" placeholder="搜尋組合名稱..." oninput="filterGroups()">
+</div>
+<div id="groupList" class="group-list"></div>
+</div>
+</div>
+<!-- 保存預設排程模態 -->
+<div id="saveScheduleModal" class="modal">
+<div class="modal-content">
+<div class="modal-header">
+<span>💾 儲存為預設任務</span>
+<button class="modal-close" onclick="closeSaveScheduleModal()">×</button>
+</div>
+<div class="modal-body">
+<div class="info-box" style="margin-bottom: 20px; background: linear-gradient(135deg, #f0fff4 0%, #f7fff7 100%); border-left-color: #48bb78;">
+<h3 style="color: #48bb78;">📋 預設任務說明</h3>
+<ul style="list-style: disc; padding-left: 20px;">
+<li style="color: #4a5568;">此任務只儲存設定內容，不會立即執行</li>
+<li style="color: #4a5568;">儲存後可在「連貫排程」頁面使用</li>
+<li style="color: #4a5568;">可與其他任務（發文、養號、私訊等）組合串聯</li>
+<li style="color: #4a5568;">執行方式和排程在「連貫排程」頁面統一設定</li>
+</ul>
+</div>
+<div class="form-group">
+<label for="scheduleName">任務名稱 <span style="color: #f56565;">*</span></label>
+<input type="text" id="scheduleName" placeholder="例如：每日養號任務">
+<small style="color: #718096; margin-top: 5px; display: block;">請為這個可重複使用的任務取一個好記的名稱</small>
+</div>
+<div class="info-box">
+<h3>📋 任務內容預覽</h3>
+<div id="schedulePreview" style="color: #4a5568; margin-top: 10px;"></div>
+</div>
+</div>
+<div class="modal-footer" style="padding: 20px 30px; border-top: 2px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 12px;">
+<button class="btn btn-secondary" onclick="closeSaveScheduleModal()">取消</button>
+<button class="btn btn-primary" onclick="saveScheduleToPreset()">💾 儲存任務</button>
+</div>
+</div>
+</div>
+<!-- 查看預設排程模態 -->
+<div id="viewScheduleModal" class="modal">
+<div class="modal-content" style="max-width: 1000px;">
+<div class="modal-header">
+<span>📁 預設任務管理</span>
+<button class="modal-close" onclick="closeViewScheduleModal()">×</button>
+</div>
+<div class="modal-body">
+<div id="schedulesList" style="max-height: 500px; overflow-y: auto;"></div>
+</div>
+<div class="modal-footer" style="padding: 20px 30px; border-top: 2px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+<div class="selected-count">共 <span id="scheduleTotalCount">0</span> 個預設任務</div>
+<button class="btn btn-primary" onclick="closeViewScheduleModal()">關閉</button>
+</div>
+</div>
+</div>
+<!-- 自訂內容帳號選擇彈窗 (複製accountModal，但用於自訂內容) -->
+<div class="modal" id="customAccountModal">
+<div class="modal-content">
+<div class="modal-header">
+<h2 class="modal-title">為此內容選擇帳號</h2>
+<button class="modal-close" onclick="closeCustomAccountModal()">×</button>
+</div>
+<button class="btn btn-secondary select-all-btn" onclick="toggleCustomSelectAll()">全選 / 取消全選</button>
+<!-- 添加搜尋框 -->
+<div class="group-search-container">
+<span class="group-search-icon">🔍</span>
+<input type="text" id="customAccountSearch" class="group-search-input" placeholder="搜尋帳號名稱..." oninput="filterCustomAccounts()">
+</div>
+<div class="account-list" id="customAccountListContainer"></div>
+<div class="button-group" style="margin-top: 1.5rem;">
+<button class="btn btn-secondary" onclick="closeCustomAccountModal()">取消</button>
+<button class="btn btn-primary" onclick="confirmCustomAccountSelection()">確認選擇</button>
+</div>
+</div>
+</div>
+<script>
+// 全域變數
+const accounts = Array.from({length: 50}, (_, i) => ({ id: i+1, name: `帳號 ${i+1}`, username: `@account_${i+1}` }));
+let selectedAccounts = [];
+let keywords = [];
+let behaviors = [];
+let commentContent = '';
+let shareContent = '';
+let dailyLimit = 20;
+let likeProbability = 100;
+let commentProbability = 100;
+let shareProbability = 100;
+let accountGroups = {};
+let presetSchedules = JSON.parse(localStorage.getItem('presetSchedules') || '[]');
+let editingScheduleId = null;
+let filteredAccounts = [...accounts]; // 用於過濾帳號
+let filteredCustomAccounts = [...accounts]; // 用於自訂內容過濾帳號
+let currentCustomBlockId = null; // 當前編輯的自訂內容塊ID
+let customContents = []; // 儲存多個自訂內容 {id: number, accounts: [], text: '', file: null, preview: ''}
+// 星期對應
+const weekdayNames = {
+'everyday': '每天',
+'monday': '星期一',
+'tuesday': '星期二',
+'wednesday': '星期三',
+'thursday': '星期四',
+'friday': '星期五',
+'saturday': '星期六',
+'sunday': '星期日'
+};
+const weekdaySchedules = {};
+Object.keys(weekdayNames).forEach(day => {
+weekdaySchedules[day] = [
+{ time: '06:10' },
+{ time: '14:10' },
+{ time: '22:10' }
+];
+});
+document.addEventListener('DOMContentLoaded', () => {
+loadAccountGroups();
+// 初始化行為選擇監聽
+document.querySelectorAll('.behavior-option input[type="checkbox"]').forEach(cb => {
+cb.addEventListener('change', () => {
+behaviors = Array.from(document.querySelectorAll('.behavior-options input:checked')).map(c => c.id);
+document.getElementById('likeProbabilityGroup').style.display = behaviors.includes('like') ? 'block' : 'none';
+document.getElementById('commentContentGroup').style.display = behaviors.includes('comment') ? 'block' : 'none';
+document.getElementById('commentProbabilityGroup').style.display = behaviors.includes('comment') ? 'block' : 'none';
+document.getElementById('shareContentGroup').style.display = behaviors.includes('share') ? 'block' : 'none';
+document.getElementById('shareProbabilityGroup').style.display = behaviors.includes('share') ? 'block' : 'none';
+    });
+});
+// 初始化其他事件
+initEvents();
+});
+function loadAccountGroups() {
+const storedGroups = localStorage.getItem('accountGroups');
+if (storedGroups) {
+accountGroups = JSON.parse(storedGroups);
+} else {
+accountGroups = {
+'組合1': ['帳號 1', '帳號 2', '帳號 3'],
+'組合2': ['帳號 4', '帳號 5', '帳號 6', '帳號 7'],
+'組合3': ['帳號 8', '帳號 9', '帳號 10']
+};
+localStorage.setItem('accountGroups', JSON.stringify(accountGroups));
+}
+}
+// 更新組合列表
+function updateGroupList(groups) {
+const list = document.getElementById('groupList');
+let html = '';
+if (groups.length === 0) {
+html = `
+<div class="empty-state">
+<div class="empty-state-icon">🔍</div>
+<div>沒有找到符合條件的組合</div>
+</div>
+`;
+} else {
+groups.forEach(groupName => {
+const groupAccounts = accountGroups[groupName] || [];
+const accountCount = groupAccounts.length;
+const accountPreview = groupAccounts.slice(0, 3).join(', ') + (accountCount > 3 ? `... 等 ${accountCount} 個帳號` : '');
+html += `
+<div class="group-item" onclick="selectGroup('${groupName}')">
+<div class="group-item-name">${groupName}</div>
+<div class="group-item-count">${accountCount} 個帳號</div>
+<div class="group-item-accounts">${accountPreview}</div>
+</div>
+`;
+});
+}
+list.innerHTML = html;
+}
+// 搜尋過濾組合
+function filterGroups() {
+const search = document.getElementById('groupSearch').value.toLowerCase();
+const filtered = Object.keys(accountGroups).filter(name => name.toLowerCase().includes(search));
+updateGroupList(filtered);
+}
+// 選擇組合
+function selectGroup(groupName) {
+const groupAccounts = accountGroups[groupName] || [];
+// 先取消所有勾選
+document.querySelectorAll('#accountListContainer input[type="checkbox"]').forEach(cb => cb.checked = false);
+// 勾選組合內的帳號
+groupAccounts.forEach(acc => {
+const checkbox = document.querySelector(`#accountListContainer input[value="${acc}"]`);
+if (checkbox) checkbox.checked = true;
+});
+updateSelectedAccountsFromCheckboxes();
+closeGroupModal();
+}
+// 開啟模態
+function openGroupModal() {
+document.getElementById('groupModal').classList.add('active');
+document.getElementById('groupSearch').value = '';
+filterGroups();
+}
+// 關閉模態
+function closeGroupModal() {
+document.getElementById('groupModal').classList.remove('active');
+}
+// 初始化事件監聽
+function initEvents() {
+// 開啟帳號選擇彈窗
+document.getElementById('selectAccountBtn').addEventListener('click', function() {
+document.getElementById('accountModal').classList.add('active');
+document.getElementById('accountSearch').value = ''; // 清空搜尋框
+filteredAccounts = [...accounts]; // 重置過濾帳號
+renderAccountList();
+});
+// 內容類型切換
+document.getElementById('contentType').addEventListener('change', function() {
+const customArea = document.getElementById('customContentArea');
+customArea.style.display = this.value === 'custom' ? 'block' : 'none';
+});
+// 養號模式切換
+const radioButtons = document.querySelectorAll('input[name="mode"]');
+const scheduleSettings = document.getElementById('scheduleSettings');
+radioButtons.forEach(radio => {
+radio.addEventListener('change', function() {
+document.querySelectorAll('.radio-option').forEach(opt => opt.classList.remove('active'));
+this.closest('.radio-option').classList.add('active');
+scheduleSettings.style.display = this.value === 'schedule' ? 'block' : 'none';
+});
+});
+// 初始化選中狀態
+document.querySelector('input[name="mode"]:checked').closest('.radio-option').classList.add('active');
+// 複選框樣式更新
+document.querySelectorAll('.checkbox-option input').forEach(checkbox => {
+checkbox.addEventListener('change', function() {
+const option = this.closest('.checkbox-option');
+option.style.borderColor = this.checked ? '#667eea' : '#e5e7eb';
+option.style.background = this.checked ? 'rgba(102, 126, 234, 0.1)' : 'transparent';
+});
+});
+// 排程模式切換
+document.querySelectorAll('.schedule-mode-btn').forEach(btn => {
+btn.addEventListener('click', function() {
+document.querySelectorAll('.schedule-mode-btn').forEach(b => b.classList.remove('active'));
+this.classList.add('active');
+const mode = this.dataset.mode;
+document.getElementById('startTimeMode').style.display = mode === 'start' ? 'block' : 'none';
+document.getElementById('customTimeMode').style.display = mode === 'custom' ? 'block' : 'none';
+if (mode === 'custom') updateWeekdayDetails();
+});
+});
+// 星期選擇與詳細排程
+document.querySelectorAll('.weekday-checkbox').forEach(checkbox => {
+checkbox.addEventListener('change', function() {
+const day = this.dataset.day;
+if (day === 'everyday' && this.checked) {
+document.querySelectorAll('.weekday-checkbox:not([data-day="everyday"])').forEach(cb => {
+cb.checked = false;
+const option = cb.closest('.checkbox-option');
+option.style.borderColor = '#e5e7eb';
+option.style.background = 'transparent';
+});
+} else if (this.checked) {
+const everydayCheckbox = document.querySelector('.weekday-checkbox[data-day="everyday"]');
+if (everydayCheckbox.checked) {
+everydayCheckbox.checked = false;
+const option = everydayCheckbox.closest('.checkbox-option');
+option.style.borderColor = '#e5e7eb';
+option.style.background = 'transparent';
+}
+}
+updateWeekdayDetails();
+const option = this.closest('.checkbox-option');
+option.style.borderColor = this.checked ? '#667eea' : '#e5e7eb';
+option.style.background = this.checked ? 'rgba(102, 126, 234, 0.1)' : 'transparent';
+});
+});
+}
+// 關閉彈窗
+function closeAccountModal() {
+document.getElementById('accountModal').classList.remove('active');
+}
+// 渲染帳號列表
+function renderAccountList() {
+const container = document.getElementById('accountListContainer');
+container.innerHTML = filteredAccounts.map(account => `
+<label class="account-item ${selectedAccounts.includes(account.name) ? 'selected' : ''}" data-name="${account.name}">
+<input type="checkbox" class="account-checkbox" value="${account.name}" ${selectedAccounts.includes(account.name) ? 'checked' : ''} onchange="toggleAccount('${account.name}')">
+<div class="account-info">
+<div class="account-name">${account.name}</div>
+<div class="account-id">${account.username}</div>
+</div>
+</label>
+`).join('');
+}
+// 搜尋過濾帳號
+function filterAccounts() {
+const search = document.getElementById('accountSearch').value.toLowerCase();
+filteredAccounts = accounts.filter(account => account.name.toLowerCase().includes(search));
+renderAccountList();
+}
+// 切換帳號選擇
+function toggleAccount(accountName) {
+const index = selectedAccounts.indexOf(accountName);
+if (index > -1) {
+selectedAccounts.splice(index, 1);
+} else {
+selectedAccounts.push(accountName);
+}
+renderAccountList();
+}
+// 全選/取消全選
+function toggleSelectAll() {
+if (selectedAccounts.length === filteredAccounts.length) {
+selectedAccounts = selectedAccounts.filter(acc => !filteredAccounts.map(a => a.name).includes(acc));
+} else {
+filteredAccounts.forEach(account => {
+if (!selectedAccounts.includes(account.name)) {
+selectedAccounts.push(account.name);
+}
+});
+}
+renderAccountList();
+}
+// 更新 selectedAccounts 從 checkboxes
+function updateSelectedAccountsFromCheckboxes() {
+selectedAccounts = Array.from(document.querySelectorAll('#accountListContainer input[type="checkbox"]:checked')).map(cb => cb.value);
+renderAccountList();
+}
+// 確認選擇
+function confirmAccountSelection() {
+if (selectedAccounts.length === 0) {
+alert('請至少選擇一個帳號');
+return;
+}
+const selectedAccountNames = accounts
+.filter(a => selectedAccounts.includes(a.name))
+.map(a => a.name)
+.join('、');
+document.getElementById('accountList').textContent = `${selectedAccountNames} (共 ${selectedAccounts.length} 個帳號)`;
+document.getElementById('selectedAccounts').style.display = 'block';
+closeAccountModal();
+}
+function updateWeekdayDetails() {
+const container = document.getElementById('weekdayDetailContainer');
+const checkedDays = Array.from(document.querySelectorAll('.weekday-checkbox:checked'))
+.map(cb => cb.dataset.day);
+if (checkedDays.length === 0) {
+container.innerHTML = '';
+return;
+}
+container.innerHTML = checkedDays.map(day => {
+const schedules = weekdaySchedules[day];
+return `
+<div class="weekday-detail-section" data-day="${day}">
+<div class="weekday-detail-title">
+📅 ${weekdayNames[day]} 的排程設定
+</div>
+<div class="time-inputs">
+${schedules.map((schedule, index) => `
+<div class="time-input-row">
+<label>時間${index + 1}：</label>
+<input type="time" value="${schedule.time}" onchange="updateScheduleTime('${day}', ${index}, this.value)">
+<button class="btn-icon" title="查看">👁️</button>
+<button class="btn-icon" title="新增" onclick="addWeekdayTimeSlot('${day}')">+</button>
+<button class="btn-icon" title="刪除" onclick="removeWeekdayTimeSlot('${day}', ${index})">-</button>
+</div>
+`).join('')}
+</div>
+</div>
+`;
+}).join('');
+}
+function updateScheduleTime(day, index, time) {
+weekdaySchedules[day][index].time = time;
+if (day === 'everyday') {
+Object.keys(weekdaySchedules).forEach(d => {
+if (d !== 'everyday') weekdaySchedules[d][index].time = time;
+});
+}
+}
+function addWeekdayTimeSlot(day) {
+weekdaySchedules[day].push({ time: '12:00' });
+if (day === 'everyday') {
+Object.keys(weekdaySchedules).forEach(d => {
+if (d !== 'everyday') weekdaySchedules[d].push({ time: '12:00' });
+});
+}
+updateWeekdayDetails();
+}
+function removeWeekdayTimeSlot(day, index) {
+if (weekdaySchedules[day].length > 1) {
+weekdaySchedules[day].splice(index, 1);
+if (day === 'everyday') {
+Object.keys(weekdaySchedules).forEach(d => {
+if (d !== 'everyday') weekdaySchedules[d].splice(index, 1);
+});
+}
+updateWeekdayDetails();
+} else {
+alert('至少需要保留一個時間段');
+}
+}
+// 新增時間段（客製化時間模式用）
+function addTimeSlot() {
+const container = document.querySelector('#customTimeMode .time-inputs');
+if (!container) return;
+const count = container.children.length + 1;
+const newRow = document.createElement('div');
+newRow.className = 'time-input-row';
+newRow.innerHTML = `
+<label>時間${count}：</label>
+<input type="time" value="12:00">
+<button class="btn-icon" title="查看">👁️</button>
+<button class="btn-icon" title="新增" onclick="addTimeSlot()">+</button>
+<button class="btn-icon" title="刪除" onclick="removeTimeSlot(this)">-</button>
+`;
+container.appendChild(newRow);
+}
+// 刪除時間段（客製化時間模式用）
+function removeTimeSlot(btn) {
+const container = document.querySelector('#customTimeMode .time-inputs');
+if (!container) return;
+if (container.children.length > 1) {
+btn.closest('.time-input-row').remove();
+Array.from(container.children).forEach((row, index) => {
+row.querySelector('label').textContent = `時間${index + 1}：`;
+});
+} else {
+alert('至少需要保留一個時間段');
+}
+}
+// 啟用關鍵字養號切換
+function toggleKeywordSettings() {
+const enabled = document.getElementById('enableKeywordCultivate').checked;
+document.getElementById('keywordSettings').style.display = enabled ? 'block' : 'none';
+}
+// === 預設排程相關函數 ===
+// 獲取當前所有設定
+function getCurrentSettings() {
+if (selectedAccounts.length === 0) return null;
+const isKeywordEnabled = document.getElementById('enableKeywordCultivate').checked;
+behaviors = Array.from(document.querySelectorAll('.behavior-options input:checked')).map(c => c.id);
+dailyLimit = parseInt(document.getElementById('dailyLimit').value) || 20;
+likeProbability = behaviors.includes('like') ? parseInt(document.getElementById('likeProbability').value) : 0;
+commentContent = behaviors.includes('comment') ? document.getElementById('commentContent').value : '';
+commentProbability = behaviors.includes('comment') ? parseInt(document.getElementById('commentProbability').value) : 0;
+shareContent = behaviors.includes('share') ? document.getElementById('shareContent').value : '';
+shareProbability = behaviors.includes('share') ? parseInt(document.getElementById('shareProbability').value) : 0;
+const settings = {
+accounts: [...selectedAccounts],
+browseMinutes: parseInt(document.querySelector('#nurture-settings input[type="number"]').value),
+contentType: document.getElementById('contentType').value,
+customContents: document.getElementById('contentType').value === 'custom' ? customContents.map(cc => ({
+  accounts: cc.accounts,
+  text: cc.text,
+  fileName: cc.file ? cc.file.name : ''
+})) : [],
+enableKeyword: isKeywordEnabled,
+keywords: isKeywordEnabled ? document.getElementById('keywords').value.split(',').map(k=>k.trim()).filter(k=>k) : [],
+behaviors: behaviors,
+likeProbability: likeProbability,
+comment: commentContent,
+commentProbability: commentProbability,
+share: shareContent,
+shareProbability: shareProbability,
+dailyLimit: dailyLimit,
+taskType: 'auto_cultivate'
+};
+return settings;
+}
+// 打開保存預設排程 Modal
+function openSaveScheduleModal() {
+if (selectedAccounts.length === 0) return alert('請先選擇至少一個帳號！');
+editingScheduleId = null;
+document.getElementById('scheduleName').value = '';
+updateSchedulePreview();
+document.getElementById('saveScheduleModal').classList.add('active');
+}
+function closeSaveScheduleModal() {
+document.getElementById('saveScheduleModal').classList.remove('active');
+editingScheduleId = null;
+}
+// 更新排程預覽
+function updateSchedulePreview() {
+const settings = getCurrentSettings();
+if (!settings) return;
+const preview = document.getElementById('schedulePreview');
+let html = `
+<div class="schedule-item-detail"><strong>任務類型：</strong> <span class="task-badge auto-cultivate">自動養號</span></div>
+<div class="schedule-item-detail"><strong>帳號：</strong> ${settings.accounts.length} 個</div>
+<div class="schedule-item-detail"><strong>瀏覽時間：</strong> ${settings.browseMinutes} 分鐘</div>
+<div class="schedule-item-detail"><strong>內容類型：</strong> ${settings.contentType === 'none' ? '不發文' : settings.contentType === 'auto' ? '自動新聞' : '自訂內容'}</div>
+<div class="schedule-item-detail"><strong>養號行為：</strong> ${settings.behaviors.map(b => b === 'like' ? '按讚' : b === 'comment' ? '留言' : '分享').join('、')}</div>
+<div class="schedule-item-detail"><strong>關鍵字養號：</strong> ${settings.enableKeyword ? '啟用' : '未啟用'}</div>
+<div class="schedule-item-detail"><strong>每日上限：</strong> ${settings.dailyLimit} 次</div>
+<div class="schedule-item-detail"><strong>任務狀態：</strong> <span style="color: #718096;">只儲存設定，執行方式在「連貫排程」頁面設定</span></div>
+`;
+if (settings.contentType === 'custom') {
+  html += `<div class="schedule-item-detail"><strong>自訂內容數：</strong> ${settings.customContents.length} 個</div>`;
+}
+preview.innerHTML = html;
+}
+// 保存預設排程
+function saveScheduleToPreset() {
+const name = document.getElementById('scheduleName').value.trim();
+if (!name) return alert('請輸入任務名稱！');
+const settings = getCurrentSettings();
+if (!settings) return alert('無法獲取當前設定！');
+const schedule = {
+id: editingScheduleId || Date.now().toString(),
+name: name,
+settings: settings,
+type: 'auto_cultivate',
+enabled: false, // 預設不執行
+createdAt: editingScheduleId ? presetSchedules.find(s => s.id === editingScheduleId)?.createdAt : new Date().toISOString(),
+updatedAt: new Date().toISOString()
+};
+if (editingScheduleId) {
+const index = presetSchedules.findIndex(s => s.id === editingScheduleId);
+if (index !== -1) {
+presetSchedules[index] = schedule;
+}
+} else {
+presetSchedules.push(schedule);
+}
+localStorage.setItem('presetSchedules', JSON.stringify(presetSchedules));
+closeSaveScheduleModal();
+alert(editingScheduleId ? '預設任務已更新！' : '預設任務已儲存！\n\n可以在「連貫排程」頁面將此任務與其他任務串聯。');
+}
+// 打開查看預設排程 Modal
+function openViewScheduleModal() {
+renderSchedulesList();
+document.getElementById('viewScheduleModal').classList.add('active');
+}
+function closeViewScheduleModal() {
+document.getElementById('viewScheduleModal').classList.remove('active');
+}
+// 渲染預設排程列表
+function renderSchedulesList() {
+const container = document.getElementById('schedulesList');
+const autoCultivateSchedules = presetSchedules.filter(s => s.type === 'auto_cultivate');
+document.getElementById('scheduleTotalCount').textContent = autoCultivateSchedules.length;
+if (autoCultivateSchedules.length === 0) {
+container.innerHTML = `
+<div class="empty-schedules">
+<div class="empty-schedules-icon">📅</div>
+<p>目前沒有任何預設任務</p>
+<p style="font-size: 0.9rem; margin-top: 10px;">儲存的預設任務可以在「連貫排程」頁面與其他任務串聯執行</p>
+</div>
+`;
+return;
+}
+container.innerHTML = autoCultivateSchedules.map(schedule => {
+const settings = schedule.settings;
+const scheduleDesc = `
+<div class="schedule-item-detail"><strong>任務類型：</strong> <span class="task-badge auto-cultivate">自動養號</span></div>
+<div class="schedule-item-detail"><strong>帳號：</strong> ${settings.accounts.length} 個</div>
+<div class="schedule-item-detail"><strong>瀏覽時間：</strong> ${settings.browseMinutes} 分鐘</div>
+<div class="schedule-item-detail"><strong>內容類型：</strong> ${settings.contentType === 'none' ? '不發文' : settings.contentType === 'auto' ? '自動新聞' : '自訂內容'}</div>
+<div class="schedule-item-detail"><strong>養號行為：</strong> ${settings.behaviors.map(b => b === 'like' ? '按讚' : b === 'comment' ? '留言' : '分享').join('、')}</div>
+<div class="schedule-item-detail"><strong>關鍵字養號：</strong> ${settings.enableKeyword ? '啟用' : '未啟用'}</div>
+<div class="schedule-item-detail"><strong>每日上限：</strong> ${settings.dailyLimit} 次</div>
+<div class="schedule-item-detail"><strong>狀態：</strong> <span style="color: #718096;">未執行（在「連貫排程」頁面設定）</span></div>
+`;
+const updatedAt = new Date(schedule.updatedAt).toLocaleString('zh-TW');
+return `
+<div class="schedule-item">
+<div class="schedule-item-header">
+<div class="schedule-item-title">${schedule.name}</div>
+<div class="schedule-item-actions">
+<button class="btn-edit" onclick="editSchedule('${schedule.id}')">✏️ 編輯</button>
+<button class="btn-delete" onclick="deleteSchedule('${schedule.id}')">🗑️ 刪除</button>
+</div>
+</div>
+<div class="schedule-item-content">
+${scheduleDesc}
+<div class="schedule-item-detail" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #e2e8f0; color: #718096; font-size: 0.85rem;">
+<strong>更新時間：</strong> ${updatedAt}
+</div>
+</div>
+</div>
+`;
+}).join('');
+}
+// 編輯預設排程
+function editSchedule(id) {
+const schedule = presetSchedules.find(s => s.id === id);
+if (!schedule) return alert('找不到該任務！');
+const settings = schedule.settings;
+// 載入帳號
+selectedAccounts = [...settings.accounts];
+const display = document.getElementById('selectedAccounts');
+if (selectedAccounts.length > 0) {
+const selectedAccountNames = selectedAccounts.join('、');
+document.getElementById('accountList').textContent = `${selectedAccountNames} (共 ${selectedAccounts.length} 個帳號)`;
+document.getElementById('selectedAccounts').style.display = 'block';
+// 同步更新帳戶 Modal 中的 checkbox 狀態
+setTimeout(() => {
+document.querySelectorAll('#accountListContainer input[type="checkbox"]').forEach(cb => {
+const accountName = cb.value;
+cb.checked = selectedAccounts.includes(accountName);
+});
+}, 100);
+} else {
+document.getElementById('selectedAccounts').style.display = 'none';
+}
+// 載入瀏覽時間
+document.querySelector('#nurture-settings input[type="number"]').value = settings.browseMinutes;
+// 載入內容類型
+document.getElementById('contentType').value = settings.contentType;
+const customArea = document.getElementById('customContentArea');
+customArea.style.display = settings.contentType === 'custom' ? 'block' : 'none';
+// 載入自訂內容 (如果有)
+if (settings.contentType === 'custom') {
+  customContents = settings.customContents.map((cc, index) => ({
+    id: index,
+    accounts: cc.accounts,
+    text: cc.text,
+    file: null, // 文件無法從localStorage載入，假設重新上傳
+    preview: ''
+  }));
+  renderCustomContentBlocks();
+}
+// 載入養號行為
+document.querySelectorAll('.behavior-options input').forEach(cb => {
+cb.checked = settings.behaviors.includes(cb.id);
+});
+// 觸發行為選擇更新
+behaviors = settings.behaviors;
+document.getElementById('likeProbabilityGroup').style.display = behaviors.includes('like') ? 'block' : 'none';
+document.getElementById('commentContentGroup').style.display = behaviors.includes('comment') ? 'block' : 'none';
+document.getElementById('commentProbabilityGroup').style.display = behaviors.includes('comment') ? 'block' : 'none';
+document.getElementById('shareContentGroup').style.display = behaviors.includes('share') ? 'block' : 'none';
+document.getElementById('shareProbabilityGroup').style.display = behaviors.includes('share') ? 'block' : 'none';
+// 載入機率設定
+if (behaviors.includes('like')) {
+document.getElementById('likeProbability').value = settings.likeProbability;
+}
+if (behaviors.includes('comment')) {
+document.getElementById('commentContent').value = settings.comment;
+document.getElementById('commentProbability').value = settings.commentProbability;
+}
+if (behaviors.includes('share')) {
+document.getElementById('shareContent').value = settings.share;
+document.getElementById('shareProbability').value = settings.shareProbability;
+}
+// 載入每日上限
+document.getElementById('dailyLimit').value = settings.dailyLimit;
+// 載入關鍵字設定
+if (settings.enableKeyword) {
+document.getElementById('enableKeywordCultivate').checked = true;
+document.getElementById('keywordSettings').style.display = 'block';
+document.getElementById('keywords').value = settings.keywords.join(', ');
+} else {
+document.getElementById('enableKeywordCultivate').checked = false;
+document.getElementById('keywordSettings').style.display = 'none';
+}
+// 打開保存 Modal 並設定為編輯模式
+editingScheduleId = id;
+document.getElementById('scheduleName').value = schedule.name;
+updateSchedulePreview();
+document.getElementById('saveScheduleModal').classList.add('active');
+// 關閉查看 Modal
+closeViewScheduleModal();
+}
+// 刪除預設排程
+function deleteSchedule(id) {
+if (!confirm('確定要刪除這個預設任務嗎？')) return;
+presetSchedules = presetSchedules.filter(s => s.id !== id);
+localStorage.setItem('presetSchedules', JSON.stringify(presetSchedules));
+renderSchedulesList();
+alert('任務已刪除！');
+}
+// 取消養號
+function cancelCultivate() {
+if (confirm('確定要取消設定嗎？所有設定將會遺失。')) {
+window.location.reload();
+}
+}
+// === 自訂內容相關函數 ===
+// 新增自訂內容塊
+function addCustomContentBlock() {
+  const newId = customContents.length;
+  customContents.push({
+    id: newId,
+    accounts: [],
+    text: '',
+    file: null,
+    preview: ''
+  });
+  renderCustomContentBlocks();
+}
+// 渲染自訂內容塊
+function renderCustomContentBlocks() {
+  const container = document.getElementById('customContentBlocks');
+  container.innerHTML = customContents.map(cc => `
+    <div class="custom-content-block" data-id="${cc.id}">
+      <div class="custom-content-actions">
+        <button class="btn btn-edit" onclick="editCustomContent(${cc.id})">✏️ 編輯</button>
+        <button class="btn btn-delete" onclick="deleteCustomContent(${cc.id})">🗑️ 刪除</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">選擇此內容的帳號：</label>
+        <button class="btn btn-secondary" onclick="openCustomAccountModal(${cc.id})" style="width: auto; padding: 0.75rem 2rem;">選擇帳號</button>
+        <div id="customSelectedAccounts_${cc.id}" class="custom-content-selected-accounts ${cc.accounts.length > 0 ? 'active' : ''}">
+          <div style="font-weight: 600; color: #1e40af; margin-bottom: 0.5rem;">此內容將由以下帳號發布：</div>
+          <div style="color: #1e40af;">${cc.accounts.join('、')} (共 ${cc.accounts.length} 個)</div>
+          <small style="color: #6b7280; display: block; margin-top: 0.5rem;">（僅限最上方已勾選的帳號）</small>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">輸入自訂內容：</label>
+        <textarea class="form-textarea" id="customText_${cc.id}" placeholder="請輸入要發布的內容...">${cc.text}</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">上傳圖片：</label>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+          <input type="file" id="customImageUpload_${cc.id}" accept="image/*" style="display: none;" onchange="handleCustomImageUpload(${cc.id}, event)">
+          <button class="btn btn-secondary" style="width: auto; padding: 0.75rem 2rem;" onclick="document.getElementById('customImageUpload_${cc.id}').click();">選擇圖片</button>
+          <span id="customFileName_${cc.id}" style="color: #6b7280; font-size: 0.9rem;">${cc.file ? cc.file.name : '尚未選擇檔案'}</span>
+        </div>
+        <div id="customImagePreview_${cc.id}" style="margin-top: 1rem; display: ${cc.preview ? 'block' : 'none'};">
+          <img id="customPreviewImg_${cc.id}" style="max-width: 300px; max-height: 300px; border-radius: 10px; border: 2px solid #e5e7eb;" src="${cc.preview}">
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+// 處理自訂內容圖片上傳
+function handleCustomImageUpload(id, event) {
+  const file = event.target.files[0];
+  if (file) {
+    const content = customContents.find(cc => cc.id === id);
+    if (content) {
+      content.file = file;
+      document.getElementById(`customFileName_${id}`).textContent = file.name;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        content.preview = e.target.result;
+        document.getElementById(`customPreviewImg_${id}`).src = e.target.result;
+        document.getElementById(`customImagePreview_${id}`).style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+}
+// 編輯自訂內容 (更新文案)
+function editCustomContent(id) {
+  const content = customContents.find(cc => cc.id === id);
+  if (content) {
+    content.text = document.getElementById(`customText_${id}`).value;
+  }
+}
+// 刪除自訂內容
+function deleteCustomContent(id) {
+  if (confirm('確定刪除此自訂內容？')) {
+    customContents = customContents.filter(cc => cc.id !== id);
+    renderCustomContentBlocks();
+  }
+}
+// 開啟自訂內容帳號選擇模態
+function openCustomAccountModal(blockId) {
+  currentCustomBlockId = blockId;
+  const content = customContents.find(cc => cc.id === blockId);
+  
+  // 只顯示全局已選擇的帳號
+  filteredCustomAccounts = selectedAccounts.map(name => 
+    accounts.find(a => a.name === name)
+  ).filter(Boolean); // 過濾掉找不到的（理論上不會發生）
+
+  document.getElementById('customAccountModal').classList.add('active');
+  document.getElementById('customAccountSearch').value = ''; // 清空搜尋框
+  renderCustomAccountList(content ? content.accounts : []);
+}
+// 關閉自訂內容帳號模態
+function closeCustomAccountModal() {
+  document.getElementById('customAccountModal').classList.remove('active');
+  currentCustomBlockId = null;
+}
+// 搜尋過濾自訂內容帳號（只在已選帳號中搜尋）
+function filterCustomAccounts() {
+  const search = document.getElementById('customAccountSearch').value.toLowerCase();
+  filteredCustomAccounts = selectedAccounts
+    .map(name => accounts.find(a => a.name === name))
+    .filter(Boolean)
+    .filter(account => account.name.toLowerCase().includes(search));
+  
+  const content = customContents.find(cc => cc.id === currentCustomBlockId);
+  renderCustomAccountList(content ? content.accounts : []);
+}
+// 全選/取消全選自訂內容帳號（只影響已全局選中的帳號）
+function toggleCustomSelectAll() {
+  const content = customContents.find(cc => cc.id === currentCustomBlockId);
+  if (!content) return;
+
+  const currentDisplayed = filteredCustomAccounts.map(a => a.name);
+  
+  if (content.accounts.length === currentDisplayed.length && 
+      currentDisplayed.every(name => content.accounts.includes(name))) {
+    // 全選狀態 → 取消全選
+    content.accounts = content.accounts.filter(name => !currentDisplayed.includes(name));
+  } else {
+    // 加入目前顯示的所有帳號（也就是全局已選中的子集）
+    currentDisplayed.forEach(name => {
+      if (!content.accounts.includes(name)) {
+        content.accounts.push(name);
+      }
+    });
+  }
+  
+  renderCustomAccountList(content.accounts);
+}
+// 渲染自訂內容帳號列表（顯示帳號名稱 + username）
+function renderCustomAccountList(selected = []) {
+  const container = document.getElementById('customAccountListContainer');
+  if (filteredCustomAccounts.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">⚠️</div>
+        <div>請先在上方「選擇帳號」選取至少一個帳號</div>
+      </div>
+    `;
+    return;
+  }
+  
+  container.innerHTML = filteredCustomAccounts.map(account => `
+    <label class="account-item ${selected.includes(account.name) ? 'selected' : ''}" data-name="${account.name}">
+      <input type="checkbox" class="account-checkbox" value="${account.name}" 
+             ${selected.includes(account.name) ? 'checked' : ''} 
+             onchange="toggleCustomAccount('${account.name}')">
+      <div class="account-info">
+        <div class="account-name">${account.name}</div>
+        <div class="account-id">${account.username}</div>
+      </div>
+    </label>
+  `).join('');
+}
+// 確認自訂內容帳號選擇
+function confirmCustomAccountSelection() {
+  const content = customContents.find(cc => cc.id === currentCustomBlockId);
+  if (!content) return;
+  
+  if (content.accounts.length === 0) {
+    alert('請至少選擇一個帳號（或保持空白表示不使用此內容）');
+    // 如果你想允許不選帳號，可以註解掉上面這行 alert
+  }
+  
+  const selectedDiv = document.getElementById(`customSelectedAccounts_${currentCustomBlockId}`);
+  if (selectedDiv) {
+    if (content.accounts.length > 0) {
+      selectedDiv.classList.add('active');
+      selectedDiv.querySelector('div:nth-child(2)').innerHTML = 
+        `${content.accounts.join('、')} (共 ${content.accounts.length} 個)`;
+    } else {
+      selectedDiv.classList.remove('active');
+    }
+  }
+  closeCustomAccountModal();
+}
+// 切換自訂內容帳號選擇
+function toggleCustomAccount(accountName) {
+  const content = customContents.find(cc => cc.id === currentCustomBlockId);
+  if (!content) return;
+  
+  const index = content.accounts.indexOf(accountName);
+  if (index > -1) {
+    content.accounts.splice(index, 1);
+  } else {
+    content.accounts.push(accountName);
+  }
+  
+  renderCustomAccountList(content.accounts);
+}
+// 最終送出
+function submitCultivate(){
+if(selectedAccounts.length===0){
+alert('請至少選擇一個帳號');
+return;
+}
+const isKeywordEnabled = document.getElementById('enableKeywordCultivate').checked;
+if(isKeywordEnabled){
+keywords = document.getElementById('keywords').value.split(',').map(k=>k.trim()).filter(k=>k);
+if(keywords.length===0){
+alert('請輸入至少一個關鍵字');
+return;
+}
+}
+behaviors = Array.from(document.querySelectorAll('.behavior-options input:checked')).map(c => c.id);
+dailyLimit = parseInt(document.getElementById('dailyLimit').value) || 20;
+likeProbability = behaviors.includes('like') ? parseInt(document.getElementById('likeProbability').value) : 0;
+commentContent = behaviors.includes('comment') ? document.getElementById('commentContent').value : '';
+commentProbability = behaviors.includes('comment') ? parseInt(document.getElementById('commentProbability').value) : 0;
+shareContent = behaviors.includes('share') ? document.getElementById('shareContent').value : '';
+shareProbability = behaviors.includes('share') ? parseInt(document.getElementById('shareProbability').value) : 0;
+if(behaviors.length===0){
+alert('請選擇至少一種行為');
+return;
+}
+// 更新自訂內容的文案
+customContents.forEach(cc => {
+  cc.text = document.getElementById(`customText_${cc.id}`).value;
+});
+const mode = document.querySelector('input[name="mode"]:checked').value;
+const data = {
+accounts: selectedAccounts,
+browseMinutes: parseInt(document.querySelector('#nurture-settings input[type="number"]').value),
+contentType: document.getElementById('contentType').value,
+customContents: document.getElementById('contentType').value === 'custom' ? customContents.map(cc => ({
+  accounts: cc.accounts,
+  text: cc.text,
+  file: cc.file // 文件物件
+})) : [],
+enableKeyword: isKeywordEnabled,
+keywords: isKeywordEnabled ? keywords : [],
+behaviors: behaviors,
+likeProbability: likeProbability,
+comment: commentContent,
+commentProbability: commentProbability,
+share: shareContent,
+shareProbability: shareProbability,
+dailyLimit: dailyLimit,
+mode: mode,
+schedule: mode==='schedule' ? collectScheduleData() : null
+};
+console.log('【養號任務已提交】', data);
+alert(`任務已成功提交！\n帳號：${selectedAccounts.length} 個\n模式：${mode==='instant'?'立即開始':'排程養號'}\n關鍵字養號：${isKeywordEnabled ? '啟用' : '未啟用'}`);
+}
+function collectScheduleData(){
+const isCustom = document.querySelector('.schedule-mode-btn.active').dataset.mode === 'custom';
+if(!isCustom){
+return {
+type: 'start',
+startTime: document.querySelector('#startTimeMode input[type="time"]').value,
+intervalMinutes: parseInt(document.querySelector('#startTimeMode input[type="number"]').value)
+};
+}else{
+const days = Array.from(document.querySelectorAll('.weekday-detail-section')).map(section=>({
+day: section.dataset.day,
+times: Array.from(section.querySelectorAll('input[type="time"]')).map(t=>t.value)
+}));
+return { type:'custom', days };
+}
+}
+</script>
+</body>
+</html>

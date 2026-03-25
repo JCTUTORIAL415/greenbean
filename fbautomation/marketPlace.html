@@ -1,0 +1,1714 @@
+
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智富系統 - 拍賣+社團發文</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --gold: #C9A84C;
+  --gold-light: #F0C040;
+  --gold-bright: #FFD700;
+  --gold-dark: #8B6914;
+  --black: #0A0A0A;
+  --black-soft: #111111;
+  --black-card: #161616;
+  --black-border: #222222;
+  --black-hover: #1E1E1E;
+  --white: #FFFFFF;
+  --gray: #888888;
+  --gray-light: #CCCCCC;
+  --sidebar-w: 240px;
+  --green: #42b72a;
+  --blue: #1877f2;
+  --red: #e53e3e;
+}
+
+body {
+  font-family: 'Microsoft JhengHei', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--black);
+  color: var(--white);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--black); }
+::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 3px; }
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width: var(--sidebar-w);
+  height: 100vh;
+  background: var(--black-soft);
+  border-right: 1px solid var(--black-border);
+  position: fixed;
+  top: 0; left: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  overflow: hidden;
+}
+
+.sidebar-logo {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--black-border);
+  display: flex; align-items: center; gap: 12px;
+}
+
+.sidebar-logo-icon {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold-bright));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; font-weight: 900; color: var(--black);
+  flex-shrink: 0;
+}
+
+.sidebar-logo-text {
+  font-size: 1.3rem; font-weight: 900;
+  background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  letter-spacing: 2px;
+}
+
+.sidebar-logo-sub {
+  font-size: 0.58rem; color: var(--gold); letter-spacing: 2px;
+  opacity: 0.7; margin-top: -2px;
+}
+
+.sidebar-fb-badge { margin-left: auto; opacity: 0.8; }
+
+.sidebar-nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
+
+.nav-section-label {
+  font-size: 0.65rem; color: var(--gray);
+  letter-spacing: 2px; text-transform: uppercase;
+  padding: 0 10px; margin: 12px 0 6px;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 14px; margin-bottom: 3px;
+  border-radius: 10px; cursor: pointer;
+  transition: all 0.25s; color: var(--gray-light);
+  font-size: 0.9rem; font-weight: 500;
+  text-decoration: none; border: 1px solid transparent;
+}
+
+.nav-item:hover {
+  background: var(--black-hover); color: var(--white);
+  border-color: var(--black-border);
+}
+
+.nav-item.active {
+  background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(255,215,0,0.08));
+  border-color: rgba(201,168,76,0.3); color: var(--gold-bright);
+}
+
+.nav-item .nav-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem; flex-shrink: 0;
+  background: var(--black-border); transition: background 0.25s;
+}
+
+.nav-item.active .nav-icon {
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+  color: var(--black);
+}
+
+.nav-item:hover .nav-icon { background: rgba(255,255,255,0.08); }
+
+.sidebar-bottom {
+  padding: 16px 12px; border-top: 1px solid var(--black-border);
+  font-size: 0.75rem; color: var(--gray); text-align: center;
+}
+
+/* ===== MAIN CONTENT ===== */
+.content {
+  margin-left: var(--sidebar-w);
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+}
+
+.topbar {
+  background: var(--black-soft);
+  border-bottom: 1px solid var(--black-border);
+  padding: 16px 32px;
+  display: flex; align-items: center; gap: 16px;
+  position: sticky; top: 0; z-index: 50;
+}
+
+.topbar-title {
+  font-size: 1.2rem; font-weight: 800; color: var(--white);
+}
+
+.topbar-sub {
+  font-size: 0.82rem; color: var(--gray); margin-left: 4px;
+}
+
+.topbar-badge {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.status-dot {
+  width: 8px; height: 8px; background: var(--green);
+  border-radius: 50%; animation: blink 1.5s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+.main-area { padding: 28px 32px; flex: 1; }
+
+/* ===== CARDS ===== */
+.card {
+  background: var(--black-card);
+  border: 1px solid var(--black-border);
+  border-radius: 16px; padding: 28px;
+  margin-bottom: 20px; position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--gold-dark), var(--gold-bright), var(--gold-dark));
+  opacity: 0; transition: opacity 0.3s;
+}
+
+.card:hover::before { opacity: 1; }
+
+.card-title {
+  font-size: 1.05rem; font-weight: 700; color: var(--white);
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 22px;
+}
+
+.card-title .icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(255,215,0,0.08));
+  border: 1px solid rgba(201,168,76,0.2);
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+}
+
+/* ===== FORM ELEMENTS ===== */
+.form-group {
+  display: flex; flex-direction: column; gap: 8px;
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  font-size: 0.82rem; color: var(--gold);
+  font-weight: 600; letter-spacing: 0.5px;
+  display: flex; align-items: center; gap: 6px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="time"],
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--black-border);
+  border-radius: 10px; padding: 11px 14px;
+  color: var(--white); font-size: 0.9rem;
+  font-family: inherit; transition: all 0.25s;
+  outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: rgba(201,168,76,0.5);
+  background: rgba(201,168,76,0.05);
+  box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+}
+
+.form-group select option { background: #1a1a1a; color: var(--white); }
+.form-group textarea { min-height: 120px; resize: vertical; }
+
+/* ===== ACCOUNT LIST ===== */
+.account-list {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--black-border);
+  border-radius: 10px; max-height: 200px;
+  overflow-y: auto; padding: 8px;
+}
+
+.account-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; margin-bottom: 4px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid transparent;
+  border-radius: 8px; transition: all 0.2s; cursor: pointer;
+}
+
+.account-item:hover { border-color: rgba(201,168,76,0.2); background: rgba(201,168,76,0.05); }
+
+.account-item input[type="checkbox"] {
+  width: 16px; height: 16px; accent-color: var(--gold); cursor: pointer;
+}
+
+.account-item label {
+  font-size: 0.88rem; color: var(--gray-light); cursor: pointer; flex: 1;
+}
+
+.select-all-container {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 8px; padding: 6px 4px;
+}
+
+.select-all-container input[type="checkbox"] {
+  width: 16px; height: 16px; accent-color: var(--gold); cursor: pointer;
+}
+
+.select-all-container label {
+  font-size: 0.82rem; color: var(--gold); font-weight: 600; cursor: pointer;
+}
+
+/* ===== BUTTONS ===== */
+.btn {
+  padding: 11px 22px; border: none; border-radius: 9px;
+  font-size: 0.9rem; font-weight: 600; cursor: pointer;
+  transition: all 0.25s; display: inline-flex;
+  align-items: center; gap: 7px; font-family: inherit;
+}
+
+.btn-gold {
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold-bright));
+  color: var(--black);
+  box-shadow: 0 4px 14px rgba(201,168,76,0.3);
+}
+.btn-gold:hover { box-shadow: 0 6px 20px rgba(201,168,76,0.45); transform: translateY(-1px); }
+
+.btn-outline {
+  background: transparent; color: var(--gold);
+  border: 1px solid rgba(201,168,76,0.35);
+}
+.btn-outline:hover { background: rgba(201,168,76,0.08); border-color: var(--gold); }
+
+.btn-green {
+  background: var(--green); color: white;
+  box-shadow: 0 4px 12px rgba(66,183,42,0.25);
+}
+.btn-green:hover { box-shadow: 0 6px 18px rgba(66,183,42,0.38); transform: translateY(-1px); }
+
+.btn-dark {
+  background: var(--black-hover); color: var(--gray-light);
+  border: 1px solid var(--black-border);
+}
+.btn-dark:hover { background: #2a2a2a; color: var(--white); }
+
+.btn-red {
+  background: rgba(229,62,62,0.15); color: var(--red);
+  border: 1px solid rgba(229,62,62,0.25);
+}
+.btn-red:hover { background: rgba(229,62,62,0.25); }
+
+.btn-sm { padding: 7px 14px; font-size: 0.8rem; }
+
+/* ===== SELECTION GROUP ===== */
+.selection-group {
+  padding: 18px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--black-border);
+  border-radius: 12px; margin-bottom: 16px;
+}
+
+/* ===== POST OPTIONS ===== */
+.post-options { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+.option-card {
+  padding: 20px;
+  border: 1px solid var(--black-border);
+  border-radius: 12px; cursor: pointer;
+  transition: all 0.25s; background: var(--black-hover);
+}
+
+.option-card:hover { border-color: rgba(201,168,76,0.3); }
+
+.option-card.selected {
+  border-color: rgba(201,168,76,0.5);
+  background: linear-gradient(135deg, rgba(201,168,76,0.1), rgba(255,215,0,0.05));
+  box-shadow: 0 0 0 1px rgba(201,168,76,0.2);
+}
+
+.option-title {
+  font-size: 0.95rem; font-weight: 700; color: var(--white);
+  margin-bottom: 6px; display: flex; align-items: center; gap: 8px;
+}
+
+.option-card.selected .option-title { color: var(--gold); }
+.option-desc { color: var(--gray); font-size: 0.82rem; }
+
+.option-card input[type="radio"] {
+  accent-color: var(--gold); width: 16px; height: 16px;
+}
+
+/* ===== SCHEDULE SETTINGS ===== */
+.schedule-settings {
+  margin-top: 16px; padding: 20px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--black-border);
+  border-radius: 12px; display: none;
+}
+.schedule-settings.show { display: block; animation: fadeIn 0.3s ease; }
+
+.schedule-type-toggle {
+  display: flex; gap: 8px; margin-bottom: 18px;
+  background: var(--black); padding: 6px;
+  border-radius: 10px; border: 1px solid var(--black-border);
+}
+
+.schedule-type-toggle label {
+  flex: 1; padding: 10px; background: transparent;
+  border-radius: 7px; cursor: pointer;
+  text-align: center; transition: all 0.2s;
+  font-weight: 600; color: var(--gray); font-size: 0.88rem;
+}
+
+.schedule-type-toggle input[type="radio"] { display: none; }
+
+.schedule-type-toggle input[type="radio"]:checked + span {
+  background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(255,215,0,0.08));
+  color: var(--gold); display: block; padding: 10px; border-radius: 7px;
+}
+
+.interval-mode-container, .custom-mode-container {
+  background: rgba(255,255,255,0.02);
+  padding: 18px; border-radius: 10px;
+  border: 1px solid var(--black-border);
+}
+
+.interval-mode-container h4, .custom-mode-container h4 {
+  color: var(--gold); font-size: 0.9rem; margin-bottom: 14px; font-weight: 700;
+}
+
+.interval-mode-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 14px; margin-bottom: 14px;
+}
+
+.interval-summary {
+  background: rgba(201,168,76,0.08);
+  border: 1px solid rgba(201,168,76,0.2);
+  padding: 12px; border-radius: 8px;
+  font-size: 0.85rem; color: var(--gray-light);
+}
+
+.interval-summary span { color: var(--gold-bright); font-weight: 700; }
+
+.input-unit-row { display: flex; gap: 8px; align-items: center; }
+.input-unit-row input { flex: 1; }
+.input-unit-row span { color: var(--gray); font-size: 0.85rem; white-space: nowrap; }
+
+/* ===== CUSTOM DAY ===== */
+.days-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+.day-label {
+  padding: 7px 14px; background: var(--black-hover);
+  border: 1px solid var(--black-border);
+  border-radius: 8px; cursor: pointer;
+  font-size: 0.85rem; color: var(--gray-light);
+  transition: all 0.2s;
+}
+
+.day-label:has(input:checked), .day-label.checked {
+  background: rgba(201,168,76,0.12);
+  border-color: rgba(201,168,76,0.35);
+  color: var(--gold);
+}
+
+.day-label input[type="checkbox"] { display: none; }
+
+.custom-day-form {
+  margin-top: 12px; padding: 16px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--black-border);
+  border-radius: 10px;
+}
+
+.custom-day-form h5 { color: var(--gold); font-size: 0.88rem; margin-bottom: 12px; }
+
+.custom-time-slots { display: grid; gap: 8px; }
+
+.time-slot-row { display: flex; gap: 8px; align-items: center; }
+.time-slot-row label { color: var(--gray); min-width: 55px; font-size: 0.82rem; }
+
+.time-slot-row input[type="time"] {
+  flex: 1; padding: 8px 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--black-border);
+  border-radius: 8px; color: var(--white);
+  font-family: inherit; outline: none;
+}
+.time-slot-row input[type="time"]:focus { border-color: rgba(201,168,76,0.4); }
+
+.time-slot-btn-add { background: rgba(66,183,42,0.2); color: var(--green); }
+.time-slot-btn-add:hover { background: rgba(66,183,42,0.35); }
+.time-slot-btn-remove { background: rgba(229,62,62,0.15); color: var(--red); }
+.time-slot-btn-remove:hover { background: rgba(229,62,62,0.28); }
+
+.time-slot-row button {
+  width: 32px; height: 32px; border: none; border-radius: 7px;
+  cursor: pointer; font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+
+/* ===== STEP CONTENT ===== */
+.step-content { display: none; }
+.step-content.active { display: block; animation: fadeIn 0.4s ease; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== NAVIGATION BUTTONS ===== */
+.navigation-buttons {
+  display: flex; justify-content: space-between;
+  align-items: center; gap: 12px; margin-top: 24px;
+}
+
+/* ===== AUCTION PREVIEW ===== */
+.auction-preview-card {
+  background: var(--black-hover);
+  border: 1px solid var(--black-border);
+  border-radius: 12px; padding: 20px;
+  margin-top: 20px; max-width: 400px;
+}
+
+.auction-preview-image {
+  width: 100%; height: 200px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 15px;
+  background: var(--black-card);
+  border: 1px solid var(--black-border);
+  font-size: 2rem; color: var(--gray);
+}
+
+.auction-preview-price {
+  font-size: 1.8rem; font-weight: 700;
+  color: var(--gold-bright); margin-bottom: 5px;
+}
+
+.auction-preview-title { font-size: 1rem; color: var(--gray-light); margin-bottom: 10px; }
+.auction-preview-location { font-size: 0.85rem; color: var(--gray); }
+
+/* ===== MODAL ===== */
+.modal {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(6px);
+  z-index: 2000;
+  justify-content: center; align-items: center;
+}
+.modal.show { display: flex; }
+
+.modal-content {
+  background: var(--black-card);
+  border: 1px solid var(--black-border);
+  border-radius: 20px;
+  max-width: 860px; width: 92%;
+  max-height: 85vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+  overflow: hidden;
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #0D0A00, #1A1200);
+  border-bottom: 1px solid rgba(201,168,76,0.2);
+  padding: 20px 26px;
+  display: flex; justify-content: space-between; align-items: center;
+  position: relative;
+}
+
+.modal-header::after {
+  content: '';
+  position: absolute; bottom: 0; left: 20px; right: 20px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-bright), transparent);
+}
+
+.modal-header span, .modal-header h2 {
+  font-size: 1.05rem; font-weight: 800; color: var(--gold-bright);
+  display: flex; align-items: center; gap: 8px;
+}
+
+.modal-close {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--gray-light); font-size: 1.2rem;
+  cursor: pointer; border-radius: 8px;
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.modal-close:hover { background: rgba(229,62,62,0.2); color: var(--red); border-color: rgba(229,62,62,0.3); }
+
+.modal-body { padding: 22px 26px; overflow-y: auto; flex: 1; }
+
+.modal-footer {
+  padding: 16px 26px;
+  border-top: 1px solid var(--black-border);
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+}
+
+.modal-footer .selected-count { font-size: 0.85rem; color: var(--gray); }
+
+/* ===== SEARCH IN MODAL ===== */
+.modal-search {
+  width: 100%; padding: 11px 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--black-border);
+  border-radius: 10px; color: var(--white);
+  font-size: 0.9rem; font-family: inherit;
+  outline: none; margin-bottom: 16px;
+  transition: border-color 0.2s;
+}
+.modal-search:focus { border-color: rgba(201,168,76,0.4); }
+.modal-search::placeholder { color: var(--gray); }
+
+/* ===== GROUPS / AUCTIONS LIST ===== */
+.groups-list, .auctions-list { display: grid; gap: 8px; }
+
+.group-item, .auction-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 14px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid transparent;
+  border-radius: 10px; cursor: pointer;
+  transition: all 0.2s;
+}
+
+.group-item:hover, .auction-item:hover {
+  background: rgba(201,168,76,0.06);
+  border-color: rgba(201,168,76,0.2);
+}
+
+.group-item input[type="checkbox"] {
+  width: 16px; height: 16px; accent-color: var(--gold); cursor: pointer;
+}
+
+.group-item label, .auction-item label {
+  flex: 1; font-size: 0.88rem; color: var(--gray-light); cursor: pointer;
+}
+
+/* ===== SELECTED DISPLAY TAGS ===== */
+.selected-tags-box {
+  padding: 14px 16px;
+  background: rgba(201,168,76,0.06);
+  border: 1px solid rgba(201,168,76,0.18);
+  border-radius: 10px; margin-top: 10px;
+}
+
+.selected-tags-box strong {
+  display: block; font-size: 0.82rem; color: var(--gold);
+  margin-bottom: 10px;
+}
+
+.tags-wrap { display: flex; flex-wrap: wrap; gap: 7px; }
+
+.tag {
+  padding: 4px 12px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--black-border);
+  border-radius: 20px; font-size: 0.8rem;
+  color: var(--gray-light);
+}
+
+/* ===== IMPORT SECTION ===== */
+.import-section {
+  padding: 14px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--black-border);
+  border-radius: 10px; margin-top: 12px;
+}
+
+.checkbox-group, .radio-group { margin-bottom: 10px; }
+
+.checkbox-group label, .radio-group label {
+  color: var(--gray-light); font-size: 0.88rem;
+  cursor: pointer; display: flex; align-items: center; gap: 6px;
+  margin-bottom: 6px;
+}
+
+.checkbox-group input, .radio-group input { accent-color: var(--gold); }
+
+/* ===== SCHEDULE NAME INPUT ===== */
+#scheduleName {
+  width: 100%; padding: 11px 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--black-border);
+  border-radius: 10px; color: var(--white);
+  font-family: inherit; font-size: 0.95rem;
+  outline: none; transition: border-color 0.25s;
+}
+#scheduleName:focus { border-color: rgba(201,168,76,0.5); }
+#scheduleName::placeholder { color: var(--gray); }
+
+/* ===== SCHEDULE ITEMS ===== */
+.schedule-item {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--black-border);
+  border-radius: 12px; padding: 18px;
+  margin-bottom: 12px; transition: border-color 0.2s;
+}
+.schedule-item:hover { border-color: rgba(201,168,76,0.2); }
+
+.schedule-item-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px; padding-bottom: 12px;
+  border-bottom: 1px solid var(--black-border);
+}
+
+.schedule-item-title { font-size: 1rem; font-weight: 700; color: var(--white); }
+.schedule-item-actions { display: flex; gap: 8px; }
+
+.schedule-item-actions button {
+  padding: 6px 14px; border: none; border-radius: 7px;
+  font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  transition: all 0.2s; font-family: inherit;
+}
+
+.btn-edit { background: rgba(24,119,242,0.2); color: #4e9fff; border: 1px solid rgba(24,119,242,0.25); }
+.btn-edit:hover { background: rgba(24,119,242,0.3); }
+.btn-delete { background: rgba(229,62,62,0.15); color: var(--red); border: 1px solid rgba(229,62,62,0.2); }
+.btn-delete:hover { background: rgba(229,62,62,0.25); }
+
+.schedule-item-content { color: var(--gray); font-size: 0.88rem; line-height: 1.8; }
+.schedule-item-detail { display: flex; align-items: baseline; gap: 8px; margin-bottom: 5px; }
+.schedule-item-detail strong { color: var(--gray-light); min-width: 110px; font-size: 0.85rem; }
+
+.empty-schedules { text-align: center; padding: 50px 20px; color: var(--gray); }
+.empty-schedules-icon { font-size: 3rem; margin-bottom: 14px; opacity: 0.4; }
+
+/* ===== TASK BADGE ===== */
+.task-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 0.75rem; font-weight: 700;
+  background: rgba(201,168,76,0.15);
+  border: 1px solid rgba(201,168,76,0.25);
+  color: var(--gold);
+}
+
+/* ===== RESPONSIVE ===== */
+</style>
+<link rel="stylesheet" href="shared-responsive.css">
+</head>
+<body>
+<button class="hamburger-btn" onclick="document.querySelector('.sidebar').classList.toggle('open'); document.querySelector('.sidebar-overlay').classList.toggle('show');">
+  <i class="fas fa-bars"></i>
+</button>
+<div class="sidebar-overlay" onclick="document.querySelector('.sidebar').classList.remove('open'); this.classList.remove('show');"></div>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-icon">智</div>
+    <div>
+      <div class="sidebar-logo-text">智富</div>
+      <div class="sidebar-logo-sub">AI SYSTEM</div>
+    </div>
+    <div class="sidebar-fb-badge">
+      <i class="fab fa-facebook" style="color:#1877f2; font-size:1.3rem;"></i>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">管理</div>
+    <a class="nav-item" href="account.html">
+      <div class="nav-icon"><i class="fas fa-user-circle"></i></div>
+      帳號管理
+    </a>
+
+    <div class="nav-section-label">發文功能</div>
+    <a class="nav-item" href="normalPost.html">
+      <div class="nav-icon"><i class="fas fa-users"></i></div>
+      一般社團發文
+    </a>
+    <a class="nav-item active" href="marketPlace.html">
+      <div class="nav-icon"><i class="fas fa-store"></i></div>
+      拍賣＋社團發文
+    </a>
+
+    <div class="nav-section-label">自動化</div>
+    <a class="nav-item" href="cultivateAccount.html">
+      <div class="nav-icon"><i class="fas fa-robot"></i></div>
+      自動養號
+    </a>
+  </nav>
+
+  <div class="sidebar-bottom">
+    智富 AI &copy; 2025
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="content">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div>
+      <span class="topbar-title">
+        <i class="fas fa-store" style="color:var(--gold); margin-right:8px;"></i>
+        拍賣+社團發文
+      </span>
+      <span class="topbar-sub">建立拍賣商品並同步發文到多個社團</span>
+    </div>
+    <div class="topbar-badge">
+      <div class="status-dot"></div>
+      <span style="font-size:0.8rem; color:var(--gray);">系統運行中</span>
+    </div>
+  </div>
+
+  <!-- Main Area -->
+  <div class="main-area">
+
+    <!-- Step Tabs -->
+    <div style="display:flex; gap:6px; margin-bottom:20px;">
+      <button id="tab1" onclick="goStep(1)" style="padding:8px 20px; border-radius:8px; border:1px solid rgba(201,168,76,0.4); background:linear-gradient(135deg,rgba(201,168,76,0.15),rgba(255,215,0,0.08)); color:var(--gold-bright); font-weight:700; font-size:0.88rem; cursor:pointer; font-family:inherit;">① 選擇社團</button>
+      <button id="tab2" onclick="goStep(2)" style="padding:8px 20px; border-radius:8px; border:1px solid var(--black-border); background:var(--black-hover); color:var(--gray); font-weight:600; font-size:0.88rem; cursor:pointer; font-family:inherit;">② 選擇拍賣文案</button>
+      <button id="tab3" onclick="goStep(3)" style="padding:8px 20px; border-radius:8px; border:1px solid var(--black-border); background:var(--black-hover); color:var(--gray); font-weight:600; font-size:0.88rem; cursor:pointer; font-family:inherit;">③ 發文 / 排程</button>
+    </div>
+
+    <!-- Step 1: 選擇社團 -->
+    <div class="step-content active" id="step1">
+      <div class="card">
+        <div class="card-title">
+          <div class="icon"><i class="fas fa-list-check" style="color:var(--gold);"></i></div>
+          選擇要發文的社團
+        </div>
+
+        <div class="selection-group">
+          <div class="form-group">
+            <label><i class="fas fa-user"></i> 選擇帳號</label>
+            <button class="btn btn-outline" onclick="openAccountGroupModal()">
+              <i class="fas fa-folder-open"></i> 選擇帳號組合
+            </button>
+            <div class="select-all-container">
+              <input type="checkbox" id="selectAllAccounts" onchange="toggleSelectAllAccounts()">
+              <label for="selectAllAccounts">全選帳號</label>
+            </div>
+            <div class="account-list" id="accountList">
+              <div class="account-item"><input type="checkbox" id="account1" value="account1" onchange="updateSelectedAccounts()"><label for="account1">帳號 1</label></div>
+              <div class="account-item"><input type="checkbox" id="account2" value="account2" onchange="updateSelectedAccounts()"><label for="account2">帳號 2</label></div>
+              <div class="account-item"><input type="checkbox" id="account3" value="account3" onchange="updateSelectedAccounts()"><label for="account3">帳號 3</label></div>
+              <div class="account-item"><input type="checkbox" id="account4" value="account4" onchange="updateSelectedAccounts()"><label for="account4">帳號 4</label></div>
+              <div class="account-item"><input type="checkbox" id="account5" value="account5" onchange="updateSelectedAccounts()"><label for="account5">帳號 5</label></div>
+              <div class="account-item"><input type="checkbox" id="account6" value="account6" onchange="updateSelectedAccounts()"><label for="account6">帳號 6</label></div>
+              <div class="account-item"><input type="checkbox" id="account7" value="account7" onchange="updateSelectedAccounts()"><label for="account7">帳號 7</label></div>
+              <div class="account-item"><input type="checkbox" id="account8" value="account8" onchange="updateSelectedAccounts()"><label for="account8">帳號 8</label></div>
+              <div class="account-item"><input type="checkbox" id="account9" value="account9" onchange="updateSelectedAccounts()"><label for="account9">帳號 9</label></div>
+              <div class="account-item"><input type="checkbox" id="account10" value="account10" onchange="updateSelectedAccounts()"><label for="account10">帳號 10</label></div>
+              <div class="account-item"><input type="checkbox" id="account11" value="account11" onchange="updateSelectedAccounts()"><label for="account11">帳號 11</label></div>
+              <div class="account-item"><input type="checkbox" id="account12" value="account12" onchange="updateSelectedAccounts()"><label for="account12">帳號 12</label></div>
+              <div class="account-item"><input type="checkbox" id="account13" value="account13" onchange="updateSelectedAccounts()"><label for="account13">帳號 13</label></div>
+              <div class="account-item"><input type="checkbox" id="account14" value="account14" onchange="updateSelectedAccounts()"><label for="account14">帳號 14</label></div>
+              <div class="account-item"><input type="checkbox" id="account15" value="account15" onchange="updateSelectedAccounts()"><label for="account15">帳號 15</label></div>
+              <div class="account-item"><input type="checkbox" id="account16" value="account16" onchange="updateSelectedAccounts()"><label for="account16">帳號 16</label></div>
+              <div class="account-item"><input type="checkbox" id="account17" value="account17" onchange="updateSelectedAccounts()"><label for="account17">帳號 17</label></div>
+              <div class="account-item"><input type="checkbox" id="account18" value="account18" onchange="updateSelectedAccounts()"><label for="account18">帳號 18</label></div>
+              <div class="account-item"><input type="checkbox" id="account19" value="account19" onchange="updateSelectedAccounts()"><label for="account19">帳號 19</label></div>
+              <div class="account-item"><input type="checkbox" id="account20" value="account20" onchange="updateSelectedAccounts()"><label for="account20">帳號 20</label></div>
+              <div class="account-item"><input type="checkbox" id="account21" value="account21" onchange="updateSelectedAccounts()"><label for="account21">帳號 21</label></div>
+              <div class="account-item"><input type="checkbox" id="account22" value="account22" onchange="updateSelectedAccounts()"><label for="account22">帳號 22</label></div>
+              <div class="account-item"><input type="checkbox" id="account23" value="account23" onchange="updateSelectedAccounts()"><label for="account23">帳號 23</label></div>
+              <div class="account-item"><input type="checkbox" id="account24" value="account24" onchange="updateSelectedAccounts()"><label for="account24">帳號 24</label></div>
+              <div class="account-item"><input type="checkbox" id="account25" value="account25" onchange="updateSelectedAccounts()"><label for="account25">帳號 25</label></div>
+              <div class="account-item"><input type="checkbox" id="account26" value="account26" onchange="updateSelectedAccounts()"><label for="account26">帳號 26</label></div>
+              <div class="account-item"><input type="checkbox" id="account27" value="account27" onchange="updateSelectedAccounts()"><label for="account27">帳號 27</label></div>
+              <div class="account-item"><input type="checkbox" id="account28" value="account28" onchange="updateSelectedAccounts()"><label for="account28">帳號 28</label></div>
+              <div class="account-item"><input type="checkbox" id="account29" value="account29" onchange="updateSelectedAccounts()"><label for="account29">帳號 29</label></div>
+              <div class="account-item"><input type="checkbox" id="account30" value="account30" onchange="updateSelectedAccounts()"><label for="account30">帳號 30</label></div>
+              <div class="account-item"><input type="checkbox" id="account31" value="account31" onchange="updateSelectedAccounts()"><label for="account31">帳號 31</label></div>
+              <div class="account-item"><input type="checkbox" id="account32" value="account32" onchange="updateSelectedAccounts()"><label for="account32">帳號 32</label></div>
+              <div class="account-item"><input type="checkbox" id="account33" value="account33" onchange="updateSelectedAccounts()"><label for="account33">帳號 33</label></div>
+              <div class="account-item"><input type="checkbox" id="account34" value="account34" onchange="updateSelectedAccounts()"><label for="account34">帳號 34</label></div>
+              <div class="account-item"><input type="checkbox" id="account35" value="account35" onchange="updateSelectedAccounts()"><label for="account35">帳號 35</label></div>
+              <div class="account-item"><input type="checkbox" id="account36" value="account36" onchange="updateSelectedAccounts()"><label for="account36">帳號 36</label></div>
+              <div class="account-item"><input type="checkbox" id="account37" value="account37" onchange="updateSelectedAccounts()"><label for="account37">帳號 37</label></div>
+              <div class="account-item"><input type="checkbox" id="account38" value="account38" onchange="updateSelectedAccounts()"><label for="account38">帳號 38</label></div>
+              <div class="account-item"><input type="checkbox" id="account39" value="account39" onchange="updateSelectedAccounts()"><label for="account39">帳號 39</label></div>
+              <div class="account-item"><input type="checkbox" id="account40" value="account40" onchange="updateSelectedAccounts()"><label for="account40">帳號 40</label></div>
+              <div class="account-item"><input type="checkbox" id="account41" value="account41" onchange="updateSelectedAccounts()"><label for="account41">帳號 41</label></div>
+              <div class="account-item"><input type="checkbox" id="account42" value="account42" onchange="updateSelectedAccounts()"><label for="account42">帳號 42</label></div>
+              <div class="account-item"><input type="checkbox" id="account43" value="account43" onchange="updateSelectedAccounts()"><label for="account43">帳號 43</label></div>
+              <div class="account-item"><input type="checkbox" id="account44" value="account44" onchange="updateSelectedAccounts()"><label for="account44">帳號 44</label></div>
+              <div class="account-item"><input type="checkbox" id="account45" value="account45" onchange="updateSelectedAccounts()"><label for="account45">帳號 45</label></div>
+              <div class="account-item"><input type="checkbox" id="account46" value="account46" onchange="updateSelectedAccounts()"><label for="account46">帳號 46</label></div>
+              <div class="account-item"><input type="checkbox" id="account47" value="account47" onchange="updateSelectedAccounts()"><label for="account47">帳號 47</label></div>
+              <div class="account-item"><input type="checkbox" id="account48" value="account48" onchange="updateSelectedAccounts()"><label for="account48">帳號 48</label></div>
+              <div class="account-item"><input type="checkbox" id="account49" value="account49" onchange="updateSelectedAccounts()"><label for="account49">帳號 49</label></div>
+              <div class="account-item"><input type="checkbox" id="account50" value="account50" onchange="updateSelectedAccounts()"><label for="account50">帳號 50</label></div>
+            </div>
+            <div id="selectedAccountsDisplay" style="margin-top:8px;"></div>
+          </div>
+        </div>
+
+        <div class="selection-group">
+          <div class="form-group">
+            <label><i class="fab fa-facebook"></i> 選擇社團</label>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <button class="btn btn-gold" onclick="openGroupsModal()">
+                <i class="fas fa-plus"></i> 選擇社團
+              </button>
+              <button class="btn btn-outline" onclick="openAddGroupLinkModal()">
+                <i class="fas fa-link"></i> 新增社團連結
+              </button>
+            </div>
+          </div>
+          <div id="selectedGroupsDisplay"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: 選擇拍賣文案 -->
+    <div class="step-content" id="step2">
+      <div class="card">
+        <div class="card-title">
+          <div class="icon"><i class="fas fa-shopping-cart" style="color:var(--gold);"></i></div>
+          選擇拍賣文案
+          <button class="btn btn-outline btn-sm" style="margin-left:auto;" onclick="openAuctionModal()">
+            <i class="fas fa-folder-open"></i> 管理拍賣
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fas fa-file-alt"></i> 選擇拍賣文案</label>
+          <select id="auctionSelect" onchange="selectAuction()">
+            <option value="">請選擇拍賣文案</option>
+          </select>
+        </div>
+        <div id="auctionPreview"></div>
+      </div>
+    </div>
+
+    <!-- Step 3: 發文設定 -->
+    <div class="step-content" id="step3">
+      <div class="card">
+        <div class="card-title">
+          <div class="icon"><i class="fas fa-rocket" style="color:var(--gold);"></i></div>
+          發文模式
+        </div>
+
+        <div class="post-options">
+          <div class="option-card selected" onclick="selectOption('immediate')">
+            <div class="option-title">
+              <input type="radio" name="postMode" id="immediate" checked>
+              <i class="fas fa-bolt" style="color:var(--gold-bright);"></i> 立即執行
+            </div>
+            <div class="option-desc">立即發布到所選社團</div>
+          </div>
+          <div class="option-card" onclick="selectOption('schedule')">
+            <div class="option-title">
+              <input type="radio" name="postMode" id="schedule">
+              <i class="fas fa-calendar-alt" style="color:#4e9fff;"></i> 排程執行
+            </div>
+            <div class="option-desc">按照排程時間自動發文</div>
+          </div>
+        </div>
+
+        <div class="schedule-settings" id="scheduleSettings">
+          <div class="schedule-type-toggle">
+            <label>
+              <input type="radio" name="scheduleType" value="interval" checked onchange="toggleScheduleType()">
+              <span>間隔時間</span>
+            </label>
+            <label>
+              <input type="radio" name="scheduleType" value="custom" onchange="toggleScheduleType()">
+              <span>客製化時間</span>
+            </label>
+          </div>
+
+          <div id="intervalMode" class="interval-mode-container">
+            <h4><i class="fas fa-clock"></i> 間隔發文設定</h4>
+            <div class="interval-mode-grid">
+              <div class="form-group">
+                <label>開始時間</label>
+                <input type="time" id="startTime" value="04:08">
+              </div>
+              <div class="form-group">
+                <label>每幾小時發布一次</label>
+                <div class="input-unit-row">
+                  <input type="number" id="intervalHours" min="0.1" step="0.1" value="0.1" oninput="updatePostsPerInterval()">
+                  <span>小時</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>每次發文社團數</label>
+                <div class="input-unit-row">
+                  <input type="number" id="postsPerInterval" min="1" value="10" oninput="updatePostsPerInterval()">
+                  <span>個</span>
+                </div>
+              </div>
+            </div>
+            <div class="interval-summary">
+              <i class="fas fa-info-circle" style="color:var(--gold); margin-right:6px;"></i>
+              總共 <span id="intervalTotalPosts">0</span> 個社團，需 <span id="intervalSessions">0</span> 次發文
+            </div>
+          </div>
+
+          <div id="customMode" style="display:none;" class="custom-mode-container">
+            <h4><i class="fas fa-calendar-week"></i> 客製化發文設定</h4>
+            <div class="form-group">
+              <label>選擇日期</label>
+              <div class="days-row">
+                <label class="day-label"><input type="checkbox" value="mon" onchange="updateCustomDayForms()">星期一</label>
+                <label class="day-label"><input type="checkbox" value="tue" onchange="updateCustomDayForms()">星期二</label>
+                <label class="day-label"><input type="checkbox" value="wed" onchange="updateCustomDayForms()">星期三</label>
+                <label class="day-label"><input type="checkbox" value="thu" onchange="updateCustomDayForms()">星期四</label>
+                <label class="day-label"><input type="checkbox" value="fri" onchange="updateCustomDayForms()">星期五</label>
+                <label class="day-label"><input type="checkbox" value="sat" onchange="updateCustomDayForms()">星期六</label>
+                <label class="day-label"><input type="checkbox" value="sun" onchange="updateCustomDayForms()">星期日</label>
+              </div>
+            </div>
+            <div id="customDayForms"></div>
+            <div class="interval-summary" style="margin-top:12px;">
+              <i class="fas fa-info-circle" style="color:var(--gold); margin-right:6px;"></i>
+              總共 <span id="customTotalPosts">0</span> 次發文
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="navigation-buttons">
+      <button class="btn btn-dark" id="prevBtn" onclick="previousStep()" style="display:none;">
+        <i class="fas fa-arrow-left"></i> 上一步
+      </button>
+      <div style="flex:1;"></div>
+      <button class="btn btn-gold" id="nextBtn" onclick="nextStep()">
+        下一步 <i class="fas fa-arrow-right"></i>
+      </button>
+      <button class="btn btn-green" id="submitBtn" onclick="submitPost()" style="display:none;">
+        <i class="fas fa-paper-plane"></i> 送出
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- 選擇帳號組合 Modal -->
+<div id="accountGroupModal" class="modal">
+  <div class="modal-content" style="max-width:500px;">
+    <div class="modal-header">
+      <span><i class="fas fa-folder-open"></i> 選擇帳號組合</span>
+      <button class="modal-close" onclick="closeAccountGroupModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="text" class="modal-search" id="accountGroupSearch" placeholder="搜尋帳號組合..." onkeyup="filterAccountGroups()">
+      <div class="groups-list" id="accountGroupList"></div>
+    </div>
+    <div class="modal-footer">
+      <div class="selected-count" id="accountGroupSelectedCount">選擇一個組合</div>
+      <button class="btn btn-gold" onclick="confirmAccountGroupSelection()">
+        <i class="fas fa-check"></i> 確認選擇
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 選擇社團 Modal -->
+<div id="groupsModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span><i class="fas fa-users"></i> 選擇社團</span>
+      <button class="modal-close" onclick="closeGroupsModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="text" class="modal-search" id="groupsSearch" placeholder="搜尋社團名稱..." onkeyup="updateGroupsList()">
+      <div class="form-group">
+        <label>篩選帳號社團：</label>
+        <select id="accountFilter" onchange="updateGroupsList()"></select>
+      </div>
+      <div class="groups-list" id="groupsList"></div>
+    </div>
+    <div class="modal-footer">
+      <div class="selected-count" id="selectedCount">已選擇 0 個社團</div>
+      <button class="btn btn-gold" onclick="confirmGroupSelection()">
+        <i class="fas fa-check"></i> 確認選擇
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增社團連結 Modal -->
+<div id="addGroupLinkModal" class="modal">
+  <div class="modal-content" style="max-width:500px;">
+    <div class="modal-header">
+      <span><i class="fas fa-link"></i> 新增社團連結</span>
+      <button class="modal-close" onclick="closeAddGroupLinkModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>臉書社團連結</label>
+        <textarea id="newGroupLinks" placeholder="輸入臉書社團連結，每行一個&#10;例如: https://www.facebook.com/groups/..." style="min-height:200px;"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:flex-end;">
+      <button class="btn btn-gold" onclick="addGroupLinks()">
+        <i class="fas fa-plus"></i> 套用
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 管理拍賣 Modal -->
+<div id="auctionModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span><i class="fas fa-store"></i> 管理拍賣</span>
+      <button class="modal-close" onclick="closeAuctionModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <button class="btn btn-gold" style="margin-bottom:16px;" onclick="openNewAuctionModal()">
+        <i class="fas fa-plus"></i> 新增拍賣
+      </button>
+      <input type="text" class="modal-search" id="auctionSearch" placeholder="搜尋拍賣..." onkeyup="filterAuctions()">
+      <div class="auctions-list" id="auctionsList"></div>
+    </div>
+    <div class="modal-footer">
+      <div class="selected-count">共 <span id="auctionCount">0</span> 個拍賣</div>
+    </div>
+  </div>
+</div>
+
+<!-- 新增拍賣 Modal -->
+<div id="newAuctionModal" class="modal">
+  <div class="modal-content" style="max-width:600px;">
+    <div class="modal-header">
+      <span><i class="fas fa-plus-circle"></i> 新增拍賣</span>
+      <button class="modal-close" onclick="closeNewAuctionModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>文案【名稱】,請勿輸入符號Emoji以及空白</label>
+        <input type="text" id="newAuctionName" placeholder="輸入拍賣文案名稱">
+      </div>
+      <div class="form-group">
+        <label>商品類型</label>
+        <select id="newProductType">
+          <option value="general">一般商品 (包含房屋出售)</option>
+          <option value="car">汽車/卡車</option>
+          <option value="motorcycle">摩托車</option>
+          <option value="bike">車輛（其他）</option>
+          <option value="property">房屋出租</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>商品名稱</label>
+        <input type="text" id="newProductName" placeholder="輸入商品名稱">
+      </div>
+      <div class="form-group">
+        <label>商品價格</label>
+        <input type="number" id="newProductPrice" placeholder="輸入價格">
+      </div>
+      <div class="form-group">
+        <label>商品狀況</label>
+        <select id="newProductCondition">
+          <option value="new">全新</option>
+          <option value="like-new">二手-近全新</option>
+          <option value="good">二手-良好</option>
+          <option value="used">二手-普通</option>
+        </select>
+      </div>
+      <div class="import-section">
+        <div class="checkbox-group">
+          <label><input type="checkbox" id="newUseMarketplace" checked> 上架至Marketplace</label>
+        </div>
+        <div class="radio-group">
+          <label><input type="radio" name="newListingType" value="until-sold" checked> 僅上架至拍賣計畫</label>
+          <label><input type="radio" name="newListingType" value="one-time"> 上架完成後,並發文至一般社團</label>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:16px;">
+        <label>地點/寄送</label>
+        <select id="newLocation">
+          <option value="台北市">台北市</option><option value="新北市">新北市</option>
+          <option value="竹北市">竹北市</option><option value="桃園市">桃園市</option>
+          <option value="台中市">台中市</option><option value="台南市">台南市</option>
+          <option value="高雄市">高雄市</option><option value="基隆市">基隆市</option>
+          <option value="新竹市">新竹市</option><option value="嘉義市">嘉義市</option>
+          <option value="苗栗市">苗栗市</option><option value="彰化縣">彰化縣</option>
+          <option value="南投市">南投市</option><option value="雲林縣">雲林縣</option>
+          <option value="屏東縣">屏東縣</option><option value="宜蘭縣">宜蘭縣</option>
+          <option value="花蓮市">花蓮市</option><option value="台東市">台東市</option>
+          <option value="澎湖縣">澎湖</option><option value="金門縣">金門縣</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>描述 (可上傳本地圖片或影片)</label>
+        <textarea id="newDescription" placeholder="輸入商品描述..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>商品圖片 Marketplace 將會將第一張圖片作為封面</label>
+        <input type="file" id="newFileInput" multiple accept="image/*,video/*" onchange="handleNewFileUpload(event)">
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:flex-end;">
+      <button class="btn btn-gold" onclick="saveNewAuction()">
+        <i class="fas fa-save"></i> 儲存
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 編輯拍賣 Modal -->
+<div id="editAuctionModal" class="modal">
+  <div class="modal-content" style="max-width:600px;">
+    <div class="modal-header">
+      <span><i class="fas fa-pen"></i> 編輯拍賣</span>
+      <button class="modal-close" onclick="closeEditAuctionModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>文案【名稱】,請勿輸入符號Emoji以及空白</label>
+        <input type="text" id="editAuctionName" placeholder="輸入拍賣文案名稱">
+      </div>
+      <div class="form-group">
+        <label>商品類型</label>
+        <select id="editProductType">
+          <option value="general">一般商品 (包含房屋出售)</option>
+          <option value="car">汽車</option><option value="motorcycle">摩托車</option>
+          <option value="bike">腳踏車</option><option value="property">房屋出售</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>商品名稱</label>
+        <input type="text" id="editProductName" placeholder="輸入商品名稱">
+      </div>
+      <div class="form-group">
+        <label>商品價格</label>
+        <input type="number" id="editProductPrice" placeholder="輸入價格">
+      </div>
+      <div class="form-group">
+        <label>商品狀況</label>
+        <select id="editProductCondition">
+          <option value="new">全新</option><option value="like-new">幾乎全新</option>
+          <option value="good">良好</option><option value="used">二手</option>
+        </select>
+      </div>
+      <div class="import-section">
+        <div class="checkbox-group">
+          <label><input type="checkbox" id="editUseMarketplace"> 上架至Marketplace</label>
+        </div>
+        <div class="radio-group">
+          <label><input type="radio" name="editListingType" value="until-sold"> 僅上架至拍賣計畫</label>
+          <label><input type="radio" name="editListingType" value="one-time"> 上架完成後,並發文至一般社團</label>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:16px;">
+        <label>地點</label>
+        <select id="editLocation">
+          <option value="" selected>請選擇地點</option>
+          <option value="台北市">台北市</option><option value="新北市">新北市</option>
+          <option value="桃園市">桃園市</option><option value="台中市">台中市</option>
+          <option value="台南市">台南市</option><option value="高雄市">高雄市</option>
+          <option value="基隆市">基隆市</option><option value="新竹市">新竹市</option>
+          <option value="嘉義市">嘉義市</option><option value="苗栗縣">苗栗縣</option>
+          <option value="彰化縣">彰化縣</option><option value="南投縣">南投縣</option>
+          <option value="雲林縣">雲林縣</option><option value="屏東縣">屏東縣</option>
+          <option value="宜蘭縣">宜蘭縣</option><option value="花蓮縣">花蓮縣</option>
+          <option value="台東縣">台東縣</option><option value="澎湖縣">澎湖縣</option>
+          <option value="金門縣">金門縣</option><option value="連江縣">連江縣</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>描述 (可上傳本地圖片或影片)</label>
+        <textarea id="editDescription" placeholder="輸入商品描述..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>商品圖片 Marketplace 將會將第一張圖片作為封面</label>
+        <input type="file" id="editFileInput" multiple accept="image/*,video/*" onchange="handleEditFileUpload(event)">
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:flex-end;">
+      <button class="btn btn-gold" onclick="saveEditedAuction()">
+        <i class="fas fa-save"></i> 儲存編輯
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentStep = 1;
+let selectedGroups = [];
+let selectedAccounts = [];
+let auctions = [];
+let selectedAuction = null;
+let editingAuctionIndex = null;
+let newUploadedFiles = [];
+let editUploadedFiles = [];
+
+const groups = [
+  '寵聚大小事', '南州好康報報', '假日農夫',
+  '農產品友善耕作,天然健康,菜園、公開,蔬菜-水果-健康-食材',
+  '台灣雲林農友社(農產品自銷自由PO)', '玉米筍批發買賣',
+  '種菜經驗交流', '雲林種菜人+買菜人+賣菜人(自由買賣專區)',
+  '種菜人', '小小種菜園'
+];
+
+let accountJoinedGroups = {};
+groups.forEach((group, index) => {
+  for (let a = 1; a <= 50; a++) {
+    if (!accountJoinedGroups[`account${a}`]) accountJoinedGroups[`account${a}`] = [];
+    if (a % 2 === 0 && index === 0) {} else {
+      accountJoinedGroups[`account${a}`].push(group);
+    }
+  }
+});
+
+// ===== TAB / STEP NAVIGATION =====
+function goStep(step) {
+  currentStep = step;
+  updateStep();
+}
+
+function previousStep() {
+  if (currentStep > 1) { currentStep--; updateStep(); }
+}
+
+function nextStep() {
+  if (currentStep === 1) {
+    if (selectedAccounts.length === 0) { alert('請選擇至少一個帳號'); return; }
+    if (selectedGroups.length === 0) { alert('請至少選擇一個社團'); return; }
+  } else if (currentStep === 2) {
+    if (!selectedAuction) { alert('請選擇或新增一個拍賣文案'); return; }
+  }
+  if (currentStep < 3) { currentStep++; updateStep(); }
+}
+
+function updateStep() {
+  // Update tabs
+  for (let i = 1; i <= 3; i++) {
+    const tab = document.getElementById(`tab${i}`);
+    if (i === currentStep) {
+      tab.style.background = 'linear-gradient(135deg,rgba(201,168,76,0.15),rgba(255,215,0,0.08))';
+      tab.style.borderColor = 'rgba(201,168,76,0.4)';
+      tab.style.color = 'var(--gold-bright)';
+      tab.style.fontWeight = '700';
+    } else {
+      tab.style.background = 'var(--black-hover)';
+      tab.style.borderColor = 'var(--black-border)';
+      tab.style.color = 'var(--gray)';
+      tab.style.fontWeight = '600';
+    }
+  }
+  // Update step content
+  document.querySelectorAll('.step-content').forEach(content => {
+    content.classList.remove('active');
+    if (parseInt(content.id.replace('step', '')) === currentStep) {
+      content.classList.add('active');
+    }
+  });
+  // Update buttons
+  document.getElementById('prevBtn').style.display = currentStep === 1 ? 'none' : 'inline-flex';
+  document.getElementById('nextBtn').style.display = currentStep === 3 ? 'none' : 'inline-flex';
+  document.getElementById('submitBtn').style.display = currentStep === 3 ? 'inline-flex' : 'none';
+}
+
+// ===== ACCOUNTS =====
+function toggleSelectAllAccounts() {
+  const sa = document.getElementById('selectAllAccounts');
+  document.querySelectorAll('#accountList input[type="checkbox"]').forEach(cb => cb.checked = sa.checked);
+  updateSelectedAccounts();
+}
+
+function updateSelectedAccounts() {
+  const cbs = document.querySelectorAll('#accountList input[type="checkbox"]');
+  const checked = Array.from(cbs).filter(cb => cb.checked);
+  document.getElementById('selectAllAccounts').checked = checked.length === cbs.length;
+  selectedAccounts = checked.map(cb => cb.value);
+  const display = document.getElementById('selectedAccountsDisplay');
+  if (selectedAccounts.length > 0) {
+    display.innerHTML = `<div class="selected-tags-box"><strong><i class="fas fa-check-circle" style="margin-right:4px;"></i> 已選擇 ${selectedAccounts.length} 個帳號</strong><div class="tags-wrap">${selectedAccounts.map(a => `<span class="tag">${a}</span>`).join('')}</div></div>`;
+  } else {
+    display.innerHTML = '<p style="color:var(--gray); font-size:0.85rem;">尚未選擇任何帳號</p>';
+  }
+}
+
+// ===== GROUPS MODAL =====
+function openGroupsModal() {
+  document.getElementById('groupsModal').classList.add('show');
+  const filterSelect = document.getElementById('accountFilter');
+  filterSelect.innerHTML = '<option value="all">不篩選 (全部)</option>';
+  selectedAccounts.forEach(acc => { filterSelect.innerHTML += `<option value="${acc}">${acc}</option>`; });
+  updateGroupsList();
+}
+function closeGroupsModal() { document.getElementById('groupsModal').classList.remove('show'); }
+
+function updateGroupsList() {
+  const filter = document.getElementById('accountFilter').value;
+  const searchTerm = document.getElementById('groupsSearch').value.toLowerCase();
+  let displayed = (filter === 'all' ? groups : accountJoinedGroups[filter] || []).filter(g => g.toLowerCase().includes(searchTerm));
+  const list = document.getElementById('groupsList');
+  list.innerHTML = displayed.map((group, i) => `<div class="group-item"><input type="checkbox" id="group${i}" value="${group}" onchange="updateSelectedCount()"><label for="group${i}">${group}</label></div>`).join('');
+  displayed.forEach((group, i) => { document.getElementById(`group${i}`).checked = selectedGroups.includes(group); });
+  updateSelectedCount();
+}
+
+function updateSelectedCount() {
+  const cbs = document.querySelectorAll('#groupsList input[type="checkbox"]:checked');
+  document.getElementById('selectedCount').textContent = `已選擇 ${cbs.length} 個社團`;
+  selectedGroups = Array.from(cbs).map(cb => cb.value);
+  const display = document.getElementById('selectedGroupsDisplay');
+  if (selectedGroups.length > 0) {
+    display.innerHTML = `<div class="selected-tags-box"><strong><i class="fas fa-check-circle" style="margin-right:4px;"></i> 已選擇 ${selectedGroups.length} 個社團</strong><div class="tags-wrap">${selectedGroups.map(g => `<span class="tag">${g}</span>`).join('')}</div></div>`;
+  } else {
+    display.innerHTML = '<p style="color:var(--gray); font-size:0.85rem;">尚未選擇任何社團</p>';
+  }
+  updatePostsPerInterval();
+  updateCustomDayForms();
+}
+
+function confirmGroupSelection() { updateSelectedCount(); closeGroupsModal(); }
+
+// ===== ADD GROUP LINK =====
+function openAddGroupLinkModal() { document.getElementById('addGroupLinkModal').classList.add('show'); document.getElementById('newGroupLinks').value = ''; }
+function closeAddGroupLinkModal() { document.getElementById('addGroupLinkModal').classList.remove('show'); }
+
+function addGroupLinks() {
+  const input = document.getElementById('newGroupLinks').value.trim();
+  const links = input.split('\n').map(l => l.trim()).filter(l => l);
+  if (links.length === 0) { alert('請至少輸入一個社團連結！'); return; }
+  const urlPattern = /^https:\/\/(www\.)?facebook\.com\/groups\/.+$/;
+  const invalid = links.filter(l => !urlPattern.test(l));
+  if (invalid.length > 0) { alert(`以下連結無效：\n${invalid.join('\n')}`); return; }
+  const newGs = links.map((link, i) => { const url = new URL(link); const segs = url.pathname.split('/'); return segs[segs.indexOf('groups') + 1] || `社團${groups.length + i + 1}`; });
+  const added = [];
+  newGs.forEach((g, i) => { if (!groups.includes(g)) { groups.push(g); added.push({ name: g, link: links[i] }); } });
+  if (added.length === 0) { alert('所有連結已存在！'); return; }
+  closeAddGroupLinkModal();
+  updateGroupsList();
+}
+
+// ===== ACCOUNT GROUP MODAL =====
+let accountGroups = {};
+
+function loadAccountGroups() {
+  const stored = localStorage.getItem('accountGroups');
+  if (stored) { accountGroups = JSON.parse(stored); }
+  else {
+    accountGroups = {
+      '主力帳號組': ['account1','account2','account3','account4','account5'],
+      '備用帳號組': ['account6','account7','account8'],
+      '測試帳號組': ['account9','account10'],
+      '全部帳號': Array.from({length:50}, (_,i) => `account${i+1}`)
+    };
+    localStorage.setItem('accountGroups', JSON.stringify(accountGroups));
+  }
+  updateAccountGroupList(Object.keys(accountGroups));
+}
+
+function updateAccountGroupList(gs) {
+  const list = document.getElementById('accountGroupList');
+  list.innerHTML = gs.map(name => `<div class="group-item" onclick="selectAccountGroup('${name}')"><label style="flex:1;cursor:pointer;"><strong style="color:var(--gold);">${name}</strong><span style="color:var(--gray);font-size:0.85rem;"> (${(accountGroups[name]||[]).length} 個帳號)</span></label></div>`).join('');
+}
+
+function openAccountGroupModal() { document.getElementById('accountGroupModal').classList.add('show'); loadAccountGroups(); document.getElementById('accountGroupSearch').value = ''; filterAccountGroups(); }
+function closeAccountGroupModal() { document.getElementById('accountGroupModal').classList.remove('show'); }
+
+function filterAccountGroups() {
+  const s = document.getElementById('accountGroupSearch').value.toLowerCase();
+  updateAccountGroupList(Object.keys(accountGroups).filter(n => n.toLowerCase().includes(s)));
+}
+
+function selectAccountGroup(name) {
+  const accs = accountGroups[name] || [];
+  document.querySelectorAll('#accountList input[type="checkbox"]').forEach(cb => cb.checked = false);
+  document.getElementById('selectAllAccounts').checked = false;
+  accs.forEach(acc => { const cb = document.querySelector(`#accountList input[value="${acc}"]`); if (cb) cb.checked = true; });
+  updateSelectedAccounts();
+  document.getElementById('accountGroupSelectedCount').textContent = `已選擇: ${name} (${accs.length} 個帳號)`;
+}
+
+function confirmAccountGroupSelection() { closeAccountGroupModal(); }
+
+// ===== AUCTIONS =====
+function initializeAuctions() {
+  const sel = document.getElementById('auctionSelect');
+  const list = document.getElementById('auctionsList');
+  sel.innerHTML = '<option value="">請選擇拍賣文案</option>' + auctions.map((a, i) => `<option value="${i}">${a.name}</option>`).join('');
+  list.innerHTML = auctions.map((a, i) => `<div class="auction-item"><label>${a.name}</label><button class="btn btn-outline btn-sm" onclick="openViewAuctionModal(${i})">查看</button><button class="btn btn-outline btn-sm" onclick="openEditAuctionModal(${i})">編輯</button><button class="btn btn-red btn-sm" onclick="deleteAuction(${i})">刪除</button></div>`).join('');
+  document.getElementById('auctionCount').textContent = auctions.length;
+  updatePreview();
+}
+
+function openAuctionModal() { document.getElementById('auctionModal').classList.add('show'); initializeAuctions(); }
+function closeAuctionModal() { document.getElementById('auctionModal').classList.remove('show'); }
+
+function openNewAuctionModal() {
+  document.getElementById('newAuctionModal').classList.add('show');
+  ['newAuctionName','newProductName'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('newProductType').value = 'general';
+  document.getElementById('newProductPrice').value = '';
+  document.getElementById('newProductCondition').value = 'new';
+  document.getElementById('newUseMarketplace').checked = true;
+  document.querySelector('input[name="newListingType"][value="until-sold"]').checked = true;
+  document.getElementById('newLocation').value = '';
+  document.getElementById('newDescription').value = '';
+  newUploadedFiles = [];
+  document.getElementById('newFileInput').value = '';
+}
+function closeNewAuctionModal() { document.getElementById('newAuctionModal').classList.remove('show'); }
+
+function openViewAuctionModal(index) {
+  const a = auctions[index];
+  document.getElementById('editAuctionName').value = a.name;
+  document.getElementById('editProductType').value = a.type;
+  document.getElementById('editProductName').value = a.product;
+  document.getElementById('editProductPrice').value = a.price;
+  document.getElementById('editProductCondition').value = a.condition;
+  document.getElementById('editUseMarketplace').checked = a.marketplace;
+  document.querySelector(`input[name="editListingType"][value="${a.listingType}"]`).checked = true;
+  document.getElementById('editLocation').value = a.location;
+  document.getElementById('editDescription').value = a.description;
+  editUploadedFiles = a.files ? [...a.files] : [];
+  document.getElementById('editAuctionModal').classList.add('show');
+  document.querySelectorAll('#editAuctionModal input, #editAuctionModal select, #editAuctionModal textarea').forEach(el => el.setAttribute('readonly', true));
+  document.querySelectorAll('#editAuctionModal input[type="checkbox"], #editAuctionModal input[type="radio"]').forEach(el => el.setAttribute('disabled', true));
+  document.querySelector('#editAuctionModal .modal-footer button').style.display = 'none';
+  document.querySelector('#editAuctionModal .modal-header span').innerHTML = `<i class="fas fa-eye"></i> 查看拍賣 - ${a.name}`;
+}
+
+function closeViewAuctionModal() {
+  document.getElementById('editAuctionModal').classList.remove('show');
+  document.querySelectorAll('#editAuctionModal input, #editAuctionModal select, #editAuctionModal textarea').forEach(el => el.removeAttribute('readonly'));
+  document.querySelectorAll('#editAuctionModal input[type="checkbox"], #editAuctionModal input[type="radio"]').forEach(el => el.removeAttribute('disabled'));
+  document.querySelector('#editAuctionModal .modal-footer button').style.display = 'inline-flex';
+  document.querySelector('#editAuctionModal .modal-header span').innerHTML = '<i class="fas fa-pen"></i> 編輯拍賣';
+}
+
+function openEditAuctionModal(index) {
+  editingAuctionIndex = index;
+  const a = auctions[index];
+  document.getElementById('editAuctionName').value = a.name;
+  document.getElementById('editProductType').value = a.type || 'general';
+  document.getElementById('editProductName').value = a.product;
+  document.getElementById('editProductPrice').value = a.price;
+  document.getElementById('editProductCondition').value = a.condition || 'new';
+  document.getElementById('editUseMarketplace').checked = a.marketplace !== false;
+  document.querySelector(`input[name="editListingType"][value="${a.listingType || 'until-sold'}"]`).checked = true;
+  document.getElementById('editLocation').value = a.location || '';
+  document.getElementById('editDescription').value = a.description || '';
+  editUploadedFiles = a.files ? [...a.files] : [];
+  document.getElementById('editAuctionModal').classList.add('show');
+}
+
+function closeEditAuctionModal() { document.getElementById('editAuctionModal').classList.remove('show'); editingAuctionIndex = null; }
+
+function handleNewFileUpload(event) {
+  const files = Array.from(event.target.files).filter(f => f.type.startsWith('image/') || f.type.startsWith('video/'));
+  newUploadedFiles = files.length > 10 ? files.slice(0, 10) : files;
+  if (files.length > 10) alert(`最多只能上傳 10 個檔案，已自動取前 10 個。`);
+}
+
+function handleEditFileUpload(event) {
+  const newFiles = Array.from(event.target.files).filter(f => f.type.startsWith('image/') || f.type.startsWith('video/'));
+  const combined = [...editUploadedFiles.filter(f => f instanceof File), ...newFiles];
+  editUploadedFiles = combined.length > 10 ? combined.slice(0, 10) : combined;
+  if (combined.length > 10) alert(`最多只能上傳 10 個檔案，已保留前 10 個。`);
+}
+
+function saveNewAuction() {
+  const name = document.getElementById('newAuctionName').value.trim();
+  const type = document.getElementById('newProductType').value;
+  const product = document.getElementById('newProductName').value.trim();
+  const price = document.getElementById('newProductPrice').value;
+  const condition = document.getElementById('newProductCondition').value;
+  const description = document.getElementById('newDescription').value.trim();
+  const location = document.getElementById('newLocation').value;
+  const marketplace = document.getElementById('newUseMarketplace').checked;
+  const listingType = document.querySelector('input[name="newListingType"]:checked').value;
+  if (!name || !product || !price) { alert('請填寫拍賣文案名稱、商品名稱和價格！'); return; }
+  const existing = auctions.findIndex(a => a.name === name);
+  const data = { name, type, product, price, condition, description, location, marketplace, listingType, files: newUploadedFiles };
+  if (existing >= 0) auctions[existing] = data; else auctions.push(data);
+  initializeAuctions(); closeNewAuctionModal();
+}
+
+function saveEditedAuction() {
+  if (editingAuctionIndex === null) { alert('請選擇一個拍賣進行編輯！'); return; }
+  const name = document.getElementById('editAuctionName').value.trim();
+  const type = document.getElementById('editProductType').value;
+  const product = document.getElementById('editProductName').value.trim();
+  const price = document.getElementById('editProductPrice').value;
+  const condition = document.getElementById('editProductCondition').value;
+  const description = document.getElementById('editDescription').value.trim();
+  const location = document.getElementById('editLocation').value;
+  const marketplace = document.getElementById('editUseMarketplace').checked;
+  const listingType = document.querySelector('input[name="editListingType"]:checked').value;
+  if (!name || !product || !price) { alert('請填寫拍賣文案名稱、商品名稱和價格！'); return; }
+  auctions[editingAuctionIndex] = { name, type, product, price, condition, description, location, marketplace, listingType, files: editUploadedFiles };
+  if (selectedAuction && selectedAuction.name === name) selectedAuction = auctions[editingAuctionIndex];
+  initializeAuctions(); closeEditAuctionModal(); updatePreview();
+}
+
+function deleteAuction(index) {
+  if (!confirm('確定要刪除此拍賣文案？')) return;
+  const name = auctions[index].name;
+  auctions.splice(index, 1);
+  if (selectedAuction && selectedAuction.name === name) { selectedAuction = null; document.getElementById('auctionSelect').value = ''; }
+  initializeAuctions(); updatePreview();
+}
+
+function filterAuctions() {
+  const s = document.getElementById('auctionSearch').value.toLowerCase();
+  document.querySelectorAll('.auction-item').forEach(item => {
+    item.style.display = item.querySelector('label').textContent.toLowerCase().includes(s) ? 'flex' : 'none';
+  });
+}
+
+function selectAuction() {
+  const i = document.getElementById('auctionSelect').value;
+  selectedAuction = i ? auctions[parseInt(i)] : null;
+  updatePreview();
+}
+
+function updatePreview() {
+  const preview = document.getElementById('auctionPreview');
+  if (selectedAuction) {
+    let imageContent = '<div class="auction-preview-image"><i class="fas fa-camera" style="font-size:2rem;color:var(--gray);"></i></div>';
+    if (selectedAuction.files && selectedAuction.files.length > 0) {
+      const f = selectedAuction.files[0];
+      const url = URL.createObjectURL(f);
+      if (f.type.startsWith('image/')) imageContent = `<div class="auction-preview-image"><img src="${url}" style="width:100%;height:100%;object-fit:cover;"></div>`;
+      else if (f.type.startsWith('video/')) imageContent = `<div class="auction-preview-image"><video src="${url}" controls style="width:100%;height:100%;object-fit:cover;"></video></div>`;
+    }
+    preview.innerHTML = `<div class="auction-preview-card">${imageContent}<div class="auction-preview-price">NT$${selectedAuction.price}</div><div class="auction-preview-title">${selectedAuction.product}</div><div class="auction-preview-location">${selectedAuction.location || '未設定地點'}</div></div>`;
+  } else {
+    preview.innerHTML = '<p style="color:var(--gray);font-size:0.85rem;">請選擇或新增一個拍賣文案</p>';
+  }
+}
+
+// ===== POST MODE =====
+function selectOption(option) {
+  document.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+  if (option === 'immediate') {
+    document.getElementById('immediate').checked = true;
+    document.getElementById('scheduleSettings').classList.remove('show');
+    document.querySelectorAll('.option-card')[0].classList.add('selected');
+  } else {
+    document.getElementById('schedule').checked = true;
+    document.getElementById('scheduleSettings').classList.add('show');
+    document.querySelectorAll('.option-card')[1].classList.add('selected');
+  }
+}
+
+function toggleScheduleType() {
+  const type = document.querySelector('input[name="scheduleType"]:checked').value;
+  document.getElementById('intervalMode').style.display = type === 'interval' ? 'block' : 'none';
+  document.getElementById('customMode').style.display = type === 'custom' ? 'block' : 'none';
+  updatePostsPerInterval(); updateCustomDayForms();
+}
+
+function updatePostsPerInterval() {
+  const perInterval = Math.min(selectedGroups.length, parseInt(document.getElementById('postsPerInterval').value) || 10);
+  const total = selectedGroups.length;
+  document.getElementById('intervalTotalPosts').textContent = total;
+  document.getElementById('intervalSessions').textContent = Math.ceil(total / perInterval);
+}
+
+function updateCustomDayForms() {
+  const days = ['mon','tue','wed','thu','fri','sat','sun'];
+  const names = {'mon':'星期一','tue':'星期二','wed':'星期三','thu':'星期四','fri':'星期五','sat':'星期六','sun':'星期日'};
+  const selected = days.filter(d => document.querySelector(`input[value="${d}"]:checked`));
+  document.getElementById('customDayForms').innerHTML = selected.map(day => `
+    <div class="custom-day-form" data-day="${day}">
+      <h5>${names[day]} 發文設定</h5>
+      <div class="form-group"><label><i class="fas fa-paper-plane"></i> 發文數量</label><div class="input-unit-row"><input type="number" class="post-count" min="1" value="1" oninput="updateCustomTotalPosts()"><span>則</span></div></div>
+      <div class="custom-time-slots" id="timeSlots-${day}">
+        <div class="time-slot-row">
+          <label>時間1：</label><input type="time" value="08:00">
+          <button class="time-slot-btn-remove" onclick="removeTimeSlot(this,'${day}')">−</button>
+          <button class="time-slot-btn-add" onclick="addTimeSlot('${day}')">+</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  updateCustomTotalPosts();
+}
+
+function addTimeSlot(day) {
+  const container = document.getElementById(`timeSlots-${day}`);
+  const n = container.querySelectorAll('.time-slot-row').length;
+  const row = document.createElement('div'); row.className = 'time-slot-row';
+  row.innerHTML = `<label>時間${n+1}：</label><input type="time" value="08:00"><button class="time-slot-btn-remove" onclick="removeTimeSlot(this,'${day}')">−</button><button class="time-slot-btn-add" onclick="addTimeSlot('${day}')">+</button>`;
+  container.appendChild(row);
+  updateCustomTotalPosts();
+}
+
+function removeTimeSlot(btn, day) {
+  const container = document.getElementById(`timeSlots-${day}`);
+  if (container.querySelectorAll('.time-slot-row').length > 1) { btn.parentElement.remove(); updateCustomTotalPosts(); }
+  else alert('至少需要保留一個時間！');
+}
+
+function updateCustomTotalPosts() {
+  let total = 0;
+  document.querySelectorAll('.custom-day-form').forEach(form => {
+    total += (parseInt(form.querySelector('.post-count').value) || 1) * form.querySelectorAll('.time-slot-row').length;
+  });
+  document.getElementById('customTotalPosts').textContent = total;
+}
+
+// ===== SUBMIT =====
+function submitPost() {
+  if (selectedAccounts.length === 0 || selectedGroups.length === 0 || !selectedAuction) { alert('請完成所有步驟的選擇'); return; }
+  let errors = [];
+  for (let acc of selectedAccounts) {
+    for (let group of selectedGroups) {
+      if (!accountJoinedGroups[acc] || !accountJoinedGroups[acc].includes(group)) errors.push(`帳號${acc}沒有加入社團${group}`);
+    }
+  }
+  if (errors.length > 0) { alert(`以下問題：\n${errors.join('\n')}\n系統不會執行這些發文`); return; }
+
+  const postMode = document.querySelector('input[name="postMode"]:checked').id;
+  let scheduleData = {};
+  if (postMode === 'schedule') {
+    const type = document.querySelector('input[name="scheduleType"]:checked').value;
+    if (type === 'interval') {
+      scheduleData = { type:'interval', startTime: document.getElementById('startTime').value, intervalHours: parseFloat(document.getElementById('intervalHours').value)||0.1, postsPerInterval: parseInt(document.getElementById('postsPerInterval').value)||10 };
+    } else {
+      const days = ['mon','tue','wed','thu','fri','sat','sun'].filter(d => document.querySelector(`input[value="${d}"]:checked`));
+      scheduleData = { type:'custom', days, schedules: Array.from(document.querySelectorAll('.custom-day-form')).map(form => ({ day: form.dataset.day, postCount: parseInt(form.querySelector('.post-count').value)||1, times: Array.from(form.querySelectorAll('.time-slot-row input[type="time"]')).map(i => i.value) })) };
+    }
+  }
+
+  console.log('提交的數據:', { accounts: selectedAccounts, groups: selectedGroups, auction: selectedAuction, mode: postMode, schedule: postMode === 'schedule' ? scheduleData : null });
+  alert('發文已提交！');
+
+  selectedAccounts = []; selectedGroups = []; selectedAuction = null;
+  document.getElementById('selectAllAccounts').checked = false;
+  document.querySelectorAll('#accountList input[type="checkbox"]').forEach(cb => cb.checked = false);
+  document.getElementById('selectedAccountsDisplay').innerHTML = '';
+  document.getElementById('auctionSelect').value = '';
+  document.getElementById('auctionPreview').innerHTML = '';
+  updateSelectedCount(); updateSelectedAccounts();
+  currentStep = 1; updateStep();
+}
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => {
+  updateGroupsList(); updateStep(); updatePostsPerInterval();
+  updateCustomDayForms(); initializeAuctions(); updateSelectedAccounts();
+  loadAccountGroups();
+});
+</script>
+</body>
+</html>

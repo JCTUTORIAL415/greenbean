@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智富 - 帳號管理</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --gold: #C9A84C;
+  --gold-bright: #FFD700;
+  --gold-dark: #8B6914;
+  --gold-light: rgba(201,168,76,0.15);
+  --black: #0A0A0A;
+  --black-card: #111111;
+  --black-hover: #1A1A1A;
+  --black-border: #2A2A2A;
+  --gray: #888888;
+  --gray-light: #CCCCCC;
+  --white: #FFFFFF;
+  --fb-blue: #1877f2;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Microsoft JhengHei', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--black);
+  color: var(--white);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 240px;
+  height: 100vh;
+  background: var(--black-card);
+  border-right: 1px solid var(--black-border);
+  position: fixed;
+  top: 0; left: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  overflow: hidden;
+}
+.sidebar-logo {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--black-border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.sidebar-logo-icon {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold-bright));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; font-weight: 900; color: var(--black);
+  flex-shrink: 0;
+}
+.sidebar-logo-text {
+  font-size: 1.3rem; font-weight: 900;
+  background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  letter-spacing: 2px;
+}
+.sidebar-logo-sub {
+  font-size: 0.58rem; color: var(--gold); letter-spacing: 2px;
+  opacity: 0.7; margin-top: -2px;
+}
+.sidebar-fb-badge {
+  margin-left: auto;
+  opacity: 0.8;
+}
+.sidebar-nav {
+  flex: 1;
+  padding: 16px 12px;
+  overflow-y: auto;
+}
+.nav-section-label {
+  font-size: 0.65rem;
+  color: var(--gray);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 0 10px;
+  margin: 12px 0 6px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  margin-bottom: 3px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.25s;
+  color: var(--gray-light);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+.nav-item:hover {
+  background: var(--black-hover);
+  color: var(--white);
+  border-color: var(--black-border);
+}
+.nav-item.active {
+  background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(255,215,0,0.08));
+  border-color: rgba(201,168,76,0.3);
+  color: var(--gold-bright);
+}
+.nav-item .nav-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  background: var(--black-border);
+  transition: background 0.25s;
+}
+.nav-item.active .nav-icon {
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+  color: var(--black);
+}
+.nav-item:hover .nav-icon { background: rgba(255,255,255,0.08); }
+.sidebar-bottom {
+  padding: 16px 12px;
+  border-top: 1px solid var(--black-border);
+  font-size: 0.75rem;
+  color: var(--gray);
+  text-align: center;
+}
+
+/* ── Content ── */
+.content {
+  margin-left: 240px;
+  padding: 36px 44px;
+  min-height: 100vh;
+}
+.page-header {
+  margin-bottom: 32px;
+}
+.page-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.page-header p { color: var(--gray); font-size: 0.95rem; margin-top: 4px; }
+
+/* ── Status Info ── */
+.status-info {
+  background: var(--black-card);
+  border: 1px solid var(--black-border);
+  border-radius: 14px;
+  padding: 22px 26px;
+  margin-bottom: 24px;
+}
+.status-info h3 {
+  font-size: 1rem;
+  color: var(--gold);
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+.status-list { display: flex; flex-direction: column; gap: 10px; }
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--black-hover);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: var(--gray);
+}
+.status-item.success { border-left: 3px solid #48bb78; }
+.status-item.error   { border-left: 3px solid #f56565; }
+
+/* ── Action Bar ── */
+.action-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.gold-btn {
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+  color: #000;
+  border: none;
+  padding: 11px 22px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.gold-btn:hover {
+  background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(201,168,76,0.35);
+}
+
+/* ── Tab Buttons ── */
+.tab-buttons {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.tab-btn {
+  background: var(--black-hover);
+  color: var(--gray);
+  border: 1px solid var(--black-border);
+  padding: 10px 22px;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.tab-btn.active {
+  background: var(--gold-light);
+  color: var(--gold-bright);
+  border-color: rgba(201,168,76,0.4);
+}
+.tab-btn:hover:not(.active) { color: var(--gold); border-color: rgba(201,168,76,0.3); }
+
+/* ── Table Container ── */
+.table-container {
+  background: var(--black-card);
+  border: 1px solid var(--black-border);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 28px;
+  animation: fadeIn 0.4s ease-out;
+}
+.table-header-bar {
+  background: linear-gradient(135deg, #1a1400, #2a2000);
+  border-bottom: 1px solid rgba(201,168,76,0.25);
+  padding: 20px 26px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.table-header-bar h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--gold);
+}
+.accounts-controls {
+  padding: 16px 26px;
+  display: flex;
+  justify-content: flex-end;
+}
+.search-input {
+  padding: 9px 14px;
+  border: 1px solid var(--black-border);
+  border-radius: 9px;
+  font-size: 0.88rem;
+  width: 240px;
+  background: var(--black-hover);
+  color: var(--white);
+  transition: all 0.2s;
+}
+.search-input::placeholder { color: var(--gray-light); }
+.search-input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+}
+
+/* ── Tables ── */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th {
+  background: var(--black-hover);
+  color: var(--gold);
+  padding: 14px 22px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.88rem;
+  border-bottom: 1px solid var(--black-border);
+}
+.data-table td {
+  padding: 16px 22px;
+  border-bottom: 1px solid var(--black-border);
+  font-size: 0.9rem;
+  color: #ccc;
+}
+.data-table tbody tr:last-child td { border-bottom: none; }
+.data-table tbody tr:hover { background: var(--black-hover); }
+.account-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.account-status.active { background: rgba(72,187,120,0.15); color: #68d391; border: 1px solid rgba(72,187,120,0.3); }
+.account-status.inactive { background: rgba(245,101,101,0.12); color: #fc8181; border: 1px solid rgba(245,101,101,0.25); }
+.account-email { color: var(--gold); font-weight: 600; }
+.account-link {
+  color: var(--fb-blue);
+  text-decoration: none;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.account-link:hover { text-decoration: underline; }
+
+/* ── Actions ── */
+.actions { display: flex; gap: 8px; }
+.action-btn {
+  background: var(--black-hover);
+  border: 1px solid var(--black-border);
+  color: var(--gray);
+  font-size: 0.88rem;
+  cursor: pointer;
+  padding: 7px 10px;
+  border-radius: 7px;
+  transition: all 0.2s;
+}
+.action-btn:hover { background: var(--gold-light); color: var(--gold-bright); border-color: rgba(201,168,76,0.4); }
+
+/* ── Context Menu ── */
+.context-menu {
+  display: none;
+  position: fixed;
+  background: var(--black-card);
+  border: 1px solid var(--black-border);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  padding: 6px;
+  z-index: 1000;
+  min-width: 160px;
+}
+.context-menu.show { display: block; }
+.context-menu-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  border-radius: 7px;
+  font-size: 0.9rem;
+  color: #ccc;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+.context-menu-item:hover { background: var(--black-hover); color: var(--gold); }
+.context-menu-item.danger { color: #fc8181; }
+.context-menu-item.danger:hover { background: rgba(245,101,101,0.1); color: #fc8181; }
+.context-menu-item.disabled { color: #444; cursor: not-allowed; }
+.context-menu-item.disabled:hover { background: none; color: #444; }
+
+/* ── Modals ── */
+.modal, .bind-modal, .groups-modal, .account-group-modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(5px);
+  z-index: 2000;
+  justify-content: center;
+  align-items: center;
+}
+.modal.show, .bind-modal.show, .groups-modal.show, .account-group-modal.show { display: flex; }
+
+.modal-content, .bind-modal-content {
+  background: var(--black-card);
+  border: 1px solid var(--black-border);
+  padding: 32px;
+  border-radius: 16px;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+.modal-header {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--gold);
+  margin-bottom: 24px;
+}
+.form-group { margin-bottom: 18px; }
+.form-group label {
+  display: block;
+  margin-bottom: 7px;
+  font-weight: 600;
+  color: var(--gray);
+  font-size: 0.88rem;
+}
+.form-group input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--black-border);
+  border-radius: 9px;
+  font-size: 0.9rem;
+  background: var(--black-hover);
+  color: var(--white);
+  transition: all 0.2s;
+}
+.form-group input::placeholder { color: var(--gray-light); }
+.form-group input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+}
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 22px;
+}
+.btn {
+  padding: 10px 22px;
+  border: none;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+  color: #000;
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(201,168,76,0.3);
+}
+.btn-secondary {
+  background: var(--black-hover);
+  color: var(--gray);
+  border: 1px solid var(--black-border);
+}
+.btn-secondary:hover { color: var(--white); }
+
+/* ── Large Modals ── */
+.large-modal-content {
+  background: var(--black-card);
+  border: 1px solid var(--black-border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  width: 90%;
+  max-width: 860px;
+  max-height: 82vh;
+  display: flex;
+  flex-direction: column;
+}
+.large-modal-header {
+  background: linear-gradient(135deg, #1a1400, #2a2000);
+  border-bottom: 1px solid rgba(201,168,76,0.25);
+  padding: 22px 28px;
+  color: var(--gold);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.large-modal-body {
+  padding: 24px 28px;
+  overflow-y: auto;
+  flex: 1;
+}
+.large-modal-controls {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.large-modal-footer {
+  padding: 18px 28px;
+  border-top: 1px solid var(--black-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* ── Pagination ── */
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 28px;
+  border-top: 1px solid var(--black-border);
+}
+.page-btn {
+  padding: 7px 13px;
+  border: 1px solid var(--black-border);
+  background: var(--black-hover);
+  border-radius: 7px;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--gray);
+  transition: all 0.2s;
+  font-size: 0.85rem;
+}
+.page-btn:hover { border-color: var(--gold); color: var(--gold); }
+.page-btn.active { background: var(--gold-light); color: var(--gold-bright); border-color: rgba(201,168,76,0.4); }
+.page-info { font-size: 0.82rem; color: var(--gray); margin: 0 8px; }
+
+.hidden { display: none !important; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+</style>
+<link rel="stylesheet" href="shared-responsive.css">
+</head>
+<body>
+<button class="hamburger-btn" onclick="document.querySelector('.sidebar').classList.toggle('open'); document.querySelector('.sidebar-overlay').classList.toggle('show');">
+  <i class="fas fa-bars"></i>
+</button>
+<div class="sidebar-overlay" onclick="document.querySelector('.sidebar').classList.remove('open'); this.classList.remove('show');"></div>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-icon">智</div>
+    <div>
+      <div class="sidebar-logo-text">智富</div>
+      <div class="sidebar-logo-sub">AI SYSTEM</div>
+    </div>
+    <div class="sidebar-fb-badge">
+      <i class="fab fa-facebook" style="color:#1877f2; font-size:1.3rem;"></i>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">管理</div>
+    <a class="nav-item active" href="account.html">
+      <div class="nav-icon"><i class="fas fa-user-circle"></i></div>
+      帳號管理
+    </a>
+
+    <div class="nav-section-label">發文功能</div>
+    <a class="nav-item" href="normalPost.html">
+      <div class="nav-icon"><i class="fas fa-users"></i></div>
+      一般社團發文
+    </a>
+    <a class="nav-item" href="marketPlace.html">
+      <div class="nav-icon"><i class="fas fa-store"></i></div>
+      拍賣＋社團發文
+    </a>
+
+    <div class="nav-section-label">自動化</div>
+    <a class="nav-item" href="cultivateAccount.html">
+      <div class="nav-icon"><i class="fas fa-robot"></i></div>
+      自動養號
+    </a>
+  </nav>
+
+  <div class="sidebar-bottom">
+    智富 AI &copy; 2025
+  </div>
+</div>
+
+<!-- Content -->
+<div class="content">
+  <div class="page-header">
+    <h1>帳號管理</h1>
+    <p>管理您的 Facebook 帳號與狀態監控</p>
+  </div>
+
+  <!-- Action Bar -->
+  <div class="action-bar">
+    <button class="gold-btn" onclick="">
+      <i class="fas fa-qrcode"></i> 掃描 profile
+    </button>
+    <button class="gold-btn" onclick="openAccountGroupModal('create')">
+      <i class="fas fa-layer-group"></i> 創建帳號組合
+    </button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-buttons">
+    <button class="tab-btn active" onclick="switchTab('accounts')">帳號列表</button>
+    <button class="tab-btn" onclick="switchTab('groups')">帳號組合列表</button>
+  </div>
+
+  <!-- Accounts Table -->
+  <div id="accounts-container" class="table-container">
+    <div class="table-header-bar">
+      <h2><i class="fas fa-users" style="margin-right:8px;font-size:1rem;"></i>帳號列表</h2>
+    </div>
+    <div class="accounts-controls">
+      <input type="text" class="search-input" placeholder="搜尋帳號..." id="accountSearch" oninput="loadAccounts()">
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>帳號資訊</th>
+          <th>帳號名稱</th>
+          <th>備註</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="accountsTableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Account Groups Table -->
+  <div id="account-groups-container" class="table-container hidden">
+    <div class="table-header-bar">
+      <h2><i class="fas fa-layer-group" style="margin-right:8px;font-size:1rem;"></i>帳號組合列表</h2>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>組合名稱</th>
+          <th>帳號數量</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="accountGroupsTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Context Menu -->
+<div id="contextMenu" class="context-menu">
+  <div class="context-menu-item" onclick="editAccountCtx()"><i class="fas fa-pen" style="margin-right:8px;width:14px;"></i>修改</div>
+  <div class="context-menu-item" onclick="reImportAccount()"><i class="fas fa-link" style="margin-right:8px;width:14px;"></i>綁定帳號</div>
+  <div class="context-menu-item" onclick="openAccount()"><i class="fas fa-external-link-alt" style="margin-right:8px;width:14px;"></i>開啟帳號</div>
+  <div class="context-menu-item danger" id="deleteMenuItem" onclick="deleteAccount()"><i class="fas fa-trash" style="margin-right:8px;width:14px;"></i>刪除</div>
+</div>
+
+<!-- Add/Edit Account Modal -->
+<div id="accountModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header" id="modalTitle">新增帳號</div>
+    <div class="form-group">
+      <label>帳號 Email / 電話</label>
+      <input type="text" id="accountEmail" placeholder="輸入 Facebook 帳號">
+    </div>
+    <div class="form-group">
+      <label>密碼</label>
+      <input type="password" id="accountPassword" placeholder="輸入密碼">
+    </div>
+    <div class="form-group">
+      <label>帳號名稱</label>
+      <input type="text" id="accountName" placeholder="輸入帳號名稱">
+    </div>
+    <div class="form-group">
+      <label>備註</label>
+      <input type="text" id="accountNote" placeholder="輸入備註（可選）">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveAccount()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bind Confirmation Modal -->
+<div id="bindModal" class="bind-modal">
+  <div class="bind-modal-content">
+    <div class="modal-header"><i class="fas fa-link" style="margin-right:8px;"></i>確認綁定帳號</div>
+    <p style="margin-bottom:16px;color:var(--gray);font-size:0.9rem;">確定綁定此帳號嗎？綁定後本帳號將不得再更改，如有其他需求需聯繫客服人員。</p>
+    <p style="margin-bottom:20px;color:var(--gray);font-size:0.9rem;">本帳號數量限制：10 個社團</p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeBindModal()">取消</button>
+      <button class="btn btn-primary" onclick="confirmBind()">確認綁定</button>
+    </div>
+  </div>
+</div>
+
+<!-- Groups Modal -->
+<div id="groupsModal" class="groups-modal">
+  <div class="large-modal-content">
+    <div class="large-modal-header"><i class="fas fa-users" style="margin-right:10px;"></i>社團列表</div>
+    <div class="large-modal-body">
+      <div class="large-modal-controls" style="justify-content:flex-end;">
+        <input type="text" class="search-input" placeholder="搜尋社團..." id="groupSearch" oninput="loadGroups()">
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>社團名稱</th>
+            <th>狀態</th>
+          </tr>
+        </thead>
+        <tbody id="groupsTableBody"></tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <button class="page-btn" onclick="changePage(-1)">上一頁</button>
+      <span class="page-info" id="pageInfo">第 1 頁 / 共 1 頁</span>
+      <button class="page-btn" onclick="changePage(1)">下一頁</button>
+    </div>
+    <div class="large-modal-footer">
+      <button class="btn btn-secondary" onclick="closeGroupsModal()">關閉</button>
+    </div>
+  </div>
+</div>
+
+<!-- Account Group Modal -->
+<div id="accountGroupModal" class="account-group-modal">
+  <div class="large-modal-content">
+    <div class="large-modal-header" id="accountGroupModalHeader"><i class="fas fa-layer-group" style="margin-right:10px;"></i>創建帳號組合</div>
+    <div class="large-modal-body">
+      <div class="large-modal-controls">
+        <input type="text" class="search-input" placeholder="搜尋帳號..." id="accountGroupSearch" oninput="loadAccountGroups()">
+        <input type="text" class="search-input" placeholder="輸入組合名稱" id="accountGroupName">
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>選擇</th>
+            <th>帳號名稱</th>
+          </tr>
+        </thead>
+        <tbody id="accountGroupTableBody"></tbody>
+      </table>
+    </div>
+    <div class="large-modal-footer">
+      <button class="btn btn-secondary" onclick="closeAccountGroupModal()">取消</button>
+      <button class="btn btn-primary" id="saveGroupBtn" onclick="saveAccountGroup()">創建組合</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentAccountId = null;
+let currentGroupAccountId = null;
+let currentPage = 1;
+const groupsPerPage = 10;
+let currentMode = 'create';
+let currentGroupIndex = null;
+
+const groupsData = [
+  { id:1,name:"社團 A" },{ id:2,name:"社團 B" },{ id:3,name:"社團 C" },
+  { id:4,name:"社團 D" },{ id:5,name:"社團 E" },{ id:6,name:"社團 F" },
+  { id:7,name:"社團 G" },{ id:8,name:"社團 H" },{ id:9,name:"社團 I" },
+  { id:10,name:"社團 J" },{ id:11,name:"社團 K" },{ id:12,name:"社團 L" },
+];
+
+const accountsData = [
+  { id:1, email:"Xieqiaoli44@gmail.com", name:"謝巧莉", note:"主要帳號", status:"active",  groups:182 },
+  { id:2, email:"Chenming88@gmail.com",  name:"陳明",   note:"備用帳號", status:"inactive", groups:null },
+  { id:3, email:"Liwen33@gmail.com",     name:"李文",   note:"-",        status:"inactive", groups:null },
+  { id:4, email:"Wangyuting22@gmail.com",name:"王玉婷", note:"行銷用",   status:"active",  groups:95 },
+];
+
+let accountGroups = JSON.parse(localStorage.getItem('accountGroups')) || [];
+
+function switchTab(tab) {
+  const ac = document.getElementById('accounts-container');
+  const gc = document.getElementById('account-groups-container');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  if (tab === 'accounts') {
+    ac.classList.remove('hidden');
+    gc.classList.add('hidden');
+    document.querySelector(`.tab-btn[onclick="switchTab('accounts')"]`).classList.add('active');
+  } else {
+    ac.classList.add('hidden');
+    gc.classList.remove('hidden');
+    document.querySelector(`.tab-btn[onclick="switchTab('groups')"]`).classList.add('active');
+    loadAccountGroupsList();
+  }
+}
+
+function openAddModal() {
+  document.getElementById('modalTitle').textContent = '新增帳號';
+  document.getElementById('accountEmail').value = '';
+  document.getElementById('accountPassword').value = '';
+  document.getElementById('accountName').value = '';
+  document.getElementById('accountNote').value = '';
+  document.getElementById('accountModal').classList.add('show');
+  currentAccountId = null;
+}
+
+function editAccount(id) {
+  const acc = accountsData.find(a => a.id === id);
+  document.getElementById('modalTitle').textContent = '修改帳號';
+  document.getElementById('accountEmail').value = acc.email;
+  document.getElementById('accountPassword').value = '••••••••';
+  document.getElementById('accountName').value = acc.name;
+  document.getElementById('accountNote').value = acc.note;
+  document.getElementById('accountModal').classList.add('show');
+  currentAccountId = id;
+  closeContextMenu();
+}
+
+function editAccountCtx() { editAccount(currentAccountId); }
+
+function closeModal() {
+  document.getElementById('accountModal').classList.remove('show');
+}
+
+function saveAccount() {
+  alert('帳號已儲存！');
+  closeModal();
+  loadAccounts();
+}
+
+function showContextMenu(event, id) {
+  event.preventDefault();
+  const menu = document.getElementById('contextMenu');
+  const deleteItem = document.getElementById('deleteMenuItem');
+  currentAccountId = id;
+  const acc = accountsData.find(a => a.id === id);
+  const isBound = acc.status === 'active';
+  deleteItem.classList.toggle('disabled', isBound);
+  menu.classList.add('show');
+  menu.style.left = event.clientX + 'px';
+  menu.style.top = event.clientY + 'px';
+}
+
+function closeContextMenu() {
+  document.getElementById('contextMenu').classList.remove('show');
+}
+
+function reImportAccount() {
+  openBindModal(currentAccountId);
+  closeContextMenu();
+}
+
+function openAccount() {
+  window.open('https://www.facebook.com/profile_status/?referrer=profile_settings', '_blank');
+  closeContextMenu();
+}
+
+function deleteAccount() {
+  const acc = accountsData.find(a => a.id === currentAccountId);
+  if (acc.status === 'active') {
+    alert('已綁定的帳號無法刪除，請聯繫客服！');
+    closeContextMenu();
+    return;
+  }
+  if (confirm('確定要刪除此帳號嗎？')) {
+    const idx = accountsData.findIndex(a => a.id === currentAccountId);
+    accountsData.splice(idx, 1);
+    alert('帳號已刪除！');
+    closeContextMenu();
+    loadAccounts();
+  }
+}
+
+function openBindModal(id) {
+  currentAccountId = id;
+  document.getElementById('bindModal').classList.add('show');
+}
+
+function closeBindModal() {
+  document.getElementById('bindModal').classList.remove('show');
+}
+
+function confirmBind() {
+  alert('帳號已綁定！');
+  closeBindModal();
+  const acc = accountsData.find(a => a.id === currentAccountId);
+  acc.status = 'active';
+  acc.groups = 10;
+  loadAccounts();
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#contextMenu') && !e.target.closest('.action-btn')) {
+    closeContextMenu();
+  }
+});
+
+document.getElementById('accountModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+document.getElementById('bindModal').addEventListener('click', function(e) {
+  if (e.target === this) closeBindModal();
+});
+
+function openGroupsModal(id) {
+  currentGroupAccountId = id;
+  document.getElementById('groupsModal').classList.add('show');
+  loadGroups();
+}
+
+function closeGroupsModal() {
+  document.getElementById('groupsModal').classList.remove('show');
+}
+
+function loadGroups() {
+  const tbody = document.getElementById('groupsTableBody');
+  tbody.innerHTML = '';
+  const term = document.getElementById('groupSearch').value.toLowerCase();
+  const start = (currentPage - 1) * groupsPerPage;
+  const end = start + groupsPerPage;
+  const filtered = groupsData.filter(g => g.name.toLowerCase().includes(term)).slice(start, end);
+  filtered.forEach(g => {
+    const row = document.createElement('tr');
+    row.innerHTML = `<td>${g.id}</td><td>${g.name}</td><td>✅3 ❌5</td>`;
+    tbody.appendChild(row);
+  });
+  updatePagination();
+}
+
+function updatePagination() {
+  const total = Math.ceil(groupsData.length / groupsPerPage);
+  document.getElementById('pageInfo').textContent = `第 ${currentPage} 頁 / 共 ${total} 頁`;
+}
+
+function changePage(dir) {
+  const total = Math.ceil(groupsData.length / groupsPerPage);
+  currentPage = Math.max(1, Math.min(total, currentPage + dir));
+  loadGroups();
+}
+
+function scanGroups(id) {
+  alert('請勿關閉電腦直到社團掃描結束');
+}
+
+function loadAccountGroupsList() {
+  const tbody = document.getElementById('accountGroupsTableBody');
+  tbody.innerHTML = '';
+  accountGroups.forEach((group, index) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${group.name}</td>
+      <td>${group.accounts.length}</td>
+      <td>
+        <div class="actions">
+          <button class="action-btn" title="查看" onclick="viewAccountGroup(${index})"><i class="fas fa-eye"></i></button>
+          <button class="action-btn" title="編輯" onclick="editAccountGroup(${index})"><i class="fas fa-pen"></i></button>
+          <button class="action-btn" title="刪除" onclick="deleteAccountGroup(${index})" style="color:#fc8181;"><i class="fas fa-trash"></i></button>
+        </div>
+      </td>`;
+    tbody.appendChild(row);
+  });
+}
+
+function openAccountGroupModal(mode = 'create', index = null) {
+  currentMode = mode;
+  currentGroupIndex = index;
+  const header = document.getElementById('accountGroupModalHeader');
+  const nameInput = document.getElementById('accountGroupName');
+  const searchInput = document.getElementById('accountGroupSearch');
+  const saveBtn = document.getElementById('saveGroupBtn');
+  const cancelBtn = document.querySelector('.account-group-modal .large-modal-footer .btn-secondary');
+
+  if (mode === 'create') {
+    header.innerHTML = '<i class="fas fa-layer-group" style="margin-right:10px;"></i>創建帳號組合';
+    nameInput.value = '';
+    nameInput.disabled = false;
+    searchInput.disabled = false;
+    saveBtn.textContent = '創建組合';
+    saveBtn.onclick = saveAccountGroup;
+    saveBtn.style.display = '';
+    cancelBtn.textContent = '取消';
+  } else if (mode === 'edit') {
+    const group = accountGroups[index];
+    header.innerHTML = '<i class="fas fa-layer-group" style="margin-right:10px;"></i>編輯帳號組合';
+    nameInput.value = group.name;
+    nameInput.disabled = false;
+    searchInput.disabled = false;
+    saveBtn.textContent = '儲存變更';
+    saveBtn.onclick = updateAccountGroup;
+    saveBtn.style.display = '';
+    cancelBtn.textContent = '取消';
+  } else if (mode === 'view') {
+    const group = accountGroups[index];
+    header.innerHTML = '<i class="fas fa-layer-group" style="margin-right:10px;"></i>查看帳號組合';
+    nameInput.value = group.name;
+    nameInput.disabled = true;
+    searchInput.disabled = true;
+    saveBtn.style.display = 'none';
+    cancelBtn.textContent = '關閉';
+  }
+
+  document.getElementById('accountGroupModal').classList.add('show');
+  loadAccountGroups();
+}
+
+function closeAccountGroupModal() {
+  document.getElementById('accountGroupModal').classList.remove('show');
+  document.getElementById('accountGroupName').value = '';
+  document.getElementById('accountGroupSearch').value = '';
+}
+
+function loadAccountGroups() {
+  const tbody = document.getElementById('accountGroupTableBody');
+  tbody.innerHTML = '';
+  const term = document.getElementById('accountGroupSearch').value.toLowerCase();
+  const filtered = accountsData.filter(a =>
+    a.name.toLowerCase().includes(term) || a.email.toLowerCase().includes(term)
+  );
+  filtered.forEach(acc => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><input type="checkbox" class="account-checkbox" data-id="${acc.id}" ${currentMode === 'view' ? 'disabled' : ''}></td>
+      <td>${acc.name}</td>`;
+    tbody.appendChild(row);
+  });
+  if (currentMode === 'edit' || currentMode === 'view') {
+    const group = accountGroups[currentGroupIndex];
+    document.querySelectorAll('.account-checkbox').forEach(cb => {
+      cb.checked = group.accounts.includes(parseInt(cb.dataset.id));
+    });
+  }
+}
+
+function saveAccountGroup() {
+  const name = document.getElementById('accountGroupName').value.trim();
+  if (!name) { alert('請輸入組合名稱！'); return; }
+  const ids = [];
+  document.querySelectorAll('.account-checkbox:checked').forEach(cb => ids.push(parseInt(cb.dataset.id)));
+  if (ids.length === 0) { alert('請至少選擇一個帳號！'); return; }
+  accountGroups.push({ name, accounts: ids });
+  localStorage.setItem('accountGroups', JSON.stringify(accountGroups));
+  alert(`帳號組合 "${name}" 已創建！`);
+  document.querySelectorAll('.account-checkbox').forEach(cb => cb.checked = false);
+  document.getElementById('accountGroupName').value = '';
+  closeAccountGroupModal();
+  loadAccountGroupsList();
+}
+
+function updateAccountGroup() {
+  const name = document.getElementById('accountGroupName').value.trim();
+  if (!name) { alert('請輸入組合名稱！'); return; }
+  const ids = [];
+  document.querySelectorAll('.account-checkbox:checked').forEach(cb => ids.push(parseInt(cb.dataset.id)));
+  if (ids.length === 0) { alert('請至少選擇一個帳號！'); return; }
+  accountGroups[currentGroupIndex] = { name, accounts: ids };
+  localStorage.setItem('accountGroups', JSON.stringify(accountGroups));
+  alert(`帳號組合 "${name}" 已更新！`);
+  closeAccountGroupModal();
+  loadAccountGroupsList();
+}
+
+function viewAccountGroup(index)  { openAccountGroupModal('view', index); }
+function editAccountGroup(index)  { openAccountGroupModal('edit', index); }
+function deleteAccountGroup(index) {
+  if (confirm(`確定要刪除組合 "${accountGroups[index].name}" 嗎？`)) {
+    accountGroups.splice(index, 1);
+    localStorage.setItem('accountGroups', JSON.stringify(accountGroups));
+    alert('組合已刪除！');
+    loadAccountGroupsList();
+  }
+}
+
+document.getElementById('accountGroupModal').addEventListener('click', function(e) {
+  if (e.target === this) closeAccountGroupModal();
+});
+
+function loadAccounts() {
+  const tbody = document.getElementById('accountsTableBody');
+  tbody.innerHTML = '';
+  const term = document.getElementById('accountSearch').value.toLowerCase();
+  const filtered = accountsData.filter(a =>
+    a.name.toLowerCase().includes(term) ||
+    a.email.toLowerCase().includes(term) ||
+    a.note.toLowerCase().includes(term)
+  );
+  filtered.forEach(acc => {
+    const row = document.createElement('tr');
+    const statusBadge = acc.status === 'active'
+      ? `<span class="account-status active"><i class="fas fa-check-circle"></i> 已綁定</span>`
+      : `<span class="account-status inactive"><i class="fas fa-times-circle"></i> 未綁定</span>`;
+    const groupsLink = acc.groups !== null
+      ? `<a class="account-link" onclick="openGroupsModal(${acc.id}); return false;">${acc.groups} 個社團</a>`
+      : `<span class="account-link" onclick="openBindModal(${acc.id})">綁定帳號後查看社團</span>`;
+    row.innerHTML = `
+      <td>${acc.id}</td>
+      <td>
+        ${statusBadge}
+        <span class="account-email" style="margin-left:8px;">${acc.email}</span><br>
+        ${groupsLink}
+      </td>
+      <td>${acc.name}</td>
+      <td>${acc.note}</td>
+      <td>
+        <div class="actions">
+          <button class="action-btn" title="編輯" onclick="editAccount(${acc.id})"><i class="fas fa-pen"></i></button>
+          <button class="action-btn" title="更多" onclick="showContextMenu(event, ${acc.id})"><i class="fas fa-ellipsis-h"></i></button>
+          <button class="action-btn" title="掃描社團" onclick="scanGroups(${acc.id})" style="padding:7px 12px;font-size:0.82rem;color:var(--gold);border-color:rgba(201,168,76,0.3);"><i class="fas fa-search" style="margin-right:5px;"></i>掃描社團</button>
+        </div>
+      </td>`;
+    tbody.appendChild(row);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadAccounts();
+  loadGroups();
+  loadAccountGroupsList();
+});
+</script>
+</body>
+</html>

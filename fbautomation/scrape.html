@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>蓋好賣 - 社團關鍵字爬蟲</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+color: #1a202c;
+line-height: 1.6;
+min-height: 100vh;
+}
+.sidebar {
+width: 280px;
+height: 100vh;
+background: rgba(255, 255, 255, 0.95);
+backdrop-filter: blur(10px);
+position: fixed;
+padding: 30px 20px;
+box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1);
+z-index: 100;
+overflow-y: auto;
+}
+.logo {
+font-size: 2.4rem;
+font-weight: 800;
+margin-bottom: 40px;
+text-align: center;
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+}
+.sidebar ul { list-style: none; }
+.sidebar ul li {
+padding: 16px 20px;
+margin-bottom: 8px;
+font-size: 1.05rem;
+cursor: pointer;
+border-radius: 12px;
+transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+color: #4a5568;
+font-weight: 500;
+}
+.sidebar ul li:hover {
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+color: white;
+transform: translateX(5px);
+box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+.sidebar ul li.active {
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+color: white;
+box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+.content {
+margin-left: 280px;
+padding: 40px 50px;
+min-height: 100vh;
+}
+.header { margin-bottom: 40px; }
+.header h1 {
+color: white;
+font-size: 2.2rem;
+font-weight: 700;
+margin-bottom: 8px;
+text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+.header p {
+color: rgba(255, 255, 255, 0.9);
+font-size: 1rem;
+}
+.progress-steps {
+display: flex;
+justify-content: space-between;
+margin-bottom: 60px;
+position: relative;
+max-width: 1000px;
+margin-left: auto;
+margin-right: auto;
+}
+.progress-line {
+position: absolute;
+top: 25px;
+left: 0;
+width: 100%;
+height: 3px;
+background: rgba(255, 255, 255, 0.3);
+z-index: 0;
+}
+.progress-line-fill {
+height: 100%;
+background: white;
+transition: width 0.5s ease;
+width: 0%;
+}
+.step {
+flex: 1;
+text-align: center;
+min-width: 120px;
+position: relative;
+z-index: 1;
+}
+.step-circle {
+width: 50px;
+height: 50px;
+border-radius: 50%;
+background: rgba(255, 255, 255, 0.3);
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 1.3rem;
+font-weight: 700;
+color: white;
+margin: 0 auto 16px;
+transition: all 0.3s;
+border: 3px solid transparent;
+cursor: pointer;
+}
+.step.active .step-circle {
+background: white;
+color: #667eea;
+box-shadow: 0 4px 20px rgba(255, 255, 255, 0.4);
+transform: scale(1.1);
+}
+.step.completed .step-circle {
+background: white;
+color: #48bb78;
+}
+.step-label {
+color: rgba(255, 255, 255, 0.8);
+font-size: 1rem;
+font-weight: 600;
+white-space: normal;
+word-break: break-word;
+}
+.step.active .step-label {
+color: white;
+font-weight: 700;
+}
+.card {
+background: rgba(255, 255, 255, 0.95);
+backdrop-filter: blur(10px);
+padding: 40px;
+border-radius: 24px;
+box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+margin-bottom: 50px;
+border: 1px solid rgba(255, 255, 255, 0.3);
+max-width: 900px;
+margin-left: auto;
+margin-right: auto;
+display: none;
+}
+.card.active {
+display: block;
+animation: fadeIn 0.5s ease-out;
+}
+.card h2 {
+font-size: 1.6rem;
+margin-bottom: 30px;
+color: #2d3748;
+font-weight: 700;
+display: flex;
+align-items: center;
+gap: 12px;
+}
+.form-group { margin-bottom: 25px; }
+.form-label {
+display: block;
+font-size: 0.95rem;
+font-weight: 600;
+color: #4a5568;
+margin-bottom: 8px;
+}
+.form-input {
+width: 100%;
+padding: 12px 16px;
+border: 2px solid #e2e8f0;
+border-radius: 10px;
+font-size: 0.95rem;
+transition: all 0.2s;
+font-family: inherit;
+}
+.form-input:focus {
+outline: none;
+border-color: #667eea;
+box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+.form-textarea {
+min-height: 120px;
+resize: vertical;
+}
+.btn {
+padding: 16px 24px;
+border: none;
+border-radius: 12px;
+font-size: 1.05rem;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s;
+display: inline-flex;
+align-items: center;
+gap: 8px;
+}
+.btn-primary {
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+color: white;
+box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+.btn-primary:hover {
+transform: translateY(-2px);
+box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+.btn-success {
+background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+color: white;
+box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+}
+.btn-success:hover {
+transform: translateY(-2px);
+box-shadow: 0 6px 20px rgba(72, 187, 120, 0.4);
+}
+.btn-secondary {
+background: #edf2f7;
+color: #4a5568;
+}
+.btn-secondary:hover {
+background: #e2e8f0;
+}
+.alert {
+padding: 15px 20px;
+border-radius: 10px;
+margin-bottom: 20px;
+font-weight: 500;
+}
+.alert-info {
+background: linear-gradient(135deg, #bee3f8 0%, #90cdf4 100%);
+color: #1a365d;
+border: 2px solid #4299e1;
+}
+.alert-warning {
+background: linear-gradient(135deg, #feebc8 0%, #fbd38d 100%);
+color: #744210;
+border: 2px solid #ed8936;
+}
+.navigation-buttons {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-top: 30px;
+}
+.keyword-preview {
+background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+padding: 20px;
+border-radius: 12px;
+margin-top: 15px;
+border: 2px solid #e2e8f0;
+}
+.keyword-tags {
+display: flex;
+flex-wrap: wrap;
+gap: 10px;
+margin-top: 10px;
+}
+.keyword-tag {
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+color: white;
+padding: 8px 16px;
+border-radius: 20px;
+font-size: 0.9rem;
+font-weight: 600;
+}
+.time-input-group {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 20px;
+}
+.summary-card {
+background: linear-gradient(135deg, #e6f2ff 0%, #ebf4ff 100%);
+padding: 25px;
+border-radius: 16px;
+border: 2px solid #667eea;
+}
+.summary-item {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 12px 0;
+border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+}
+.summary-item:last-child {
+border-bottom: none;
+}
+.summary-label {
+font-weight: 600;
+color: #2d3748;
+}
+.summary-value {
+font-weight: 700;
+color: #667eea;
+}
+@keyframes fadeIn {
+from {
+opacity: 0;
+transform: translateY(20px);
+}
+to {
+opacity: 1;
+transform: translateY(0);
+}
+}
+.help-text {
+font-size: 0.85rem;
+color: #718096;
+margin-top: 8px;
+display: flex;
+align-items: center;
+gap: 6px;
+}
+/* Modal Styles */
+.modal {
+position: fixed;
+z-index: 1000;
+left: 0;
+top: 0;
+width: 100%;
+height: 100%;
+background-color: rgba(0,0,0,0.4);
+display: none;
+justify-content: center;
+align-items: center;
+}
+.modal-content {
+background: white;
+padding: 30px;
+border-radius: 12px;
+width: 90%;
+max-width: 600px;
+max-height: 80vh;
+overflow-y: auto;
+box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+.modal-content h2 {
+margin-bottom: 20px;
+color: #2d3748;
+}
+.modal-content input {
+margin-bottom: 20px;
+}
+.modal-content ul {
+list-style: none;
+max-height: 300px;
+overflow-y: auto;
+border: 1px solid #e2e8f0;
+border-radius: 8px;
+}
+.modal-content li {
+padding: 12px 16px;
+cursor: pointer;
+border-bottom: 1px solid #f7fafc;
+transition: background 0.2s;
+}
+.modal-content li:hover {
+background: #f7fafc;
+}
+.modal-content li:last-child {
+border-bottom: none;
+}
+.modal-content .task-item {
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 10px;
+}
+.selected-account {
+margin-top: 15px;
+padding: 12px;
+background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+border: 1px solid #0ea5e9;
+border-radius: 8px;
+font-weight: 600;
+color: #0369a1;
+}
+.info-box {
+background: #eff6ff;
+border-left: 4px solid #3b82f6;
+padding: 1rem;
+border-radius: 8px;
+margin-top: 1rem;
+}
+.info-box-title {
+font-weight: 600;
+color: #1e40af;
+margin-bottom: 0.5rem;
+}
+.info-box-content {
+color: #1e40af;
+font-size: 0.9rem;
+}
+.no-mode-hint {
+margin-top: 15px;
+padding: 15px;
+background: linear-gradient(135deg, #f0f9ff 0%, #f7fbff 100%);
+border-radius: 12px;
+border: 2px solid #667eea;
+}
+.no-mode-hint h4 {
+color: #667eea;
+margin-bottom: 10px;
+font-size: 1rem;
+}
+.no-mode-hint p {
+color: #4a5568;
+margin-bottom: 8px;
+font-size: 0.9rem;
+}
+.task-badge {
+display: inline-block;
+background: #667eea;
+color: white;
+padding: 4px 12px;
+border-radius: 12px;
+font-size: 0.8rem;
+font-weight: 600;
+margin-left: 10px;
+}
+.task-badge.scrape {
+background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
+}
+.direct-execution-hint {
+margin-top: 20px;
+padding: 15px;
+background: linear-gradient(135deg, #fff5f5 0%, #fff5f5 100%);
+border-radius: 12px;
+border: 2px solid #f56565;
+}
+.direct-execution-hint h4 {
+color: #f56565;
+margin-bottom: 10px;
+font-size: 1rem;
+}
+.direct-execution-hint ul {
+list-style: disc;
+padding-left: 20px;
+margin-bottom: 10px;
+}
+.direct-execution-hint li {
+color: #4a5568;
+margin-bottom: 5px;
+font-size: 0.9rem;
+}
+.preset-task-actions {
+display: flex;
+gap: 15px;
+margin-top: 20px;
+}
+.preset-task-actions .btn {
+flex: 1;
+}
+.schedule-item {
+background: white;
+border: 2px solid #e2e8f0;
+border-radius: 12px;
+padding: 20px;
+margin-bottom: 15px;
+transition: all 0.3s;
+box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.schedule-item:hover {
+border-color: #667eea;
+transform: translateY(-2px);
+box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
+}
+.schedule-item-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 15px;
+padding-bottom: 15px;
+border-bottom: 2px solid #e2e8f0;
+}
+.schedule-item-title {
+font-size: 1.2rem;
+font-weight: 700;
+color: #2d3748;
+}
+.schedule-item-actions {
+display: flex;
+gap: 10px;
+}
+.schedule-item-actions button {
+padding: 8px 16px;
+border: none;
+border-radius: 8px;
+font-size: 0.9rem;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.2s;
+}
+.btn-edit {
+background: #667eea;
+color: white;
+}
+.btn-edit:hover {
+background: #5568d3;
+transform: translateY(-1px);
+box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+.btn-delete {
+background: #f56565;
+color: white;
+}
+.btn-delete:hover {
+background: #e53e3e;
+transform: translateY(-1px);
+box-shadow: 0 2px 8px rgba(245, 101, 101, 0.3);
+}
+.schedule-item-content {
+color: #4a5568;
+font-size: 0.95rem;
+line-height: 1.8;
+}
+.schedule-item-detail {
+display: flex;
+align-items: center;
+gap: 8px;
+margin-bottom: 8px;
+}
+.schedule-item-detail strong {
+color: #2d3748;
+min-width: 120px;
+}
+.empty-schedules {
+text-align: center;
+padding: 60px 20px;
+color: #718096;
+font-size: 1.1rem;
+}
+.empty-schedules-icon {
+font-size: 4rem;
+margin-bottom: 20px;
+}
+#scheduleName {
+width: 100%;
+padding: 0.75rem 1rem;
+border: 2px solid #e5e7eb;
+border-radius: 10px;
+font-size: 1rem;
+transition: all 0.3s ease;
+background: white;
+margin-bottom: 0.5rem;
+font-family: inherit;
+}
+#scheduleName:focus {
+outline: none;
+border-color: #667eea;
+box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+.modal-body {
+padding: 1.5rem 0;
+}
+#saveScheduleModal .form-group {
+margin-bottom: 1.5rem;
+}
+#saveScheduleModal .form-group label {
+display: block;
+font-size: 0.95rem;
+color: #4b5563;
+margin-bottom: 0.5rem;
+font-weight: 500;
+}
+#saveScheduleModal .form-group input[type="text"] {
+width: 100%;
+padding: 0.75rem 1rem;
+border: 2px solid #e5e7eb;
+border-radius: 10px;
+font-size: 1rem;
+transition: all 0.3s ease;
+background: white;
+}
+#saveScheduleModal .form-group input[type="text"]:focus {
+outline: none;
+border-color: #667eea;
+box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+.preset-task-section {
+margin-top: 30px;
+padding: 25px;
+background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+border-radius: 15px;
+border: 2px solid #e2e8f0;
+}
+.preset-task-section h3 {
+color: #2d3748;
+font-size: 1.3rem;
+margin-bottom: 15px;
+font-weight: 700;
+display: flex;
+align-items: center;
+gap: 10px;
+}
+</style>
+</head>
+<body>
+<div class="sidebar">
+<div class="logo">🏆 蓋好賣</div>
+<ul>
+<li onclick="window.location.href='index.html'">📊 首頁</li>
+<li onclick="window.location.href='account.html'">👤 帳號管理</li>
+<li onclick="window.location.href='schedule.html'">📝 排程管理</li>
+<li onclick="window.location.href='normalPost.html'">💬 一般社團發文</li>
+<li onclick="window.location.href='marketPlace.html'">🛒 拍賣+社團發文</li>
+<li onclick="window.location.href='addClub.html'">➕ 自動加入社團</li>
+<li onclick="window.location.href='cultivateAccount.html'">🤖 自動養號</li>
+<li onclick="window.location.href='SentMs.html'">📩 自動私訊</li>
+<li onclick="window.location.href='PostAct.html'">👍 指定貼文按讚留言分享</li>
+<li class="active">🕷️ 社團關鍵字爬蟲</li>
+<li onclick="window.location.href='sequentialSchedule.html'">🔄 連貫排程</li>
+</ul>
+</div>
+<div class="content">
+<div class="header">
+<h1>🕷️ 社團關鍵字爬蟲</h1>
+<p>自動爬取社團貼文，發文者為發文者、符合關鍵字留言為留言者</p>
+<button class="btn btn-primary" onclick="openTaskModal()" style="margin-top: 10px;">📋 查看執行的關鍵字任務</button>
+</div>
+<!-- 步驟指示器 -->
+<div class="progress-steps">
+<div class="progress-line"><div class="progress-line-fill" id="progressFill"></div></div>
+<div class="step active" data-step="1" onclick="goToStep(1)">
+<div class="step-circle">1</div>
+<div class="step-label">選擇帳號</div>
+</div>
+<div class="step" data-step="2" onclick="goToStep(2)">
+<div class="step-circle">2</div>
+<div class="step-label">社團連結</div>
+</div>
+<div class="step" data-step="3" onclick="goToStep(3)">
+<div class="step-circle">3</div>
+<div class="step-label">關鍵字設定</div>
+</div>
+<div class="step" data-step="4" onclick="goToStep(4)">
+<div class="step-circle">4</div>
+<div class="step-label">爬取設定</div>
+</div>
+<div class="step" data-step="5" onclick="goToStep(5)">
+<div class="step-circle">5</div>
+<div class="step-label">確認執行</div>
+</div>
+</div>
+<!-- 步驟 1: 選擇帳號 -->
+<div class="card active" id="step1">
+<h2>👤 步驟 1：選擇爬取帳號</h2>
+<div class="alert alert-warning">
+⚠️ 請挑選比較不重要的帳號！我們已經模擬人類行為做到高度不被封禁狀態，但還是有可能有那麼的1%被封。
+</div>
+<div class="form-group">
+<label class="form-label">選擇帳號</label>
+<button class="btn btn-primary" onclick="openAccountModal()">🧑‍💻 開啟帳號列表選擇</button>
+<div id="selectedAccountDisplay" class="selected-account">尚未選擇帳號</div>
+<div class="help-text">
+ℹ️ 點擊按鈕開啟彈出視窗，可搜尋並選擇帳號
+</div>
+</div>
+<div class="navigation-buttons">
+<div></div>
+<button class="btn btn-primary" onclick="nextStep()">下一步 →</button>
+</div>
+</div>
+<!-- 步驟 2: 社團連結 -->
+<div class="card" id="step2">
+<h2>🔗 步驟 2：輸入社團連結</h2>
+<div class="alert alert-info">
+💡 請輸入您要爬取的 Facebook 社團連結
+</div>
+<div class="form-group">
+<label class="form-label">Facebook 社團連結</label>
+<input type="url" class="form-input" id="groupUrl" placeholder="https://www.facebook.com/groups/..." />
+<div class="help-text">
+ℹ️ 支援各種 Facebook 社團連結格式
+</div>
+</div>
+<div class="navigation-buttons">
+<button class="btn btn-secondary" onclick="prevStep()">← 上一步</button>
+<button class="btn btn-primary" onclick="nextStep()">下一步 →</button>
+</div>
+</div>
+<!-- 步驟 3: 關鍵字設定 -->
+<div class="card" id="step3">
+<h2>🔍 步驟 3：設定爬取關鍵字</h2>
+<div class="alert alert-info">
+💡 設定發文者關鍵字以搜尋相關貼文（發文者即發文者）。可選設定留言者關鍵字以篩選留言中的潛在留言者（如 +1、想要）
+</div>
+<div class="form-group">
+<label class="form-label">關鍵字（必填）</label>
+<input type="text" class="form-input" id="posterKeyword" placeholder="例如：出售" oninput="updatePosterPreview()" />
+<div class="keyword-preview">
+<strong>發文者關鍵字： <span id="posterDisplay">-</span></strong>
+</div>
+</div>
+<div class="form-group">
+<label class="form-label" style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+<input type="checkbox" id="enableCommenterKeywords" onchange="toggleCommenterKeywords()" />
+<span>是否設定留言者關鍵字</span>
+</label>
+</div>
+<div id="commenterKeywordsArea" style="display: none; margin-top: 20px;">
+<div class="form-group">
+<label class="form-label">留言者關鍵字（每行一個，可選）</label>
+<textarea class="form-input form-textarea" id="commenterKeywords" placeholder="例如：&#10;+1&#10;想要&#10;收購&#10;徵求&#10;需要" oninput="updateCommenterPreview()"></textarea>
+<div class="help-text">
+ℹ️ 每行輸入一個留言者關鍵字，系統會自動篩選符合的留言
+</div>
+</div>
+<div class="keyword-preview" id="commenterPreview">
+<strong>已設定 <span id="commenterCount">0</span> 個留言者關鍵字</strong>
+<div class="keyword-tags" id="commenterTags"></div>
+</div>
+</div>
+<div class="navigation-buttons">
+<button class="btn btn-secondary" onclick="prevStep()">← 上一步</button>
+<button class="btn btn-primary" onclick="nextStep()">下一步 →</button>
+</div>
+</div>
+<!-- 步驟 4: 爬取設定 -->
+<div class="card" id="step4">
+<h2>⏱️ 步驟 4：設定爬取時間</h2>
+<div class="alert alert-warning">
+⚠️ 爬取時間越長，獲得的資料越多，但也會消耗更多系統資源增加判定為不當行為機率！ 建議時長（30-90分鐘）
+</div>
+<div class="time-input-group">
+<div class="form-group">
+<label class="form-label">爬取持續時間（分鐘）</label>
+<input type="number" class="form-input" id="crawlMinutes" min="1" max="1440" value="30" oninput="updateTimeSummary()" />
+<div class="help-text">
+ℹ️ 建議設定 10-60 分鐘，最多 1440 分鐘（24小時）
+</div>
+</div>
+<div class="form-group">
+<label class="form-label">爬取間隔（秒）</label>
+<input type="number" class="form-input" id="crawlInterval" min="1" max="300" value="5" oninput="updateTimeSummary()" />
+<div class="help-text">
+ℹ️ 每隔多少秒檢查一次新貼文，建議 3-10 秒
+</div>
+</div>
+</div>
+<div class="summary-card" style="margin-top: 30px;">
+<h3 style="color: #2d3748; margin-bottom: 20px;">⏰ 爬取時間摘要</h3>
+<div class="summary-item">
+<span class="summary-label">總爬取時間</span>
+<span class="summary-value" id="totalTime">30 分鐘</span>
+</div>
+<div class="summary-item">
+<span class="summary-label">檢查間隔</span>
+<span class="summary-value" id="intervalTime">5 秒</span>
+</div>
+<div class="summary-item">
+<span class="summary-label">預計檢查次數</span>
+<span class="summary-value" id="checkCount">360 次</span>
+</div>
+</div>
+<div class="navigation-buttons">
+<button class="btn btn-secondary" onclick="prevStep()">← 上一步</button>
+<button class="btn btn-primary" onclick="nextStep()">下一步 →</button>
+</div>
+</div>
+<!-- 步驟 5: 確認執行 -->
+<div class="card" id="step5">
+<h2>✅ 步驟 5：確認設定並開始爬取</h2>
+<div class="alert alert-info">
+💡 請確認以下設定，確認無誤後點擊「開始爬取」按鈕
+</div>
+<div class="summary-card">
+<h3 style="color: #2d3748; margin-bottom: 20px;">📋 爬取設定總覽</h3>
+<div class="summary-item">
+<span class="summary-label">👤 帳號</span>
+<span class="summary-value" id="summaryAccount">-</span>
+</div>
+<div class="summary-item">
+<span class="summary-label">🔗 社團連結</span>
+<span class="summary-value" id="summaryGroupUrl" style="font-size: 0.9rem; word-break: break-all;">-</span>
+</div>
+<div class="summary-item">
+<span class="summary-label">🔍 發文者關鍵字</span>
+<span class="summary-value" id="summaryPosterKeyword">-</span>
+</div>
+<div class="summary-item">
+<span class="summary-label">🛍️ 留言者關鍵字</span>
+<span class="summary-value" id="summaryCommenterKeywords">未設定</span>
+</div>
+<div class="summary-item">
+<span class="summary-label">⏱️ 爬取持續時間</span>
+<span class="summary-value" id="summaryCrawlTime">30 分鐘</span>
+</div>
+<div class="summary-item">
+<span class="summary-label">🔄 檢查間隔</span>
+<span class="summary-value" id="summaryCrawlInterval">5 秒</span>
+</div>
+</div>
+<div class="alert alert-warning" style="margin-top: 30px;">
+📊 <strong>匯出說明：</strong>爬取完成後，系統將自動生成檔案：
+<br>• <strong>發文者資料.xlsx</strong> - 符合發文者關鍵字的貼文（發文者）
+<br>• <strong>留言者資料.xlsx</strong> - 符合留言者關鍵字的留言（若未設定則不生成）
+<br><br>您可以在「排程管理」頁面查看爬取進度並下載檔案
+</div>
+<!-- 預設任務區域 -->
+<div class="preset-task-section">
+<h3>📁 預設任務管理</h3>
+<div class="info-box" style="margin-bottom: 15px; background: linear-gradient(135deg, #f0fff4 0%, #f7fff7 100%); border-left-color: #48bb78;">
+<h3 style="color: #48bb78;">如何使用預設任務？</h3>
+<ul style="list-style: disc; padding-left: 20px;">
+<li style="color: #4a5568;">點擊下方「儲存為預設任務」按鈕</li>
+<li style="color: #4a5568;">為任務取一個好記的名稱</li>
+<li style="color: #4a5568;">前往「連貫排程」頁面使用這些預設任務</li>
+<li style="color: #4a5568;">可與其他任務（發文、私訊、養號）組合執行</li>
+</ul>
+</div>
+<!-- 關於預設任務的說明 -->
+<div class="no-mode-hint">
+<h4>💡 關於預設任務</h4>
+<p>當您儲存為「預設任務」時，系統只會記錄任務的設定內容（帳號、社團連結、關鍵字、爬取時間等）。</p>
+<p>執行方式和排程設定將在「連貫排程」頁面中統一管理，可與其他任務組合串聯。</p>
+</div>
+<!-- 預設任務操作按鈕 -->
+<div class="preset-task-actions">
+<button class="btn btn-secondary" onclick="openViewScheduleModal()" style="background: #48bb78; color: white;">
+📋 查看現有預設任務
+</button>
+<button class="btn btn-secondary" onclick="openSaveScheduleModal()" style="background: #ed8936; color: white;">
+💾 儲存為預設任務
+</button>
+</div>
+</div>
+<!-- 直接執行 vs 預設任務提示 -->
+<div class="direct-execution-hint">
+<h4>🚀 直接執行 vs 📁 預設任務</h4>
+<ul>
+<li><strong>點擊下方「開始爬取」</strong>：立即執行一次爬取任務</li>
+<li><strong>點擊「儲存為預設任務」</strong>：只儲存設定，任務內容可在「連貫排程」頁面重複使用</li>
+<li>預設任務支援：多任務串聯、條件觸發、排程設定</li>
+</ul>
+</div>
+<div class="navigation-buttons">
+<button class="btn btn-secondary" onclick="prevStep()">← 上一步</button>
+<button class="btn btn-success" onclick="startCrawling()" style="font-size: 1.1rem; padding: 18px 32px;">🚀 開始爬取</button>
+</div>
+</div>
+</div>
+<!-- 帳號選擇彈出視窗 -->
+<div id="accountModal" class="modal">
+<div class="modal-content">
+<h2>👥 選擇爬取帳號</h2>
+<input type="text" class="form-input" id="accountSearch" placeholder="🔍 搜尋帳號名稱或郵箱..." oninput="filterAccounts()">
+<ul id="accountList">
+<li data-value="account1" onclick="selectAccount('account1', '帳號1 (example@gmail.com)')">帳號1 (example@gmail.com)</li>
+<li data-value="account2" onclick="selectAccount('account2', '帳號2 (test@outlook.com)')">帳號2 (test@outlook.com)</li>
+<li data-value="account3" onclick="selectAccount('account3', '帳號3 (demo@yahoo.com)')">帳號3 (demo@yahoo.com)</li>
+<li data-value="account4" onclick="selectAccount('account4', '帳號4 (user4@example.com)')">帳號4 (user4@example.com)</li>
+<li data-value="account5" onclick="selectAccount('account5', '帳號5 (user5@test.com)')">帳號5 (user5@test.com)</li>
+<li data-value="account6" onclick="selectAccount('account6', '帳號6 (backup1@gmail.com)')">帳號6 (backup1@gmail.com)</li>
+<li data-value="account7" onclick="selectAccount('account7', '帳號7 (backup2@outlook.com)')">帳號7 (backup2@outlook.com)</li>
+<!-- 模擬更多帳號，實際從後端載入 -->
+</ul>
+<button class="btn btn-secondary" onclick="closeAccountModal()" style="width: 100%; margin-top: 20px;">關閉</button>
+</div>
+</div>
+<!-- 任務選擇彈出視窗 -->
+<div id="taskModal" class="modal">
+<div class="modal-content">
+<h2>📋 執行的關鍵字任務</h2>
+<ul id="taskList">
+<li class="task-item">
+<span>任務名稱: 爬取任務1 (社團A - 關鍵字: 出售)</span>
+<button class="btn btn-primary" onclick="downloadFile('poster', '任務1')">下載發文者.xlsx</button>
+<button class="btn btn-primary" onclick="downloadFile('commenter', '任務1')">下載留言者.xlsx</button>
+</li>
+<li class="task-item">
+<span>任務名稱: 爬取任務2 (社團B - 關鍵字: 轉讓)</span>
+<button class="btn btn-primary" onclick="downloadFile('poster', '任務2')">下載發文者.xlsx</button>
+<button class="btn btn-primary" onclick="downloadFile('commenter', '任務2')">下載留言者.xlsx</button>
+</li>
+<!-- 模擬更多任務，實際從後端載入 -->
+</ul>
+<div class="alert alert-warning" style="margin-top: 20px;">
+⚠️ 資料只保存一個月，請及時下載！
+</div>
+<button class="btn btn-secondary" onclick="closeTaskModal()" style="width: 100%; margin-top: 20px;">關閉</button>
+</div>
+</div>
+<!-- 保存預設排程模態 -->
+<div id="saveScheduleModal" class="modal">
+<div class="modal-content">
+<div class="modal-header">
+<span>💾 儲存為預設任務</span>
+<button class="modal-close" onclick="closeSaveScheduleModal()">×</button>
+</div>
+<div class="modal-body">
+<div class="info-box" style="margin-bottom: 20px; background: linear-gradient(135deg, #f0fff4 0%, #f7fff7 100%); border-left-color: #48bb78;">
+<h3 style="color: #48bb78;">📋 預設任務說明</h3>
+<ul style="list-style: disc; padding-left: 20px;">
+<li style="color: #4a5568;">此任務只儲存設定內容，不會立即執行</li>
+<li style="color: #4a5568;">儲存後可在「連貫排程」頁面使用</li>
+<li style="color: #4a5568;">可與其他任務（發文、養號、私訊等）組合串聯</li>
+<li style="color: #4a5568;">執行方式和排程在「連貫排程」頁面統一設定</li>
+</ul>
+</div>
+<div class="form-group">
+<label for="scheduleName">任務名稱 <span style="color: #f56565;">*</span></label>
+<input type="text" id="scheduleName" placeholder="例如：每日爬取任務">
+<small style="color: #718096; margin-top: 5px; display: block;">請為這個可重複使用的任務取一個好記的名稱</small>
+</div>
+<div class="info-box">
+<h3>📋 任務內容預覽</h3>
+<div id="schedulePreview" style="color: #4a5568; margin-top: 10px;"></div>
+</div>
+</div>
+<div class="modal-footer" style="padding: 20px 30px; border-top: 2px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 12px;">
+<button class="btn btn-secondary" onclick="closeSaveScheduleModal()">取消</button>
+<button class="btn btn-primary" onclick="saveScheduleToPreset()">💾 儲存任務</button>
+</div>
+</div>
+</div>
+<!-- 查看預設排程模態 -->
+<div id="viewScheduleModal" class="modal">
+<div class="modal-content" style="max-width: 1000px;">
+<div class="modal-header">
+<span>📁 預設任務管理</span>
+<button class="modal-close" onclick="closeViewScheduleModal()">×</button>
+</div>
+<div class="modal-body">
+<div id="schedulesList" style="max-height: 500px; overflow-y: auto;"></div>
+</div>
+<div class="modal-footer" style="padding: 20px 30px; border-top: 2px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+<div class="selected-count">共 <span id="scheduleTotalCount">0</span> 個預設任務</div>
+<button class="btn btn-primary" onclick="closeViewScheduleModal()">關閉</button>
+</div>
+</div>
+</div>
+<script>
+// 全局狀態
+let currentStep = 1;
+let crawlConfig = {
+account: '',
+accountDisplay: '',
+groupUrl: '',
+posterKeyword: '',
+commenterKeywords: [],
+crawlMinutes: 30,
+crawlInterval: 5
+};
+// 初始化
+function init() {
+updateStep();
+updateTimeSummary();
+updatePosterPreview();
+loadPresetSchedules();
+}
+// 步驟控制
+function updateStep() {
+document.querySelectorAll('.step').forEach((s, i) => {
+s.className = 'step';
+if (i + 1 < currentStep) s.classList.add('completed');
+if (i + 1 === currentStep) s.classList.add('active');
+});
+document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+document.getElementById('step' + currentStep).classList.add('active');
+document.getElementById('progressFill').style.width = ((currentStep - 1) / 4) * 100 + '%';
+}
+function goToStep(step) {
+if (step < 1 || step > 5) return;
+currentStep = step;
+updateStep();
+}
+function nextStep() {
+if (currentStep === 1) {
+if (!crawlConfig.account) {
+alert('請選擇帳號');
+return;
+}
+}
+if (currentStep === 2) {
+const url = document.getElementById('groupUrl').value.trim();
+if (!url) {
+alert('請輸入社團連結');
+return;
+}
+crawlConfig.groupUrl = url;
+}
+if (currentStep === 3) {
+const posterKw = document.getElementById('posterKeyword').value.trim();
+if (!posterKw) {
+alert('請輸入發文者關鍵字');
+return;
+}
+crawlConfig.posterKeyword = posterKw;
+const enableCommenter = document.getElementById('enableCommenterKeywords').checked;
+crawlConfig.commenterKeywords = [];
+if (enableCommenter) {
+const commenterText = document.getElementById('commenterKeywords').value.trim();
+if (commenterText) {
+crawlConfig.commenterKeywords = commenterText.split('\n').filter(k => k.trim()).map(k => k.trim());
+}
+}
+}
+if (currentStep === 4) {
+const minutes = parseInt(document.getElementById('crawlMinutes').value);
+const interval = parseInt(document.getElementById('crawlInterval').value);
+if (!minutes || minutes < 1) {
+alert('請輸入有效的爬取時間（至少1分鐘）');
+return;
+}
+if (!interval || interval < 1) {
+alert('請輸入有效的檢查間隔（至少1秒）');
+return;
+}
+crawlConfig.crawlMinutes = minutes;
+crawlConfig.crawlInterval = interval;
+updateFinalSummary();
+}
+if (currentStep < 5) {
+currentStep++;
+updateStep();
+}
+}
+function prevStep() {
+if (currentStep > 1) {
+currentStep--;
+updateStep();
+}
+}
+// 發文者關鍵字預覽
+function updatePosterPreview() {
+const kw = document.getElementById('posterKeyword').value.trim();
+document.getElementById('posterDisplay').textContent = kw || '-';
+}
+// 留言者關鍵字切換
+function toggleCommenterKeywords() {
+const checked = document.getElementById('enableCommenterKeywords').checked;
+const area = document.getElementById('commenterKeywordsArea');
+area.style.display = checked ? 'block' : 'none';
+if (checked) {
+updateCommenterPreview();
+}
+}
+// 留言者關鍵字預覽
+function updateCommenterPreview() {
+const textarea = document.getElementById('commenterKeywords');
+const countSpan = document.getElementById('commenterCount');
+const tagsDiv = document.getElementById('commenterTags');
+const keywords = textarea.value.trim().split('\n').filter(k => k.trim()).map(k => k.trim());
+countSpan.textContent = keywords.length;
+tagsDiv.innerHTML = keywords.map(k => `<span class="keyword-tag">${k}</span>`).join('');
+}
+// 時間摘要更新
+function updateTimeSummary() {
+const minutes = parseInt(document.getElementById('crawlMinutes').value) || 0;
+const interval = parseInt(document.getElementById('crawlInterval').value) || 0;
+const checks = interval > 0 ? Math.floor((minutes * 60) / interval) : 0;
+document.getElementById('totalTime').textContent = minutes + ' 分鐘';
+document.getElementById('intervalTime').textContent = interval + ' 秒';
+document.getElementById('checkCount').textContent = checks.toLocaleString() + ' 次';
+}
+// 最終摘要更新
+function updateFinalSummary() {
+document.getElementById('summaryAccount').textContent = crawlConfig.accountDisplay;
+document.getElementById('summaryGroupUrl').textContent = crawlConfig.groupUrl;
+document.getElementById('summaryPosterKeyword').textContent = crawlConfig.posterKeyword;
+const commenterStr = crawlConfig.commenterKeywords.length > 0 ? `${crawlConfig.commenterKeywords.length} 個` : '未設定';
+document.getElementById('summaryCommenterKeywords').textContent = commenterStr;
+document.getElementById('summaryCrawlTime').textContent = crawlConfig.crawlMinutes + ' 分鐘';
+document.getElementById('summaryCrawlInterval').textContent = crawlConfig.crawlInterval + ' 秒';
+}
+// 開始爬取
+function startCrawling() {
+if (!crawlConfig.account || !crawlConfig.groupUrl || !crawlConfig.posterKeyword) {
+alert('請先完成所有設定步驟');
+return;
+}
+const commenterInfo = crawlConfig.commenterKeywords.length > 0 ? `• 留言者關鍵字：${crawlConfig.commenterKeywords.length} 個` : `• 留言者關鍵字：未設定`;
+let fileList = `• 發文者資料.xlsx`;
+if (crawlConfig.commenterKeywords.length > 0) {
+fileList += `\n• 留言者資料.xlsx`;
+}
+console.log('開始爬取社團資料', crawlConfig);
+alert(`✅ 爬取任務已啟動！\n\n📊 設定資訊：\n• 帳號：${crawlConfig.accountDisplay}\n• 社團：${crawlConfig.groupUrl.substring(0, 50)}...\n• 發文者關鍵字：${crawlConfig.posterKeyword}\n${commenterInfo}\n• 爬取時間：${crawlConfig.crawlMinutes} 分鐘\n• 檢查間隔：${crawlConfig.crawlInterval} 秒\n\n💾 完成後將自動生成：\n${fileList}\n\n您可以前往「排程管理」頁面查看進度並下載檔案。`);
+}
+// 帳號彈出視窗控制
+function openAccountModal() {
+document.getElementById('accountModal').style.display = 'flex';
+document.getElementById('accountSearch').focus();
+filterAccounts();
+}
+function closeAccountModal() {
+document.getElementById('accountModal').style.display = 'none';
+document.getElementById('accountSearch').value = '';
+}
+function filterAccounts() {
+const searchValue = document.getElementById('accountSearch').value.toLowerCase();
+const accounts = document.querySelectorAll('#accountList li');
+accounts.forEach(account => {
+const text = account.textContent.toLowerCase();
+account.style.display = text.includes(searchValue) ? 'block' : 'none';
+});
+}
+function selectAccount(value, display) {
+crawlConfig.account = value;
+crawlConfig.accountDisplay = display;
+document.getElementById('selectedAccountDisplay').innerHTML = `✅ 已選擇：${display}`;
+closeAccountModal();
+}
+// 任務彈出視窗控制
+function openTaskModal() {
+document.getElementById('taskModal').style.display = 'flex';
+// 這裡可以從後端動態載入任務列表
+}
+function closeTaskModal() {
+document.getElementById('taskModal').style.display = 'none';
+}
+function downloadFile(type, taskName) {
+alert(`下載 ${taskName} 的 ${type === 'poster' ? '發文者' : '留言者'}.xlsx`);
+}
+// 調用初始化
+document.addEventListener('DOMContentLoaded', init);
+// === 預設排程相關功能 ===
+let presetSchedules = [];
+let editingScheduleId = null;
+// 載入預設排程
+function loadPresetSchedules() {
+const storedSchedules = localStorage.getItem('presetSchedules');
+if (storedSchedules) {
+presetSchedules = JSON.parse(storedSchedules);
+    } else {
+presetSchedules = [];
+    }
+}
+// 獲取當前所有設定
+function getCurrentSettings() {
+if (!crawlConfig.account || !crawlConfig.groupUrl || !crawlConfig.posterKeyword) {
+return null;
+    }
+const settings = {
+account: crawlConfig.account,
+groupUrl: crawlConfig.groupUrl,
+posterKeyword: crawlConfig.posterKeyword,
+commenterKeywords: [...crawlConfig.commenterKeywords],
+crawlMinutes: crawlConfig.crawlMinutes,
+crawlInterval: crawlConfig.crawlInterval,
+taskType: 'scrape'
+    };
+return settings;
+}
+// 打開保存預設排程 Modal
+function openSaveScheduleModal() {
+if (!crawlConfig.account || !crawlConfig.groupUrl || !crawlConfig.posterKeyword) {
+alert('請完成所有步驟的選擇！');
+return;
+    }
+editingScheduleId = null;
+document.getElementById('scheduleName').value = '';
+updateSchedulePreview();
+document.getElementById('saveScheduleModal').style.display = 'flex';
+}
+function closeSaveScheduleModal() {
+document.getElementById('saveScheduleModal').style.display = 'none';
+editingScheduleId = null;
+}
+// 更新排程預覽
+function updateSchedulePreview() {
+const settings = getCurrentSettings();
+if (!settings) return;
+const preview = document.getElementById('schedulePreview');
+let html = `
+<div class="schedule-item-detail"><strong>任務類型：</strong> <span class="task-badge scrape">社團關鍵字爬蟲</span></div>
+<div class="schedule-item-detail"><strong>帳號：</strong> ${crawlConfig.accountDisplay}</div>
+<div class="schedule-item-detail"><strong>社團連結：</strong> ${settings.groupUrl.substring(0, 50)}...</div>
+<div class="schedule-item-detail"><strong>發文者關鍵字：</strong> ${settings.posterKeyword}</div>
+<div class="schedule-item-detail"><strong>留言者關鍵字：</strong> ${settings.commenterKeywords.length} 個</div>
+<div class="schedule-item-detail"><strong>爬取時間：</strong> ${settings.crawlMinutes} 分鐘</div>
+<div class="schedule-item-detail"><strong>檢查間隔：</strong> ${settings.crawlInterval} 秒</div>
+<div class="schedule-item-detail"><strong>任務狀態：</strong> <span style="color: #718096;">只儲存設定，執行方式在「連貫排程」頁面設定</span></div>
+`;
+preview.innerHTML = html;
+}
+// 保存預設排程
+function saveScheduleToPreset() {
+const name = document.getElementById('scheduleName').value.trim();
+if (!name) return alert('請輸入任務名稱！');
+const settings = getCurrentSettings();
+if (!settings) return alert('無法獲取當前設定！');
+const schedule = {
+id: editingScheduleId || Date.now().toString(),
+name: name,
+settings: settings,
+type: 'scrape',
+enabled: false, // 預設不執行
+createdAt: editingScheduleId ? presetSchedules.find(s => s.id === editingScheduleId)?.createdAt : new Date().toISOString(),
+updatedAt: new Date().toISOString()
+    };
+if (editingScheduleId) {
+const index = presetSchedules.findIndex(s => s.id === editingScheduleId);
+if (index !== -1) {
+presetSchedules[index] = schedule;
+        }
+    } else {
+presetSchedules.push(schedule);
+    }
+localStorage.setItem('presetSchedules', JSON.stringify(presetSchedules));
+closeSaveScheduleModal();
+alert(editingScheduleId ? '預設任務已更新！' : '預設任務已儲存！\n\n可以在「連貫排程」頁面將此任務與其他任務串聯。');
+}
+// 打開查看預設排程 Modal
+function openViewScheduleModal() {
+renderSchedulesList();
+document.getElementById('viewScheduleModal').style.display = 'flex';
+}
+function closeViewScheduleModal() {
+document.getElementById('viewScheduleModal').style.display = 'none';
+}
+// 渲染預設排程列表
+function renderSchedulesList() {
+const container = document.getElementById('schedulesList');
+const scrapeSchedules = presetSchedules.filter(s => s.type === 'scrape');
+document.getElementById('scheduleTotalCount').textContent = scrapeSchedules.length;
+if (scrapeSchedules.length === 0) {
+container.innerHTML = `
+<div class="empty-schedules">
+<div class="empty-schedules-icon">📅</div>
+<p>目前沒有任何預設任務</p>
+<p style="font-size: 0.9rem; margin-top: 10px;">儲存的預設任務可以在「連貫排程」頁面與其他任務串聯執行</p>
+</div>
+`;
+return;
+    }
+container.innerHTML = scrapeSchedules.map(schedule => {
+const settings = schedule.settings;
+const scheduleDesc = `
+<div class="schedule-item-detail"><strong>任務類型：</strong> <span class="task-badge scrape">社團關鍵字爬蟲</span></div>
+<div class="schedule-item-detail"><strong>帳號：</strong> ${crawlConfig.accountDisplay}</div>
+<div class="schedule-item-detail"><strong>社團連結：</strong> ${settings.groupUrl.substring(0, 50)}...</div>
+<div class="schedule-item-detail"><strong>發文者關鍵字：</strong> ${settings.posterKeyword}</div>
+<div class="schedule-item-detail"><strong>留言者關鍵字：</strong> ${settings.commenterKeywords.length} 個</div>
+<div class="schedule-item-detail"><strong>爬取時間：</strong> ${settings.crawlMinutes} 分鐘</div>
+<div class="schedule-item-detail"><strong>檢查間隔：</strong> ${settings.crawlInterval} 秒</div>
+<div class="schedule-item-detail"><strong>狀態：</strong> <span style="color: #718096;">未執行（在「連貫排程」頁面設定）</span></div>
+`;
+const updatedAt = new Date(schedule.updatedAt).toLocaleString('zh-TW');
+return `
+<div class="schedule-item">
+<div class="schedule-item-header">
+<div class="schedule-item-title">${schedule.name}</div>
+<div class="schedule-item-actions">
+<button class="btn-edit" onclick="editSchedule('${schedule.id}')">✏️ 編輯</button>
+<button class="btn-delete" onclick="deleteSchedule('${schedule.id}')">🗑️ 刪除</button>
+</div>
+</div>
+<div class="schedule-item-content">
+${scheduleDesc}
+<div class="schedule-item-detail" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #e2e8f0; color: #718096; font-size: 0.85rem;">
+<strong>更新時間：</strong> ${updatedAt}
+</div>
+</div>
+</div>
+`;
+    }).join('');
+}
+// 編輯預設排程
+function editSchedule(id) {
+const schedule = presetSchedules.find(s => s.id === id);
+if (!schedule) return alert('找不到該任務！');
+const settings = schedule.settings;
+// 載入帳號
+crawlConfig.account = settings.account;
+crawlConfig.accountDisplay = crawlConfig.account ? `帳號 ${settings.account}` : '';
+document.getElementById('selectedAccountDisplay').innerHTML = crawlConfig.accountDisplay ? `✅ 已選擇：${crawlConfig.accountDisplay}` : '尚未選擇帳號';
+// 載入社團連結
+document.getElementById('groupUrl').value = settings.groupUrl;
+// 載入關鍵字
+document.getElementById('posterKeyword').value = settings.posterKeyword;
+updatePosterPreview();
+const enableCommenter = settings.commenterKeywords.length > 0;
+document.getElementById('enableCommenterKeywords').checked = enableCommenter;
+toggleCommenterKeywords();
+if (enableCommenter) {
+document.getElementById('commenterKeywords').value = settings.commenterKeywords.join('\n');
+updateCommenterPreview();
+    }
+// 載入爬取時間
+document.getElementById('crawlMinutes').value = settings.crawlMinutes;
+document.getElementById('crawlInterval').value = settings.crawlInterval;
+updateTimeSummary();
+updateFinalSummary();
+// 打開保存 Modal 並設定為編輯模式
+editingScheduleId = id;
+document.getElementById('scheduleName').value = schedule.name;
+updateSchedulePreview();
+document.getElementById('saveScheduleModal').style.display = 'flex';
+// 關閉查看 Modal
+closeViewScheduleModal();
+}
+// 刪除預設排程
+function deleteSchedule(id) {
+if (!confirm('確定要刪除這個預設任務嗎？')) return;
+presetSchedules = presetSchedules.filter(s => s.id !== id);
+localStorage.setItem('presetSchedules', JSON.stringify(presetSchedules));
+renderSchedulesList();
+alert('任務已刪除！');
+}
+</script>
+</body>
+</html>

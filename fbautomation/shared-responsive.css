@@ -1,0 +1,291 @@
+/* ============================================
+   智富系統 — 共用放大 & 響應式樣式
+   放在各頁面 <style> 之後載入，覆蓋預設值
+   ============================================ */
+
+/* ===== 全域字體放大 ===== */
+body { font-size: 16px; }
+
+.sidebar-logo-icon { width: 46px; height: 46px; font-size: 1.25rem; }
+.sidebar-logo-text { font-size: 1.45rem; }
+.sidebar-logo-sub  { font-size: 0.65rem; }
+.nav-section-label { font-size: 0.72rem; }
+.nav-item { font-size: 1rem; padding: 13px 16px; }
+.nav-item .nav-icon { width: 36px; height: 36px; font-size: 1rem; }
+.sidebar-bottom { font-size: 0.82rem; }
+
+/* Topbar */
+.topbar-title { font-size: 1.35rem !important; }
+.topbar-sub   { font-size: 0.92rem !important; }
+
+/* Page header (account.html) */
+.page-header h1 { font-size: 2.2rem; }
+.page-header p  { font-size: 1rem; }
+
+/* Cards */
+.card { padding: 30px 32px; border-radius: 18px; }
+.card-title { font-size: 1.15rem; }
+.card-title .icon { width: 40px; height: 40px; font-size: 1.1rem; }
+.card h2 { font-size: 1.15rem; }
+
+/* Form elements */
+.form-group label { font-size: 0.92rem; }
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="time"],
+.form-group input[type="password"],
+.form-group select,
+.form-group textarea {
+  font-size: 1rem;
+  padding: 13px 16px;
+  border-radius: 12px;
+}
+
+/* Buttons */
+.btn { font-size: 1rem; padding: 13px 24px; border-radius: 10px; }
+.btn-sm { font-size: 0.88rem; padding: 9px 16px; }
+
+/* Account list */
+.account-item { padding: 11px 14px; }
+.account-item label { font-size: 0.95rem; }
+.account-item input[type="checkbox"] { width: 18px; height: 18px; }
+.select-all-container label { font-size: 0.9rem; }
+.select-all-container input[type="checkbox"] { width: 18px; height: 18px; }
+
+/* Option cards */
+.option-title { font-size: 1.05rem; }
+.option-desc  { font-size: 0.9rem; }
+.option-card  { padding: 22px; }
+.option-card input[type="radio"] { width: 18px; height: 18px; }
+
+/* Schedule */
+.schedule-type-toggle label { font-size: 0.95rem; padding: 12px; }
+.interval-mode-container h4,
+.custom-mode-container h4 { font-size: 1rem; }
+.interval-summary { font-size: 0.92rem; padding: 14px; }
+.day-label { font-size: 0.92rem; padding: 9px 16px; }
+.custom-day-form h5 { font-size: 0.95rem; }
+.time-slot-row label { font-size: 0.88rem; }
+.time-slot-row input[type="time"] { font-size: 0.95rem; padding: 10px 14px; }
+.time-slot-row button { width: 36px; height: 36px; font-size: 1.1rem; }
+
+/* Tabs */
+.step-tabs button,
+[id^="tab"] { font-size: 0.95rem !important; padding: 10px 22px !important; }
+
+/* Modal */
+.modal-header span,
+.modal-header h2 { font-size: 1.15rem; }
+.modal-close { width: 38px; height: 38px; font-size: 1.3rem; }
+.modal-body { padding: 24px 28px; }
+.modal-footer { padding: 18px 28px; }
+.modal-footer .selected-count { font-size: 0.92rem; }
+.modal-search { font-size: 1rem; padding: 13px 16px; }
+
+/* Groups / items in modal */
+.group-item, .auction-item, .post-item { padding: 14px 16px; }
+.group-item label, .auction-item label, .post-item label { font-size: 0.95rem; }
+.group-item input[type="checkbox"] { width: 18px; height: 18px; }
+
+/* Tags */
+.tag { font-size: 0.88rem; padding: 5px 14px; }
+.selected-tags-box strong { font-size: 0.9rem; }
+
+/* Preview */
+.auction-preview-price { font-size: 2rem; }
+.auction-preview-title { font-size: 1.1rem; }
+.auction-preview-location { font-size: 0.92rem; }
+
+/* Schedule items */
+.schedule-item { padding: 20px; }
+.schedule-item-title { font-size: 1.1rem; }
+.schedule-item-detail { font-size: 0.92rem; }
+.schedule-item-detail strong { font-size: 0.92rem; }
+.schedule-item-actions button { font-size: 0.88rem; padding: 8px 16px; }
+
+/* Task badge */
+.task-badge { font-size: 0.82rem; padding: 4px 12px; }
+
+/* Info / hint boxes */
+.info-box h3 { font-size: 1rem; }
+.info-box li { font-size: 0.92rem; }
+.hint-box h4, .warn-box h4 { font-size: 0.95rem; }
+.hint-box p, .hint-box li, .warn-box li { font-size: 0.9rem; }
+
+/* Import section */
+.checkbox-group label, .radio-group label { font-size: 0.95rem; }
+.checkbox-group input, .radio-group input { width: 18px; height: 18px; }
+
+/* Input unit row */
+.input-unit-row span { font-size: 0.92rem; }
+
+/* Navigation buttons */
+.navigation-buttons { margin-top: 28px; }
+
+/* ===== 漢堡選單按鈕 ===== */
+.hamburger-btn {
+  display: none;
+  position: fixed;
+  top: 12px; left: 12px;
+  z-index: 200;
+  width: 44px; height: 44px;
+  background: linear-gradient(135deg, var(--gold-dark, #8B6914), var(--gold, #C9A84C));
+  border: none; border-radius: 10px;
+  color: #0A0A0A;
+  font-size: 1.3rem;
+  cursor: pointer;
+  align-items: center; justify-content: center;
+  box-shadow: 0 4px 14px rgba(201,168,76,0.4);
+  transition: transform 0.2s;
+}
+.hamburger-btn:active { transform: scale(0.92); }
+
+/* Sidebar overlay for mobile */
+.sidebar-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 99;
+}
+.sidebar-overlay.show { display: block; }
+
+/* ===== MOBILE: <= 768px ===== */
+@media (max-width: 768px) {
+  /* Show hamburger */
+  .hamburger-btn { display: flex; }
+
+  /* Sidebar: off-canvas drawer */
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    width: 280px !important;
+    z-index: 150;
+  }
+  .sidebar.open { transform: translateX(0); }
+
+  /* Content full width */
+  .content {
+    margin-left: 0 !important;
+    padding: 20px 16px !important;
+    padding-top: 64px !important;
+  }
+
+  .main-area {
+    padding: 20px 4px !important;
+  }
+
+  /* Topbar */
+  .topbar {
+    padding: 14px 16px !important;
+    padding-left: 62px !important;
+    flex-wrap: wrap;
+    gap: 8px !important;
+  }
+  .topbar-title { font-size: 1.15rem !important; }
+  .topbar-sub { font-size: 0.82rem !important; display: block; margin-left: 0 !important; margin-top: 2px; }
+  .topbar-badge { margin-left: auto; }
+
+  /* Page header */
+  .page-header { padding-left: 50px; }
+  .page-header h1 { font-size: 1.6rem; }
+
+  /* Cards */
+  .card { padding: 20px 18px; border-radius: 14px; margin-bottom: 16px; }
+
+  /* Grids to single column */
+  .post-options,
+  .interval-mode-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  /* Step tabs scroll horizontally */
+  [style*="display:flex"][style*="gap:6px"] {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+  }
+
+  /* Navigation buttons */
+  .navigation-buttons {
+    flex-wrap: wrap;
+    gap: 10px !important;
+  }
+  .navigation-buttons .btn {
+    flex: 1;
+    min-width: 120px;
+    justify-content: center;
+  }
+
+  /* Modals full screen on mobile */
+  .modal-content {
+    width: 98% !important;
+    max-width: 100% !important;
+    max-height: 92vh !important;
+    border-radius: 14px !important;
+    margin: 10px;
+  }
+  .modal-header { padding: 16px 18px; }
+  .modal-header span, .modal-header h2 { font-size: 1rem; }
+  .modal-body { padding: 18px; }
+  .modal-footer { padding: 14px 18px; flex-wrap: wrap; gap: 8px; }
+
+  /* Forms */
+  .form-group input, .form-group select, .form-group textarea {
+    font-size: 16px !important; /* prevents iOS zoom */
+    padding: 14px 16px !important;
+  }
+
+  /* Selection group */
+  .selection-group { padding: 14px; }
+
+  /* Button groups */
+  .selection-group [style*="display:flex"][style*="gap:10px"] {
+    flex-direction: column;
+  }
+  .selection-group .btn { width: 100%; justify-content: center; }
+
+  /* Schedule toggle */
+  .schedule-type-toggle { flex-direction: column; gap: 4px; }
+  .schedule-type-toggle label { padding: 12px; }
+
+  /* Days row */
+  .days-row {
+    gap: 6px !important;
+  }
+  .day-label { padding: 8px 12px; font-size: 0.88rem; }
+
+  /* Time slot row */
+  .time-slot-row {
+    flex-wrap: wrap;
+    gap: 6px !important;
+  }
+  .time-slot-row input[type="time"] { min-width: 120px; }
+
+  /* Auction preview */
+  .auction-preview-card { max-width: 100%; }
+
+  /* Account list */
+  .account-list { max-height: 180px; }
+
+  /* Tags wrap */
+  .tags-wrap { gap: 5px; }
+  .tag { font-size: 0.82rem; padding: 4px 10px; }
+
+  /* Preset actions */
+  .preset-actions { flex-direction: column; }
+
+  /* Table responsive (account.html) */
+  .accounts-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .accounts-table { min-width: 600px; }
+}
+
+/* ===== TABLET: 769px - 1024px ===== */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar { width: 220px !important; }
+  .content { margin-left: 220px !important; padding: 28px 24px !important; }
+  .main-area { padding: 24px 16px !important; }
+  .card { padding: 24px; }
+  .post-options { gap: 12px; }
+  .modal-content { width: 94% !important; }
+}
