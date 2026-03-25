@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>水林地瓜 — 獎金系統</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --bnc:#5B3D8F;--bnc-l:#F0EBF9;--bnc-m:#8B63C0;
+      --bg:#F7F5FB;--wh:#fff;
+      --g1:#EEEAF4;--g2:#CFC8E0;--g3:#7A6E8A;--tx:#1E1530;
+      --grn:#3AAB6D;--red:#D94F3D;--org:#E8731A;--org-l:#FDF0E6;--org-m:#F5A84B;
+      --blu:#3A7BB5;--gld:#C9920B;--gld-l:#FEF9E7;
+      --r:12px;--sh:0 2px 16px rgba(0,0,0,.08);
+    }
+    body{font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;
+      background:var(--bg);color:var(--tx);font-size:16px;display:flex;min-height:100vh;}
+
+    /* ─── Sidebar ─── */
+    .sidebar{width:210px;background:var(--bnc);min-height:100vh;
+      display:flex;flex-direction:column;flex-shrink:0;
+      position:fixed;top:0;left:0;bottom:0;}
+    .sb-logo{padding:24px 18px 18px;border-bottom:1px solid rgba(255,255,255,.15);}
+    .sb-logo .brand{font-size:18px;font-weight:800;color:#fff;letter-spacing:1px;}
+    .sb-logo .sub{font-size:12px;color:rgba(255,255,255,.55);margin-top:3px;}
+    .sb-menu{flex:1;padding:12px 0;overflow-y:auto;}
+    .sb-section{font-size:11px;font-weight:600;letter-spacing:1px;
+      color:rgba(255,255,255,.4);padding:14px 18px 5px;}
+    .sb-item{display:flex;align-items:center;gap:9px;padding:11px 18px;
+      color:rgba(255,255,255,.7);cursor:pointer;font-size:14px;
+      border-left:3px solid transparent;transition:all .15s;}
+    .sb-item:hover{background:rgba(255,255,255,.08);color:#fff;}
+    .sb-item.active{background:rgba(139,99,192,.35);color:#fff;
+      border-left-color:var(--bnc-m);font-weight:600;}
+    .sb-icon{font-size:16px;width:22px;text-align:center;}
+    .sb-foot{padding:14px 18px;border-top:1px solid rgba(255,255,255,.15);
+      color:rgba(255,255,255,.4);font-size:12px;}
+    .logout-btn{width:100%;padding:7px;border-radius:8px;border:1.5px solid rgba(255,255,255,.25);
+      background:transparent;color:rgba(255,255,255,.6);font-size:12px;font-weight:600;
+      cursor:pointer;font-family:inherit;margin-top:8px;transition:all .15s;}
+    .logout-btn:hover{background:rgba(255,255,255,.1);color:#fff;}
+
+    /* ─── Main ─── */
+    .main{margin-left:210px;flex:1;display:flex;flex-direction:column;}
+    .topbar{background:var(--wh);border-bottom:1px solid var(--g2);
+      padding:0 28px;height:60px;display:flex;align-items:center;
+      justify-content:space-between;position:sticky;top:0;z-index:10;}
+    .topbar-title{font-size:19px;font-weight:700;color:var(--bnc);}
+    .topbar-r{display:flex;align-items:center;gap:12px;}
+    .avatar{width:36px;height:36px;border-radius:50%;background:var(--bnc-m);
+      color:#fff;display:flex;align-items:center;justify-content:center;
+      font-weight:800;font-size:14px;}
+    .btn{padding:8px 18px;border-radius:8px;border:none;font-size:14px;
+      font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s;}
+    .btn:hover{opacity:.85;}
+    .btn-pri{background:var(--bnc);color:#fff;}
+    .btn-out{background:transparent;border:1.5px solid var(--g2);color:var(--g3);}
+    .btn-grn{background:var(--grn);color:#fff;}
+    .btn-red{background:var(--red);color:#fff;}
+    .btn-gld{background:var(--gld);color:#fff;}
+    .btn-sm{padding:5px 12px;font-size:13px;}
+
+    /* ─── Content ─── */
+    .content{padding:24px 28px 48px;}
+    .page{display:none;}
+    .page.active{display:block;}
+
+    /* ─── Stats ─── */
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+    @media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr);}}
+    .stat{background:var(--wh);border-radius:var(--r);padding:18px 20px;
+      box-shadow:var(--sh);border-top:4px solid transparent;}
+    .stat.c1{border-top-color:var(--bnc-m);}
+    .stat.c2{border-top-color:var(--gld);}
+    .stat.c3{border-top-color:var(--grn);}
+    .stat.c4{border-top-color:var(--org);}
+    .stat-lbl{font-size:13px;color:var(--g3);margin-bottom:6px;}
+    .stat-val{font-size:28px;font-weight:800;color:var(--tx);line-height:1;}
+    .stat-sub{font-size:12px;color:var(--g3);margin-top:4px;}
+
+    /* ─── Card ─── */
+    .card{background:var(--wh);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;margin-bottom:20px;}
+    .card-head{padding:16px 22px;border-bottom:1px solid var(--g1);
+      display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+    .card-title{font-size:16px;font-weight:700;}
+    .card-body{padding:22px;}
+
+    /* ─── Table ─── */
+    .tbl{width:100%;border-collapse:collapse;}
+    .tbl th{background:var(--g1);padding:11px 14px;text-align:left;
+      font-size:13px;font-weight:600;color:var(--g3);white-space:nowrap;}
+    .tbl td{padding:13px 14px;font-size:14px;border-bottom:1px solid var(--g1);}
+    .tbl tr:last-child td{border-bottom:none;}
+    .tbl tbody tr:hover td{background:var(--bnc-l);}
+
+    /* ─── Chips ─── */
+    .chip{display:inline-block;padding:3px 10px;border-radius:20px;
+      font-size:12px;font-weight:600;white-space:nowrap;}
+    .chip-grn{background:#E8F7EE;color:var(--grn);}
+    .chip-org{background:var(--org-l);color:var(--org);}
+    .chip-red{background:#FDECEA;color:var(--red);}
+    .chip-blu{background:#E8F0FB;color:var(--blu);}
+    .chip-pur{background:var(--bnc-l);color:var(--bnc);}
+    .chip-gld{background:var(--gld-l);color:var(--gld);}
+    .chip-g{background:var(--g1);color:var(--g3);}
+
+    /* ─── Filter bar ─── */
+    .filter-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;}
+    .f-input,.f-select{border:1.5px solid var(--g2);border-radius:8px;
+      padding:7px 12px;font-size:14px;color:var(--tx);
+      background:var(--wh);outline:none;font-family:inherit;}
+    .f-input:focus,.f-select:focus{border-color:var(--bnc);}
+
+    /* ─── Empty ─── */
+    .empty{text-align:center;padding:48px;color:var(--g3);font-size:15px;}
+    .empty-icon{font-size:44px;margin-bottom:10px;}
+
+    /* ─── Toast ─── */
+    .toast{position:fixed;bottom:24px;right:24px;background:var(--tx);color:#fff;
+      padding:14px 22px;border-radius:10px;font-size:15px;font-weight:600;
+      z-index:9999;opacity:0;transform:translateY(10px);
+      transition:all .25s;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.2);}
+    .toast.show{opacity:1;transform:translateY(0);}
+    .toast.ok{background:var(--grn);}
+    .toast.err{background:var(--red);}
+
+    /* ─── Modal ─── */
+    .modal-overlay{display:none;position:fixed;inset:0;
+      background:rgba(0,0,0,.45);z-index:100;
+      align-items:flex-start;justify-content:center;
+      padding:24px 12px;overflow-y:auto;}
+    .modal-overlay.open{display:flex;}
+    .modal{background:var(--wh);border-radius:var(--r);
+      width:520px;max-width:95vw;box-shadow:0 8px 40px rgba(0,0,0,.2);margin:auto;}
+    .modal-head{padding:18px 22px;border-bottom:1px solid var(--g1);
+      display:flex;align-items:center;justify-content:space-between;}
+    .modal-title{font-size:17px;font-weight:700;}
+    .modal-close{background:none;border:none;font-size:22px;
+      cursor:pointer;color:var(--g3);line-height:1;}
+    .modal-body{padding:22px;}
+    .modal-foot{padding:14px 22px;border-top:1px solid var(--g1);
+      display:flex;justify-content:flex-end;gap:10px;}
+    .f-lbl{display:block;font-size:13px;font-weight:600;color:var(--g3);margin-bottom:5px;}
+    .f-ctrl{width:100%;border:1.5px solid var(--g2);border-radius:8px;
+      padding:9px 13px;font-size:15px;color:var(--tx);outline:none;font-family:inherit;}
+    .f-ctrl:focus{border-color:var(--bnc);}
+    .form-row{margin-bottom:14px;}
+    .form-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+    /* ─── Rule card ─── */
+    .rule-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+    .rule-card{background:var(--wh);border-radius:var(--r);box-shadow:var(--sh);
+      border-left:5px solid var(--g2);padding:18px 20px;position:relative;}
+    .rule-card.active{border-left-color:var(--bnc-m);}
+    .rule-card.inactive{border-left-color:var(--g2);opacity:.7;}
+    .rc-type{font-size:11px;font-weight:700;letter-spacing:.5px;
+      text-transform:uppercase;color:var(--g3);margin-bottom:6px;}
+    .rc-name{font-size:17px;font-weight:800;margin-bottom:8px;}
+    .rc-desc{font-size:13px;color:var(--g3);line-height:1.55;margin-bottom:12px;}
+    .rc-params{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+    .rc-param{background:var(--g1);border-radius:6px;padding:3px 9px;
+      font-size:12px;color:var(--g3);}
+    .rc-param strong{color:var(--tx);}
+    .rc-actions{display:flex;gap:8px;align-items:center;}
+    .rc-status{margin-left:auto;font-size:11px;}
+    .placeholder-banner{
+      background:repeating-linear-gradient(-45deg,var(--gld-l),var(--gld-l) 8px,#fff 8px,#fff 16px);
+      border:1.5px dashed var(--gld);border-radius:10px;
+      padding:16px 20px;margin-bottom:16px;
+      display:flex;align-items:flex-start;gap:12px;
+    }
+    .ph-icon{font-size:22px;flex-shrink:0;margin-top:1px;}
+    .ph-text{font-size:14px;color:#7A4F00;line-height:1.5;}
+    .ph-text strong{display:block;margin-bottom:3px;font-size:15px;}
+
+    /* ─── Param config ─── */
+    .param-section{margin-bottom:24px;}
+    .param-section-title{font-size:14px;font-weight:700;color:var(--bnc);
+      border-bottom:2px solid var(--bnc-l);padding-bottom:8px;margin-bottom:14px;}
+    .param-row{display:flex;align-items:center;gap:12px;
+      padding:12px 0;border-bottom:1px solid var(--g1);}
+    .param-row:last-child{border-bottom:none;}
+    .param-lbl{flex:1;font-size:14px;}
+    .param-lbl small{display:block;font-size:12px;color:var(--g3);margin-top:2px;}
+    .param-ctrl{width:140px;border:1.5px solid var(--g2);border-radius:8px;
+      padding:7px 12px;font-size:14px;color:var(--tx);outline:none;font-family:inherit;}
+    .param-ctrl:focus{border-color:var(--bnc);}
+    .param-unit{font-size:13px;color:var(--g3);white-space:nowrap;}
+
+    /* ─── Salary sync table ─── */
+    .sync-row-detail{font-size:12px;color:var(--g3);margin-top:3px;}
+
+    /* ─── Login overlay ─── */
+    .login-overlay{position:fixed;inset:0;z-index:9000;
+      background:var(--bnc);display:flex;align-items:center;justify-content:center;
+      padding:24px;}
+    .login-overlay.hidden{display:none;}
+    .login-box{background:var(--wh);border-radius:20px;
+      width:480px;max-width:100%;padding:40px 36px;
+      box-shadow:0 12px 60px rgba(0,0,0,.35);}
+    .login-logo{text-align:center;margin-bottom:30px;}
+    .login-logo .l-brand{font-size:22px;font-weight:800;color:var(--bnc);}
+    .login-logo .l-sub{font-size:13px;color:var(--g3);margin-top:5px;}
+    .login-roles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px;}
+    .role-card{border:2px solid var(--g2);border-radius:12px;padding:20px 14px;
+      text-align:center;cursor:pointer;transition:all .15s;background:var(--wh);}
+    .role-card:hover{border-color:var(--bnc);background:var(--bnc-l);}
+    .role-card.selected{border-color:var(--bnc);background:var(--bnc-l);}
+    .role-icon{font-size:30px;margin-bottom:7px;}
+    .role-name{font-size:14px;font-weight:700;color:var(--tx);}
+    .role-desc{font-size:11px;color:var(--g3);margin-top:3px;}
+    .login-field{margin-bottom:16px;}
+    .login-field .f-lbl{color:var(--g3);}
+    .login-input{width:100%;border:1.5px solid var(--g2);border-radius:8px;
+      padding:11px 14px;font-size:15px;color:var(--tx);outline:none;font-family:inherit;}
+    .login-input:focus{border-color:var(--bnc);}
+    .login-btn{width:100%;padding:14px;border-radius:10px;border:none;
+      background:var(--bnc);color:#fff;font-size:16px;font-weight:700;
+      cursor:pointer;font-family:inherit;transition:opacity .15s;margin-top:4px;}
+    .login-btn:hover{opacity:.88;}
+
+    /* ─── Timeline (payout history) ─── */
+    .timeline{list-style:none;position:relative;padding-left:20px;}
+    .timeline::before{content:'';position:absolute;left:7px;top:0;bottom:0;
+      width:2px;background:var(--g2);}
+    .tl-item{position:relative;padding:0 0 18px 20px;}
+    .tl-dot{position:absolute;left:-13px;top:4px;width:12px;height:12px;
+      border-radius:50%;background:var(--bnc-m);border:2px solid var(--wh);}
+    .tl-date{font-size:12px;color:var(--g3);margin-bottom:3px;}
+    .tl-body{background:var(--wh);border-radius:8px;padding:12px 16px;
+      box-shadow:0 1px 6px rgba(0,0,0,.06);font-size:14px;}
+    .tl-emp{font-weight:700;}
+    .tl-amount{float:right;font-weight:800;color:var(--gld);font-size:16px;}
+  </style>
+</head>
+<body>
+
+<!-- ─── Login Overlay ─── -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="l-brand">水林地瓜 ERP</div>
+      <div class="l-sub">獎金管理系統</div>
+    </div>
+    <div class="login-field">
+      <label class="f-lbl">帳號</label>
+      <input class="login-input" type="text" id="loginAccount" placeholder="請輸入帳號"
+        onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()"/>
+    </div>
+    <div class="login-field">
+      <label class="f-lbl">密碼</label>
+      <input class="login-input" type="password" id="loginPassword" placeholder="請輸入密碼"
+        onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <button class="login-btn" onclick="doLogin()">進入系統</button>
+    <div style="font-size:12px;color:#94A3B8;text-align:center;margin-top:12px;">預設帳號：員工ID，密碼：1234</div>
+  </div>
+</div>
+
+<!-- ─── Sidebar ─── -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="brand">水林地瓜 ERP</div>
+    <div class="sub">獎金系統</div>
+  </div>
+  <nav class="sb-menu">
+    <div class="sb-section">總覽</div>
+    <div class="sb-item active" onclick="switchPage('dash',this)">
+      <span class="sb-icon">&#127942;</span>獎金概覽
+    </div>
+    <div class="sb-section">機制管理</div>
+    <div class="sb-item" onclick="switchPage('rules',this)">
+      <span class="sb-icon">&#128218;</span>獎勵機制
+    </div>
+    <div class="sb-item" onclick="switchPage('assessment',this)">
+      <span class="sb-icon">&#9989;</span>考核連動
+    </div>
+    <div class="sb-section">發放與核對</div>
+    <div class="sb-item" onclick="switchPage('payout',this)">
+      <span class="sb-icon">&#128176;</span>獎金發放
+    </div>
+    <div class="sb-item" onclick="switchPage('salarysync',this)">
+      <span class="sb-icon">&#128257;</span>薪資核對
+    </div>
+    <div class="sb-section">設定</div>
+    <div class="sb-item admin-only" onclick="switchPage('params',this)">
+      <span class="sb-icon">&#9881;</span>參數設定
+    </div>
+    <div class="sb-section">系統</div>
+    <div class="sb-item" onclick="window.location.href='主管後台.html'">
+      <span class="sb-icon">&#128101;</span>主管後台
+    </div>
+    <div class="sb-item" onclick="window.location.href='考核系統.html'">
+      <span class="sb-icon">&#9989;</span>考核系統
+    </div>
+    <div class="sb-item" onclick="window.location.href='總後台.html'"
+      style="margin-top:8px;border-top:1px solid rgba(255,255,255,.12);padding-top:14px;">
+      <span class="sb-icon">&#9729;</span>總後台
+    </div>
+  </nav>
+  <div class="sb-foot">
+    <div id="sbFoot" style="margin-bottom:6px;color:rgba(255,255,255,.7);font-size:13px;"></div>
+    <button class="logout-btn" onclick="doLogout()">&#x21BA; 登出</button>
+  </div>
+</aside>
+
+<!-- ─── Main ─── -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="pageTitle">獎金概覽</div>
+    <div class="topbar-r">
+      <div style="font-size:13px;color:var(--g3);" id="todayLabel"></div>
+      <div style="font-size:13px;color:var(--g3);" id="topRoleLabel"></div>
+      <div class="avatar" id="topAvatar">—</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══════════════════════════════════════════════
+         Page: 獎金概覽
+    ══════════════════════════════════════════════ -->
+    <div class="page active" id="page-dash">
+      <div class="stats">
+        <div class="stat c1">
+          <div class="stat-lbl">本月已發放</div>
+          <div class="stat-val" id="st-month-total">—</div>
+          <div class="stat-sub">元（合計）</div>
+        </div>
+        <div class="stat c2">
+          <div class="stat-lbl">本月筆數</div>
+          <div class="stat-val" id="st-month-count">—</div>
+          <div class="stat-sub">筆獎金記錄</div>
+        </div>
+        <div class="stat c3">
+          <div class="stat-lbl">有效機制數</div>
+          <div class="stat-val" id="st-rule-count">—</div>
+          <div class="stat-sub">啟用中規則</div>
+        </div>
+        <div class="stat c4">
+          <div class="stat-lbl">本年度累計</div>
+          <div class="stat-val" id="st-year-total">—</div>
+          <div class="stat-sub">元</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 380px;gap:20px;">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">近期發放記錄</div>
+            <button class="btn btn-pri btn-sm" onclick="switchPage('payout',document.querySelector('.sb-item:nth-child(5)'))">查看全部</button>
+          </div>
+          <div class="card-body" style="padding:0;">
+            <table class="tbl" style="min-width:0;">
+              <thead><tr>
+                <th>員工</th><th>獎金類型</th><th>金額</th><th>發放日</th><th>狀態</th>
+              </tr></thead>
+              <tbody id="dashRecentBody">
+                <tr><td colspan="5" class="empty">尚無記錄</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div>
+          <div class="card" style="margin-bottom:16px;">
+            <div class="card-head"><div class="card-title">機制快覽</div></div>
+            <div class="card-body" style="padding:12px 16px;" id="dashRuleList">
+              <div class="empty" style="padding:20px;">尚無機制</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div class="card-title">本月人員分佈</div></div>
+            <div class="card-body" id="dashEmpDist" style="padding:14px 16px;">
+              <div class="empty" style="padding:12px;">尚無資料</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════
+         Page: 獎勵機制
+    ══════════════════════════════════════════════ -->
+    <div class="page" id="page-rules">
+      <div class="placeholder-banner">
+        <div class="ph-icon">&#128204;</div>
+        <div class="ph-text">
+          <strong>機制細項待討論</strong>
+          目前為框架預留版本。可先建立機制名稱、類型與參考參數，細節計算規則俟後續討論後補齊。
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">獎勵機制清單</div>
+          <div style="display:flex;gap:8px;">
+            <select class="f-select" id="ruleTypeFilter" onchange="renderRules()">
+              <option value="">全部類型</option>
+              <option value="attendance">全勤獎金</option>
+              <option value="performance">績效獎金</option>
+              <option value="sales">業績獎金</option>
+              <option value="special">特殊表彰</option>
+              <option value="custom">自訂</option>
+            </select>
+            <button class="btn btn-pri admin-only" onclick="openAddRule()">&#xff0b; 新增機制</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="rule-grid" id="ruleGrid">
+            <div class="empty" style="grid-column:1/-1;">尚無機制</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════
+         Page: 考核連動
+    ══════════════════════════════════════════════ -->
+    <div class="page" id="page-assessment">
+      <div class="placeholder-banner">
+        <div class="ph-icon">&#128204;</div>
+        <div class="ph-text">
+          <strong>考核連動 — 待討論細項</strong>
+          此頁面預留考核系統與獎金計算的橋接設定。考核評分 → 獎金轉換公式、門檻設定等細節，
+          俟考核機制討論確定後實作。以下為資料結構預覽。
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div class="card">
+          <div class="card-head"><div class="card-title">評分 → 獎金對照表（草稿）</div></div>
+          <div class="card-body" style="padding:0;">
+            <table class="tbl">
+              <thead><tr>
+                <th>考核等級</th><th>分數區間</th><th>獎金係數</th><th>說明</th>
+              </tr></thead>
+              <tbody>
+                <tr>
+                  <td><span class="chip chip-gld">S 卓越</span></td>
+                  <td>90 ～ 100</td>
+                  <td><strong style="color:var(--gld);">×2.0</strong></td>
+                  <td style="font-size:12px;color:var(--g3);">待定</td>
+                </tr>
+                <tr>
+                  <td><span class="chip chip-grn">A 優秀</span></td>
+                  <td>80 ～ 89</td>
+                  <td><strong style="color:var(--grn);">×1.5</strong></td>
+                  <td style="font-size:12px;color:var(--g3);">待定</td>
+                </tr>
+                <tr>
+                  <td><span class="chip chip-blu">B 良好</span></td>
+                  <td>70 ～ 79</td>
+                  <td><strong style="color:var(--blu);">×1.0</strong></td>
+                  <td style="font-size:12px;color:var(--g3);">待定</td>
+                </tr>
+                <tr>
+                  <td><span class="chip chip-org">C 待改善</span></td>
+                  <td>60 ～ 69</td>
+                  <td><strong style="color:var(--org);">×0.5</strong></td>
+                  <td style="font-size:12px;color:var(--g3);">待定</td>
+                </tr>
+                <tr>
+                  <td><span class="chip chip-red">D 不符</span></td>
+                  <td>&lt; 60</td>
+                  <td><strong style="color:var(--red);">×0</strong></td>
+                  <td style="font-size:12px;color:var(--g3);">待定</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><div class="card-title">連動參數（草稿）</div></div>
+          <div class="card-body">
+            <div class="param-section">
+              <div class="param-section-title">基準設定</div>
+              <div class="param-row">
+                <div class="param-lbl">考核週期
+                  <small>評分對應的時間週期</small>
+                </div>
+                <select class="param-ctrl" disabled>
+                  <option>季度（待定）</option>
+                  <option>半年</option>
+                  <option>年度</option>
+                </select>
+              </div>
+              <div class="param-row">
+                <div class="param-lbl">計算基底
+                  <small>乘上係數前的獎金基數</small>
+                </div>
+                <input class="param-ctrl" type="number" value="" placeholder="待討論" disabled/>
+                <span class="param-unit">元</span>
+              </div>
+              <div class="param-row">
+                <div class="param-lbl">啟用考核連動
+                  <small>開啟後自動帶入考核結果</small>
+                </div>
+                <select class="param-ctrl" disabled>
+                  <option>停用（待定）</option>
+                  <option>啟用</option>
+                </select>
+              </div>
+            </div>
+            <div style="background:var(--gld-l);border:1px dashed var(--gld);
+              border-radius:8px;padding:12px 16px;font-size:13px;color:#7A4F00;">
+              &#128204; 詳細連動規則待與考核系統討論後開放設定
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><div class="card-title">考核系統資料預覽</div></div>
+        <div class="card-body" style="padding:0;">
+          <table class="tbl">
+            <thead><tr>
+              <th>員工</th><th>部門</th><th>最近考核分數</th><th>等級</th><th>對應獎金係數</th><th>備注</th>
+            </tr></thead>
+            <tbody id="assessmentPreviewBody">
+              <tr><td colspan="6" class="empty">考核資料讀取中...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════
+         Page: 獎金發放
+    ══════════════════════════════════════════════ -->
+    <div class="page" id="page-payout">
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-head">
+          <div class="card-title">發放記錄</div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-out btn-sm" onclick="exportPayoutCSV()">&#8659; 匯出 CSV</button>
+            <button class="btn btn-pri admin-only btn-sm" onclick="openAddPayout()">&#xff0b; 新增發放</button>
+          </div>
+        </div>
+        <div class="card-body" style="padding:14px 22px 8px;">
+          <div class="filter-bar">
+            <input class="f-input" type="month" id="payoutMonth" style="width:155px;" onchange="renderPayout()"/>
+            <select class="f-select" id="payoutEmpFilter" onchange="renderPayout()">
+              <option value="">全部員工</option>
+            </select>
+            <select class="f-select" id="payoutTypeFilter" onchange="renderPayout()">
+              <option value="">全部類型</option>
+              <option value="attendance">全勤獎金</option>
+              <option value="performance">績效獎金</option>
+              <option value="sales">業績獎金</option>
+              <option value="special">特殊表彰</option>
+              <option value="custom">自訂</option>
+            </select>
+            <select class="f-select" id="payoutStatusFilter" onchange="renderPayout()">
+              <option value="">全部狀態</option>
+              <option value="pending">待核准</option>
+              <option value="approved">已核准</option>
+              <option value="paid">已發放</option>
+              <option value="cancelled">已取消</option>
+            </select>
+          </div>
+        </div>
+        <div style="padding:0 22px 6px;font-size:13px;color:var(--g3);" id="payoutSummaryBar"></div>
+        <div style="padding:0;">
+          <table class="tbl">
+            <thead><tr>
+              <th>員工</th><th>部門</th><th>獎金類型</th><th>金額</th><th>對應機制</th><th>發放月份</th><th>狀態</th><th>操作</th>
+            </tr></thead>
+            <tbody id="payoutBody">
+              <tr><td colspan="8" class="empty">尚無記錄</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════
+         Page: 薪資核對
+    ══════════════════════════════════════════════ -->
+    <div class="page" id="page-salarysync">
+      <div class="placeholder-banner">
+        <div class="ph-icon">&#128257;</div>
+        <div class="ph-text">
+          <strong>同步薪資系統</strong>
+          已核准且狀態為「已發放」的獎金記錄會自動出現於薪資系統核對表（slg_bonus_records），
+          供主管後台薪資計算時直接讀取。
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">薪資核對表</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input class="f-input" type="month" id="syncMonth" style="width:155px;" onchange="renderSalarySync()"/>
+            <button class="btn btn-pri btn-sm" onclick="renderSalarySync()">重新計算</button>
+          </div>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <table class="tbl">
+            <thead><tr>
+              <th>員工</th><th>部門</th><th>本月獎金筆數</th><th>獎金合計</th><th>時薪（薪資系統）</th><th>連動狀態</th>
+            </tr></thead>
+            <tbody id="salarySyncBody">
+              <tr><td colspan="6" class="empty">請選擇月份</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><div class="card-title">寫入薪資系統說明</div></div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;font-size:14px;line-height:1.8;">
+            <div>
+              <div style="font-weight:700;margin-bottom:8px;color:var(--bnc);">共用 localStorage 鍵值</div>
+              <div style="background:var(--g1);border-radius:8px;padding:12px 16px;font-family:monospace;font-size:13px;color:var(--tx);">
+                slg_bonus_records<br/>
+                <span style="color:var(--g3);">// 所有已核准獎金記錄</span><br/><br/>
+                slg_bonus_rules<br/>
+                <span style="color:var(--g3);">// 獎勵機制定義</span>
+              </div>
+            </div>
+            <div>
+              <div style="font-weight:700;margin-bottom:8px;color:var(--bnc);">薪資系統讀取方式</div>
+              <div style="background:var(--g1);border-radius:8px;padding:12px 16px;font-family:monospace;font-size:13px;color:var(--tx);">
+                <span style="color:var(--g3);">// 主管後台薪資計算</span><br/>
+                const recs = JSON.parse(<br/>
+                &nbsp; localStorage.getItem(<br/>
+                &nbsp;&nbsp;&nbsp;<span style="color:var(--bnc);">'slg_bonus_records'</span><br/>
+                &nbsp; )||'[]');<br/>
+                <span style="color:var(--g3);">// 篩選 status==='paid'</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════
+         Page: 參數設定
+    ══════════════════════════════════════════════ -->
+    <div class="page" id="page-params">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">全域參考參數</div>
+          <button class="btn btn-pri btn-sm" onclick="saveParams()">&#x2713; 儲存設定</button>
+        </div>
+        <div class="card-body">
+          <div class="param-section">
+            <div class="param-section-title">全勤獎金參數</div>
+            <div class="param-row">
+              <div class="param-lbl">全勤獎金基本額
+                <small>每月零缺席可領取之固定獎金</small>
+              </div>
+              <input class="param-ctrl" type="number" id="p-attendance-base" min="0" step="100"/>
+              <span class="param-unit">元 / 月</span>
+            </div>
+            <div class="param-row">
+              <div class="param-lbl">允許請假次數上限（仍可領）
+                <small>例：每月請假 1 次以內仍算全勤</small>
+              </div>
+              <input class="param-ctrl" type="number" id="p-attendance-tolerance" min="0" step="1"/>
+              <span class="param-unit">次</span>
+            </div>
+          </div>
+
+          <div class="param-section">
+            <div class="param-section-title">績效獎金參數</div>
+            <div class="param-row">
+              <div class="param-lbl">績效獎金基數
+                <small>乘上考核係數前的基本金額</small>
+              </div>
+              <input class="param-ctrl" type="number" id="p-perf-base" min="0" step="500"/>
+              <span class="param-unit">元</span>
+            </div>
+            <div class="param-row">
+              <div class="param-lbl">計算週期
+                <small>績效獎金的評估週期</small>
+              </div>
+              <select class="param-ctrl" id="p-perf-cycle">
+                <option value="monthly">月</option>
+                <option value="quarterly">季</option>
+                <option value="biannual">半年</option>
+                <option value="annual">年</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="param-section">
+            <div class="param-section-title">業績獎金參數</div>
+            <div class="param-row">
+              <div class="param-lbl">業績門檻（達標才發）
+                <small>月銷售額超過此門檻方觸發業績獎金</small>
+              </div>
+              <input class="param-ctrl" type="number" id="p-sales-threshold" min="0" step="10000"/>
+              <span class="param-unit">元</span>
+            </div>
+            <div class="param-row">
+              <div class="param-lbl">超標獎勵比例
+                <small>超出門檻部分的提成百分比</small>
+              </div>
+              <input class="param-ctrl" type="number" id="p-sales-rate" min="0" max="100" step="0.1"/>
+              <span class="param-unit">%</span>
+            </div>
+          </div>
+
+          <div class="param-section">
+            <div class="param-section-title">特殊表彰</div>
+            <div class="param-row">
+              <div class="param-lbl">表彰獎金預設金額
+                <small>主管手動頒發時的預設值</small>
+              </div>
+              <input class="param-ctrl" type="number" id="p-special-default" min="0" step="500"/>
+              <span class="param-unit">元</span>
+            </div>
+          </div>
+
+          <div class="placeholder-banner" style="margin-top:8px;">
+            <div class="ph-icon">&#128204;</div>
+            <div class="ph-text">
+              <strong>更多參數待討論</strong>
+              年終獎金倍率、部門差異係數、出勤加成公式等細節，俟討論後在此補充。
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<div class="toast" id="toast"></div>
+
+<!-- ─── Modal: 新增/編輯獎勵機制 ─── -->
+<div class="modal-overlay" id="ruleModal" onclick="if(event.target===this)closeModal('ruleModal')">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-head">
+      <div class="modal-title" id="ruleModalTitle">新增獎勵機制</div>
+      <button class="modal-close" onclick="closeModal('ruleModal')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="ruleEditId"/>
+      <div class="form-row">
+        <label class="f-lbl">機制名稱</label>
+        <input class="f-ctrl" type="text" id="ruleName" placeholder="例：月全勤獎金"/>
+      </div>
+      <div class="form-row form-2col">
+        <div>
+          <label class="f-lbl">類型</label>
+          <select class="f-ctrl" id="ruleType">
+            <option value="attendance">全勤獎金</option>
+            <option value="performance">績效獎金</option>
+            <option value="sales">業績獎金</option>
+            <option value="special">特殊表彰</option>
+            <option value="custom">自訂</option>
+          </select>
+        </div>
+        <div>
+          <label class="f-lbl">狀態</label>
+          <select class="f-ctrl" id="ruleStatus">
+            <option value="active">啟用</option>
+            <option value="inactive">停用</option>
+            <option value="draft">草稿</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="f-lbl">說明 / 規範描述</label>
+        <textarea class="f-ctrl" id="ruleDesc" rows="3"
+          placeholder="描述此獎勵機制的觸發條件、計算方式等（細節待討論後補充）"></textarea>
+      </div>
+      <div class="form-row form-2col">
+        <div>
+          <label class="f-lbl">參考金額（元）</label>
+          <input class="f-ctrl" type="number" id="ruleAmount" min="0" step="100" placeholder="0"/>
+        </div>
+        <div>
+          <label class="f-lbl">計算週期</label>
+          <select class="f-ctrl" id="ruleCycle">
+            <option value="monthly">月</option>
+            <option value="quarterly">季</option>
+            <option value="biannual">半年</option>
+            <option value="annual">年</option>
+            <option value="adhoc">不定期</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="f-lbl">參考參數備注
+          <span style="font-weight:400;color:var(--g3);font-size:12px;">（逗號分隔，例：門檻=90分, 係數=1.5）</span>
+        </label>
+        <input class="f-ctrl" type="text" id="ruleParams" placeholder="待討論後填寫"/>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-out" onclick="closeModal('ruleModal')">取消</button>
+      <button class="btn btn-pri" onclick="confirmRuleEdit()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Modal: 新增獎金發放 ─── -->
+<div class="modal-overlay" id="payoutModal" onclick="if(event.target===this)closeModal('payoutModal')">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="payoutModalTitle">新增獎金發放</div>
+      <button class="modal-close" onclick="closeModal('payoutModal')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="payoutEditId"/>
+      <div class="form-row form-2col">
+        <div>
+          <label class="f-lbl">員工</label>
+          <select class="f-ctrl" id="payoutEmp"></select>
+        </div>
+        <div>
+          <label class="f-lbl">發放月份</label>
+          <input class="f-ctrl" type="month" id="payoutMonth2"/>
+        </div>
+      </div>
+      <div class="form-row form-2col">
+        <div>
+          <label class="f-lbl">獎金類型</label>
+          <select class="f-ctrl" id="payoutType">
+            <option value="attendance">全勤獎金</option>
+            <option value="performance">績效獎金</option>
+            <option value="sales">業績獎金</option>
+            <option value="special">特殊表彰</option>
+            <option value="custom">自訂</option>
+          </select>
+        </div>
+        <div>
+          <label class="f-lbl">對應機制</label>
+          <select class="f-ctrl" id="payoutRule">
+            <option value="">— 不指定 —</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="f-lbl">金額（元）</label>
+        <input class="f-ctrl" type="number" id="payoutAmount" min="0" step="100" placeholder="0"/>
+      </div>
+      <div class="form-row form-2col">
+        <div>
+          <label class="f-lbl">狀態</label>
+          <select class="f-ctrl" id="payoutStatus">
+            <option value="pending">待核准</option>
+            <option value="approved">已核准</option>
+            <option value="paid">已發放</option>
+          </select>
+        </div>
+        <div>
+          <label class="f-lbl">核准人</label>
+          <input class="f-ctrl" type="text" id="payoutApprover" placeholder="選填"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="f-lbl">備注</label>
+        <textarea class="f-ctrl" id="payoutNotes" rows="2" placeholder="說明事由..."></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-out" onclick="closeModal('payoutModal')">取消</button>
+      <button class="btn btn-pri" onclick="confirmPayoutEdit()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── Storage ──────────────────────────────────────────────────────────
+const getBonusRules   = ()=>JSON.parse(localStorage.getItem('slg_bonus_rules')||'[]');
+const saveBonusRules  = d=>localStorage.setItem('slg_bonus_rules',JSON.stringify(d));
+const getBonusRecs    = ()=>JSON.parse(localStorage.getItem('slg_bonus_records')||'[]');
+const saveBonusRecs   = d=>localStorage.setItem('slg_bonus_records',JSON.stringify(d));
+const getBonusCfg     = ()=>JSON.parse(localStorage.getItem('slg_bonus_cfg')||'null');
+const saveBonusCfg    = d=>localStorage.setItem('slg_bonus_cfg',JSON.stringify(d));
+// 從薪資系統讀取員工設定
+const getEmpCfg       = ()=>JSON.parse(localStorage.getItem('slg_emp_cfg')||'{}');
+
+// ─── Employees (shared with 主管後台) ─────────────────────────────────
+const ALL_EMPS=[
+  {id:'E001',name:'林美惠',dept:'農場生產'},
+  {id:'E002',name:'陳建宏',dept:'加工包裝'},
+  {id:'E003',name:'黃淑芬',dept:'門市銷售'},
+  {id:'E004',name:'王志明',dept:'倉儲物流'},
+  {id:'E005',name:'張雅婷',dept:'行政管理'},
+  {id:'E006',name:'李俊賢',dept:'農場生產'},
+  {id:'E007',name:'吳佳穎',dept:'門市銷售'},
+  {id:'E008',name:'蔡文彬',dept:'加工包裝'},
+];
+
+// ─── Helpers ──────────────────────────────────────────────────────────
+const uid = ()=>'B'+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,5).toUpperCase();
+const escH = s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const todayStr = ()=>new Date().toISOString().slice(0,10);
+const thisMonth = ()=>new Date().toISOString().slice(0,7);
+const thisYear  = ()=>new Date().getFullYear().toString();
+
+const RULE_TYPE_LABEL={
+  attendance:'全勤獎金',performance:'績效獎金',
+  sales:'業績獎金',special:'特殊表彰',custom:'自訂'
+};
+const RULE_TYPE_COLOR={
+  attendance:'var(--grn)',performance:'var(--bnc-m)',
+  sales:'var(--gld)',special:'var(--org)',custom:'var(--g3)'
+};
+const CYCLE_LABEL={monthly:'月',quarterly:'季',biannual:'半年',annual:'年',adhoc:'不定期'};
+const STATUS_LABEL={active:'啟用',inactive:'停用',draft:'草稿',
+  pending:'待核准',approved:'已核准',paid:'已發放',cancelled:'已取消'};
+const STATUS_CHIP={
+  active:'chip-grn',inactive:'chip-g',draft:'chip-org',
+  pending:'chip-org',approved:'chip-blu',paid:'chip-grn',cancelled:'chip-red'
+};
+
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast'+(type?' '+type:'');
+  void t.offsetWidth;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+// ─── Login ────────────────────────────────────────────────────────────
+let _loginRole='';
+function doLogin(){
+  const account=document.getElementById('loginAccount').value.trim();
+  const password=document.getElementById('loginPassword').value.trim();
+  if(!account||!password){showToast('請輸入帳號與密碼','err');return;}
+  const users=JSON.parse(localStorage.getItem('slg_users')||'[]');
+  const user=users.find(u=>u.account===account&&u.password===password&&u.status==='active');
+  if(!user){showToast('帳號或密碼錯誤','err');return;}
+  const perms=JSON.parse(localStorage.getItem('slg_user_perms')||'{}');
+  const perm=(perms[user.id]||{})['bonus']||'none';
+  if(perm==='none'){showToast('您無此系統的存取權限，請聯絡管理員','err');return;}
+  _loginRole=perm==='supervisor'?'hr':'staff';
+  sessionStorage.setItem('bnc_role',_loginRole);
+  sessionStorage.setItem('bnc_name',user.name);
+  applyLogin();
+}
+function applyLogin(){
+  const role=sessionStorage.getItem('bnc_role');
+  const name=sessionStorage.getItem('bnc_name');
+  if(!role||!name){
+    document.getElementById('loginOverlay').classList.remove('hidden');
+    return;
+  }
+  document.getElementById('loginOverlay').classList.add('hidden');
+  document.getElementById('sbFoot').textContent=name;
+  document.getElementById('topRoleLabel').textContent=
+    role==='hr'?'人資主管':'一般查詢';
+  document.getElementById('topAvatar').textContent=name.charAt(0);
+  // 管理員限定項目
+  document.querySelectorAll('.admin-only').forEach(el=>{
+    el.style.display=role==='hr'?'':'none';
+  });
+  init();
+}
+function doLogout(){
+  if(!confirm('確認登出？'))return;
+  sessionStorage.removeItem('bnc_role');
+  sessionStorage.removeItem('bnc_name');
+  _loginRole='';
+  document.getElementById('loginAccount').value='';
+  document.getElementById('loginPassword').value='';
+  document.getElementById('loginOverlay').classList.remove('hidden');
+}
+
+// ─── Page switching ────────────────────────────────────────────────────
+let currentPage='dash';
+const PAGE_TITLES={
+  dash:'獎金概覽',rules:'獎勵機制',assessment:'考核連動',
+  payout:'獎金發放',salarysync:'薪資核對',params:'參數設定'
+};
+function switchPage(name,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if(el) el.classList.add('active');
+  document.getElementById('pageTitle').textContent=PAGE_TITLES[name]||name;
+  currentPage=name;
+  if(name==='dash') renderDash();
+  if(name==='rules') renderRules();
+  if(name==='assessment') renderAssessmentPreview();
+  if(name==='payout') renderPayout();
+  if(name==='salarysync') renderSalarySync();
+  if(name==='params') loadParams();
+}
+
+// ─── Seed ─────────────────────────────────────────────────────────────
+function seedBonusRules(){
+  if(getBonusRules().length) return;
+  saveBonusRules([
+    {id:'R001',name:'月全勤獎金',type:'attendance',status:'active',
+      desc:'當月無曠職、無遲到，且請假次數在容許範圍內，即可領取全勤獎金。詳細計算規則待補充。',
+      amount:1500,cycle:'monthly',params:'請假容許次數=1次, 遲到容許=0次',
+      createdAt:new Date().toISOString()},
+    {id:'R002',name:'季度績效獎金',type:'performance',status:'draft',
+      desc:'依季度考核分數乘上係數計算獎金。考核連動規則待與考核系統討論後確認。',
+      amount:0,cycle:'quarterly',params:'計算基數=待定, 考核係數=待定',
+      createdAt:new Date().toISOString()},
+    {id:'R003',name:'業績達標獎金',type:'sales',status:'draft',
+      desc:'門市銷售人員月業績超過門檻後，超出部分依比例提成。細節待討論。',
+      amount:0,cycle:'monthly',params:'門檻=待定, 提成比例=待定',
+      createdAt:new Date().toISOString()},
+    {id:'R004',name:'特殊貢獻表彰',type:'special',status:'active',
+      desc:'由主管提名，針對有特殊貢獻或優異表現的員工發放不定額表彰獎金。',
+      amount:2000,cycle:'adhoc',params:'金額由主管決定',
+      createdAt:new Date().toISOString()},
+  ]);
+}
+
+function seedBonusCfg(){
+  if(getBonusCfg()) return;
+  saveBonusCfg({
+    attendanceBase:1500,attendanceTolerance:1,
+    perfBase:0,perfCycle:'quarterly',
+    salesThreshold:0,salesRate:0,
+    specialDefault:2000,
+  });
+}
+
+// ─── Dashboard ────────────────────────────────────────────────────────
+function renderDash(){
+  const recs=getBonusRecs();
+  const now=thisMonth();
+  const year=thisYear();
+
+  const monthRecs=recs.filter(r=>r.month===now);
+  const yearRecs=recs.filter(r=>r.month&&r.month.startsWith(year));
+
+  const monthTotal=monthRecs.reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
+  const yearTotal=yearRecs.reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
+  const activeRules=getBonusRules().filter(r=>r.status==='active').length;
+
+  document.getElementById('st-month-total').textContent=monthTotal.toLocaleString();
+  document.getElementById('st-month-count').textContent=monthRecs.length;
+  document.getElementById('st-rule-count').textContent=activeRules;
+  document.getElementById('st-year-total').textContent=yearTotal.toLocaleString();
+
+  // Recent records
+  const recent=[...recs].sort((a,b)=>b.createdAt?.localeCompare(a.createdAt||'')||0).slice(0,8);
+  const tbody=document.getElementById('dashRecentBody');
+  if(!recent.length){
+    tbody.innerHTML='<tr><td colspan="5" class="empty">尚無記錄</td></tr>';
+  } else {
+    tbody.innerHTML=recent.map(r=>{
+      const emp=ALL_EMPS.find(e=>e.id===r.empId)||{name:r.empId||'—'};
+      return `<tr>
+        <td><strong>${escH(emp.name)}</strong></td>
+        <td><span class="chip chip-pur">${escH(RULE_TYPE_LABEL[r.type]||r.type)}</span></td>
+        <td style="font-weight:800;color:var(--gld);">${(parseFloat(r.amount)||0).toLocaleString()} 元</td>
+        <td style="font-size:13px;color:var(--g3);">${escH(r.month||'—')}</td>
+        <td><span class="chip ${STATUS_CHIP[r.status]||'chip-g'}">${escH(STATUS_LABEL[r.status]||r.status)}</span></td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Rule quick list
+  const rules=getBonusRules();
+  const ruleList=document.getElementById('dashRuleList');
+  if(!rules.length){
+    ruleList.innerHTML='<div class="empty" style="padding:16px;">尚無機制</div>';
+  } else {
+    ruleList.innerHTML=rules.map(r=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;
+        padding:9px 0;border-bottom:1px solid var(--g1);">
+        <div>
+          <div style="font-weight:700;font-size:14px;">${escH(r.name)}</div>
+          <div style="font-size:12px;color:var(--g3);">${escH(CYCLE_LABEL[r.cycle]||r.cycle||'—')} ・ ${r.amount?r.amount.toLocaleString()+' 元':'金額待定'}</div>
+        </div>
+        <span class="chip ${STATUS_CHIP[r.status]||'chip-g'}">${escH(STATUS_LABEL[r.status]||r.status)}</span>
+      </div>
+    `).join('').replace(/border-bottom[^;]+;([^}]+)(?=<\/div>\s*$)/,'');
+  }
+
+  // Employee distribution this month
+  const empMap={};
+  monthRecs.forEach(r=>{
+    if(!empMap[r.empId]) empMap[r.empId]=0;
+    empMap[r.empId]+=(parseFloat(r.amount)||0);
+  });
+  const empDist=document.getElementById('dashEmpDist');
+  if(!Object.keys(empMap).length){
+    empDist.innerHTML='<div class="empty" style="padding:12px;">本月尚無發放</div>';
+  } else {
+    const maxAmt=Math.max(...Object.values(empMap));
+    empDist.innerHTML=Object.entries(empMap).sort((a,b)=>b[1]-a[1]).map(([id,amt])=>{
+      const emp=ALL_EMPS.find(e=>e.id===id)||{name:id};
+      const pct=maxAmt>0?Math.round(amt/maxAmt*100):0;
+      return `<div style="margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px;">
+          <span style="font-weight:600;">${escH(emp.name)}</span>
+          <span style="font-weight:800;color:var(--gld);">${amt.toLocaleString()} 元</span>
+        </div>
+        <div style="background:var(--g1);border-radius:4px;height:7px;overflow:hidden;">
+          <div style="width:${pct}%;height:100%;background:var(--bnc-m);border-radius:4px;transition:width .4s;"></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ─── Rules ────────────────────────────────────────────────────────────
+function renderRules(){
+  const filter=document.getElementById('ruleTypeFilter').value;
+  let rules=getBonusRules();
+  if(filter) rules=rules.filter(r=>r.type===filter);
+  const grid=document.getElementById('ruleGrid');
+  if(!rules.length){
+    grid.innerHTML='<div class="empty" style="grid-column:1/-1;padding:40px;">尚無獎勵機制</div>';
+    return;
+  }
+  grid.innerHTML=rules.map(r=>{
+    const params=(r.params||'').split(/[,，]+/).map(s=>s.trim()).filter(Boolean);
+    return `<div class="rule-card ${r.status==='active'?'active':'inactive'}">
+      <div class="rc-type" style="color:${RULE_TYPE_COLOR[r.type]||'var(--g3)'};">
+        ${escH(RULE_TYPE_LABEL[r.type]||r.type)} ・ ${escH(CYCLE_LABEL[r.cycle]||r.cycle||'—')}
+      </div>
+      <div class="rc-name">${escH(r.name)}</div>
+      <div class="rc-desc">${escH(r.desc||'（無說明）')}</div>
+      ${params.length?`<div class="rc-params">${params.map(p=>`<span class="rc-param">${escH(p)}</span>`).join('')}</div>`:''}
+      <div class="rc-actions">
+        ${sessionStorage.getItem('bnc_role')==='hr'?`
+          <button class="btn btn-out btn-sm" onclick="openEditRule('${r.id}')">&#9998; 編輯</button>
+          <button class="btn btn-red btn-sm" onclick="deleteRule('${r.id}')">&#x2715;</button>
+        `:''}
+        <span class="rc-status chip ${STATUS_CHIP[r.status]||'chip-g'}">${STATUS_LABEL[r.status]||r.status}</span>
+        ${r.amount?`<span style="margin-left:4px;font-size:13px;font-weight:700;color:var(--gld);">${r.amount.toLocaleString()} 元</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openAddRule(){
+  document.getElementById('ruleEditId').value='';
+  document.getElementById('ruleModalTitle').textContent='新增獎勵機制';
+  document.getElementById('ruleName').value='';
+  document.getElementById('ruleType').value='attendance';
+  document.getElementById('ruleStatus').value='active';
+  document.getElementById('ruleDesc').value='';
+  document.getElementById('ruleAmount').value='';
+  document.getElementById('ruleCycle').value='monthly';
+  document.getElementById('ruleParams').value='';
+  document.getElementById('ruleModal').classList.add('open');
+}
+function openEditRule(id){
+  const r=getBonusRules().find(x=>x.id===id);
+  if(!r) return;
+  document.getElementById('ruleEditId').value=id;
+  document.getElementById('ruleModalTitle').textContent='編輯獎勵機制';
+  document.getElementById('ruleName').value=r.name||'';
+  document.getElementById('ruleType').value=r.type||'attendance';
+  document.getElementById('ruleStatus').value=r.status||'active';
+  document.getElementById('ruleDesc').value=r.desc||'';
+  document.getElementById('ruleAmount').value=r.amount||'';
+  document.getElementById('ruleCycle').value=r.cycle||'monthly';
+  document.getElementById('ruleParams').value=r.params||'';
+  document.getElementById('ruleModal').classList.add('open');
+}
+function confirmRuleEdit(){
+  const id=document.getElementById('ruleEditId').value;
+  const name=document.getElementById('ruleName').value.trim();
+  if(!name){showToast('請填寫機制名稱','err');return;}
+  const rec={
+    id:id||uid(),
+    name,
+    type:document.getElementById('ruleType').value,
+    status:document.getElementById('ruleStatus').value,
+    desc:document.getElementById('ruleDesc').value.trim(),
+    amount:parseFloat(document.getElementById('ruleAmount').value)||0,
+    cycle:document.getElementById('ruleCycle').value,
+    params:document.getElementById('ruleParams').value.trim(),
+    createdAt:id?getBonusRules().find(r=>r.id===id)?.createdAt:new Date().toISOString(),
+    updatedAt:new Date().toISOString(),
+  };
+  let rules=getBonusRules();
+  if(id){
+    rules=rules.map(r=>r.id===id?rec:r);
+    showToast('機制已更新','ok');
+  } else {
+    rules.push(rec);
+    showToast('機制已新增','ok');
+  }
+  saveBonusRules(rules);
+  closeModal('ruleModal');
+  renderRules();
+}
+function deleteRule(id){
+  const r=getBonusRules().find(x=>x.id===id);
+  if(!confirm(`確認刪除機制「${r?.name}」？`)) return;
+  saveBonusRules(getBonusRules().filter(x=>x.id!==id));
+  renderRules();
+  showToast('已刪除','ok');
+}
+
+// ─── Assessment Preview ────────────────────────────────────────────────
+function renderAssessmentPreview(){
+  // 嘗試讀取考核系統資料（slg_assessment_records 為草稿預留鍵）
+  const assData=JSON.parse(localStorage.getItem('slg_assessment_records')||'[]');
+  const tbody=document.getElementById('assessmentPreviewBody');
+
+  // 若考核系統有資料則顯示，否則顯示員工清單加提示
+  if(assData.length){
+    tbody.innerHTML=assData.slice(0,10).map(r=>{
+      const emp=ALL_EMPS.find(e=>e.id===r.empId)||{name:r.empId,dept:'—'};
+      const score=parseFloat(r.score)||0;
+      const grade=score>=90?'S':score>=80?'A':score>=70?'B':score>=60?'C':'D';
+      const gradeColor={S:'chip-gld',A:'chip-grn',B:'chip-blu',C:'chip-org',D:'chip-red'};
+      const coeff={S:2.0,A:1.5,B:1.0,C:0.5,D:0};
+      return `<tr>
+        <td><strong>${escH(emp.name)}</strong></td>
+        <td style="font-size:13px;color:var(--g3);">${escH(emp.dept)}</td>
+        <td style="font-weight:700;">${score}</td>
+        <td><span class="chip ${gradeColor[grade]}">${grade}</span></td>
+        <td style="font-weight:800;color:var(--bnc-m);">×${coeff[grade]}</td>
+        <td style="font-size:12px;color:var(--gld);">待定</td>
+      </tr>`;
+    }).join('');
+  } else {
+    tbody.innerHTML=ALL_EMPS.map(e=>`<tr>
+      <td><strong>${escH(e.name)}</strong></td>
+      <td style="font-size:13px;color:var(--g3);">${escH(e.dept)}</td>
+      <td style="color:var(--g2);">—</td>
+      <td><span class="chip chip-g">未考核</span></td>
+      <td style="color:var(--g2);">—</td>
+      <td style="font-size:12px;color:var(--gld);">考核系統待接入</td>
+    </tr>`).join('');
+  }
+}
+
+// ─── Payout ───────────────────────────────────────────────────────────
+function populatePayoutFilters(){
+  const empSel=document.getElementById('payoutEmpFilter');
+  const now=empSel.value;
+  empSel.innerHTML='<option value="">全部員工</option>'+
+    ALL_EMPS.map(e=>`<option value="${e.id}"${now===e.id?' selected':''}>${escH(e.name)}</option>`).join('');
+}
+
+function renderPayout(){
+  const month=document.getElementById('payoutMonth').value;
+  const emp=document.getElementById('payoutEmpFilter').value;
+  const type=document.getElementById('payoutTypeFilter').value;
+  const status=document.getElementById('payoutStatusFilter').value;
+  let recs=getBonusRecs();
+  if(month) recs=recs.filter(r=>r.month===month);
+  if(emp)   recs=recs.filter(r=>r.empId===emp);
+  if(type)  recs=recs.filter(r=>r.type===type);
+  if(status)recs=recs.filter(r=>r.status===status);
+  recs.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+
+  const total=recs.reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
+  document.getElementById('payoutSummaryBar').textContent=
+    recs.length?`共 ${recs.length} 筆，合計 ${total.toLocaleString()} 元`:'';
+
+  const tbody=document.getElementById('payoutBody');
+  const isHr=sessionStorage.getItem('bnc_role')==='hr';
+  if(!recs.length){
+    tbody.innerHTML='<tr><td colspan="8" class="empty">尚無記錄</td></tr>';
+    return;
+  }
+  tbody.innerHTML=recs.map(r=>{
+    const emp=ALL_EMPS.find(e=>e.id===r.empId)||{name:r.empId||'—',dept:'—'};
+    const rule=getBonusRules().find(x=>x.id===r.ruleId);
+    return `<tr>
+      <td><strong>${escH(emp.name)}</strong></td>
+      <td style="font-size:13px;color:var(--g3);">${escH(emp.dept)}</td>
+      <td><span class="chip chip-pur">${escH(RULE_TYPE_LABEL[r.type]||r.type)}</span></td>
+      <td style="font-weight:800;color:var(--gld);">${(parseFloat(r.amount)||0).toLocaleString()} 元</td>
+      <td style="font-size:13px;color:var(--g3);">${escH(rule?.name||'—')}</td>
+      <td style="font-size:13px;color:var(--g3);">${escH(r.month||'—')}</td>
+      <td><span class="chip ${STATUS_CHIP[r.status]||'chip-g'}">${escH(STATUS_LABEL[r.status]||r.status)}</span></td>
+      <td>${isHr?`
+        <button class="btn btn-out btn-sm" onclick="openEditPayout('${r.id}')">&#9998;</button>
+        ${r.status==='pending'?`<button class="btn btn-grn btn-sm" style="margin-left:4px;" onclick="approvePayout('${r.id}')">核准</button>`:''}
+        ${r.status!=='cancelled'&&r.status!=='paid'?`<button class="btn btn-red btn-sm" style="margin-left:4px;" onclick="cancelPayout('${r.id}')">取消</button>`:''}
+      `:''}</td>
+    </tr>`;
+  }).join('');
+}
+
+function openAddPayout(){
+  document.getElementById('payoutEditId').value='';
+  document.getElementById('payoutModalTitle').textContent='新增獎金發放';
+  // populate employee dropdown
+  const empSel=document.getElementById('payoutEmp');
+  empSel.innerHTML=ALL_EMPS.map(e=>`<option value="${e.id}">${escH(e.name)} (${e.dept})</option>`).join('');
+  // populate rule dropdown
+  const ruleSel=document.getElementById('payoutRule');
+  ruleSel.innerHTML='<option value="">— 不指定 —</option>'+
+    getBonusRules().filter(r=>r.status==='active').map(r=>`<option value="${r.id}">${escH(r.name)}</option>`).join('');
+  document.getElementById('payoutMonth2').value=thisMonth();
+  document.getElementById('payoutType').value='attendance';
+  document.getElementById('payoutAmount').value='';
+  document.getElementById('payoutStatus').value='pending';
+  document.getElementById('payoutApprover').value='';
+  document.getElementById('payoutNotes').value='';
+  document.getElementById('payoutModal').classList.add('open');
+}
+function openEditPayout(id){
+  const r=getBonusRecs().find(x=>x.id===id);
+  if(!r) return;
+  document.getElementById('payoutEditId').value=id;
+  document.getElementById('payoutModalTitle').textContent='編輯獎金發放';
+  const empSel=document.getElementById('payoutEmp');
+  empSel.innerHTML=ALL_EMPS.map(e=>`<option value="${e.id}"${e.id===r.empId?' selected':''}>${escH(e.name)} (${e.dept})</option>`).join('');
+  const ruleSel=document.getElementById('payoutRule');
+  ruleSel.innerHTML='<option value="">— 不指定 —</option>'+
+    getBonusRules().map(rl=>`<option value="${rl.id}"${rl.id===r.ruleId?' selected':''}>${escH(rl.name)}</option>`).join('');
+  document.getElementById('payoutMonth2').value=r.month||thisMonth();
+  document.getElementById('payoutType').value=r.type||'attendance';
+  document.getElementById('payoutAmount').value=r.amount||'';
+  document.getElementById('payoutStatus').value=r.status||'pending';
+  document.getElementById('payoutApprover').value=r.approver||'';
+  document.getElementById('payoutNotes').value=r.notes||'';
+  document.getElementById('payoutModal').classList.add('open');
+}
+function confirmPayoutEdit(){
+  const id=document.getElementById('payoutEditId').value;
+  const empId=document.getElementById('payoutEmp').value;
+  const amount=parseFloat(document.getElementById('payoutAmount').value)||0;
+  const month=document.getElementById('payoutMonth2').value;
+  if(!empId){showToast('請選擇員工','err');return;}
+  if(!amount){showToast('請填寫金額','err');return;}
+  if(!month){showToast('請選擇發放月份','err');return;}
+  const rec={
+    id:id||uid(),empId,
+    type:document.getElementById('payoutType').value,
+    ruleId:document.getElementById('payoutRule').value,
+    amount,month,
+    status:document.getElementById('payoutStatus').value,
+    approver:document.getElementById('payoutApprover').value.trim(),
+    notes:document.getElementById('payoutNotes').value.trim(),
+    createdAt:id?getBonusRecs().find(r=>r.id===id)?.createdAt:new Date().toISOString(),
+    updatedAt:new Date().toISOString(),
+  };
+  let recs=getBonusRecs();
+  if(id){ recs=recs.map(r=>r.id===id?rec:r); showToast('已更新','ok'); }
+  else { recs.push(rec); showToast('已新增','ok'); }
+  saveBonusRecs(recs);
+  closeModal('payoutModal');
+  renderPayout();
+}
+function approvePayout(id){
+  const name=sessionStorage.getItem('bnc_name')||'主管';
+  let recs=getBonusRecs();
+  recs=recs.map(r=>r.id===id?{...r,status:'approved',approver:name,updatedAt:new Date().toISOString()}:r);
+  saveBonusRecs(recs);
+  renderPayout();
+  showToast('已核准','ok');
+}
+function cancelPayout(id){
+  if(!confirm('確認取消此獎金？'))return;
+  let recs=getBonusRecs();
+  recs=recs.map(r=>r.id===id?{...r,status:'cancelled',updatedAt:new Date().toISOString()}:r);
+  saveBonusRecs(recs);
+  renderPayout();
+  showToast('已取消','ok');
+}
+function exportPayoutCSV(){
+  const month=document.getElementById('payoutMonth').value;
+  let recs=getBonusRecs();
+  if(month) recs=recs.filter(r=>r.month===month);
+  recs.sort((a,b)=>(a.month||'').localeCompare(b.month||''));
+  const header='員工ID,姓名,部門,類型,金額,機制,月份,狀態,核准人,備注\n';
+  const body=recs.map(r=>{
+    const emp=ALL_EMPS.find(e=>e.id===r.empId)||{name:r.empId,dept:''};
+    const rule=getBonusRules().find(x=>x.id===r.ruleId);
+    return [r.empId,emp.name,emp.dept,
+      RULE_TYPE_LABEL[r.type]||r.type,r.amount||0,rule?.name||'',
+      r.month||'',STATUS_LABEL[r.status]||r.status,r.approver||'',r.notes||''
+    ].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',');
+  }).join('\n');
+  const blob=new Blob(['\uFEFF'+header+body],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`獎金記錄_${month||'全部'}.csv`;
+  a.click();
+}
+
+// ─── Salary Sync ──────────────────────────────────────────────────────
+function renderSalarySync(){
+  const month=document.getElementById('syncMonth').value;
+  if(!month){
+    document.getElementById('salarySyncBody').innerHTML=
+      '<tr><td colspan="6" class="empty">請選擇月份</td></tr>';
+    return;
+  }
+  const recs=getBonusRecs().filter(r=>r.month===month&&r.status==='paid');
+  const cfg=getEmpCfg();
+
+  const empMap={};
+  recs.forEach(r=>{
+    if(!empMap[r.empId]) empMap[r.empId]={count:0,total:0};
+    empMap[r.empId].count++;
+    empMap[r.empId].total+=(parseFloat(r.amount)||0);
+  });
+
+  const tbody=document.getElementById('salarySyncBody');
+  if(!Object.keys(empMap).length){
+    tbody.innerHTML='<tr><td colspan="6" class="empty">本月無已發放獎金記錄</td></tr>';
+    return;
+  }
+  tbody.innerHTML=Object.entries(empMap).map(([id,d])=>{
+    const emp=ALL_EMPS.find(e=>e.id===id)||{name:id,dept:'—'};
+    const s=cfg[id];
+    const hasRate=s&&s.hourlyRate;
+    return `<tr>
+      <td><strong>${escH(emp.name)}</strong></td>
+      <td style="font-size:13px;color:var(--g3);">${escH(emp.dept)}</td>
+      <td style="text-align:center;">${d.count}</td>
+      <td style="font-weight:800;color:var(--gld);">${d.total.toLocaleString()} 元</td>
+      <td style="font-size:13px;">${hasRate?s.hourlyRate+' 元/時':'<span style="color:var(--g2);">未設定</span>'}</td>
+      <td><span class="chip ${hasRate?'chip-grn':'chip-org'}">${hasRate?'薪資已連動':'薪資未設定'}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ─── Params ───────────────────────────────────────────────────────────
+function loadParams(){
+  const cfg=getBonusCfg()||{};
+  document.getElementById('p-attendance-base').value=cfg.attendanceBase||'';
+  document.getElementById('p-attendance-tolerance').value=cfg.attendanceTolerance??'';
+  document.getElementById('p-perf-base').value=cfg.perfBase||'';
+  document.getElementById('p-perf-cycle').value=cfg.perfCycle||'quarterly';
+  document.getElementById('p-sales-threshold').value=cfg.salesThreshold||'';
+  document.getElementById('p-sales-rate').value=cfg.salesRate||'';
+  document.getElementById('p-special-default').value=cfg.specialDefault||'';
+}
+function saveParams(){
+  saveBonusCfg({
+    attendanceBase:parseFloat(document.getElementById('p-attendance-base').value)||0,
+    attendanceTolerance:parseInt(document.getElementById('p-attendance-tolerance').value)||0,
+    perfBase:parseFloat(document.getElementById('p-perf-base').value)||0,
+    perfCycle:document.getElementById('p-perf-cycle').value,
+    salesThreshold:parseFloat(document.getElementById('p-sales-threshold').value)||0,
+    salesRate:parseFloat(document.getElementById('p-sales-rate').value)||0,
+    specialDefault:parseFloat(document.getElementById('p-special-default').value)||0,
+  });
+  showToast('參數已儲存','ok');
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────
+function init(){
+  seedBonusRules();
+  seedBonusCfg();
+
+  const n=new Date();
+  document.getElementById('todayLabel').textContent=
+    n.toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric'});
+
+  // Payout filters
+  populatePayoutFilters();
+  document.getElementById('payoutMonth').value=thisMonth();
+  document.getElementById('syncMonth').value=thisMonth();
+
+  renderDash();
+}
+
+applyLogin();
+</script>
+</body>
+</html>

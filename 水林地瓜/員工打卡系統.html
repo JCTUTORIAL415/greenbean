@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>水林地瓜 — 員工出勤打卡</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --org:#E8731A;--org-l:#FDF0E6;--org-m:#F5A84B;
+      --brn:#7B4F2E;--bg:#F7F4F0;--wh:#fff;
+      --g1:#F0EDE8;--g2:#D5CEC6;--g3:#8C8078;--tx:#2D2018;
+      --grn:#3AAB6D;--red:#D94F3D;--blu:#3A7BB5;
+      --r:12px;--sh:0 2px 16px rgba(0,0,0,.09);
+    }
+    body{font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;
+      background:var(--bg);color:var(--tx);font-size:16px;min-height:100vh;}
+
+    /* ─── Login screen ─── */
+    #loginScreen{
+      position:fixed;inset:0;background:var(--brn);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      z-index:999;gap:28px;
+    }
+    .login-logo{color:#fff;font-size:28px;font-weight:800;letter-spacing:2px;text-align:center;}
+    .login-logo small{display:block;font-size:14px;font-weight:400;color:rgba(255,255,255,.6);margin-top:4px;letter-spacing:1px;}
+    .login-card{background:var(--wh);border-radius:16px;padding:32px 36px;width:360px;box-shadow:0 8px 40px rgba(0,0,0,.25);}
+    .login-card h2{font-size:18px;font-weight:700;color:var(--tx);margin-bottom:20px;text-align:center;}
+    .login-card select,.login-card input{
+      width:100%;border:1.5px solid var(--g2);border-radius:8px;
+      padding:12px 14px;font-size:16px;color:var(--tx);outline:none;
+      font-family:inherit;margin-bottom:14px;background:var(--wh);
+    }
+    .login-card select:focus,.login-card input:focus{border-color:var(--org);}
+    .btn-login{
+      width:100%;background:var(--org);color:#fff;border:none;
+      padding:14px;border-radius:10px;font-size:17px;font-weight:700;
+      cursor:pointer;margin-top:4px;
+    }
+    .btn-login:hover{opacity:.88;}
+    .sup-link{
+      color:rgba(255,255,255,.55);font-size:13px;cursor:pointer;
+      text-decoration:underline;margin-top:-12px;
+    }
+    .sup-link:hover{color:#fff;}
+
+    /* ─── Top bar ─── */
+    .topbar{
+      background:var(--brn);color:#fff;
+      padding:0 16px;min-height:60px;
+      display:flex;align-items:center;justify-content:space-between;
+      flex-wrap:wrap;gap:8px;
+    }
+    .topbar-left{font-size:16px;font-weight:700;letter-spacing:1px;white-space:nowrap;}
+    .topbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+    .user-pill{
+      background:rgba(255,255,255,.15);border-radius:20px;
+      padding:5px 12px;font-size:13px;font-weight:600;white-space:nowrap;
+    }
+    .btn-sm{
+      background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.3);
+      color:#fff;border-radius:8px;padding:5px 11px;
+      font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap;
+    }
+    .btn-sm:hover{background:rgba(255,255,255,.22);}
+    @media(max-width:480px){
+      .topbar{padding:10px 14px;}
+      .topbar-left{font-size:15px;}
+      .user-pill{display:none;}
+    }
+
+    /* ─── Page layout ─── */
+    .page{max-width:1000px;margin:0 auto;padding:24px 20px 48px;}
+
+    /* ─── Date strip ─── */
+    .date-strip{
+      display:flex;align-items:center;justify-content:space-between;
+      margin-bottom:20px;
+    }
+    .date-strip .greet{font-size:22px;font-weight:700;color:var(--tx);}
+    .date-strip .dtime{font-size:15px;color:var(--g3);}
+
+    /* ─── Grid ─── */
+    .grid-main{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
+    @media(max-width:700px){.grid-main{grid-template-columns:1fr;}}
+
+    /* ─── Clock card ─── */
+    .card{background:var(--wh);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;}
+    .card-head{
+      padding:16px 22px;border-bottom:1px solid var(--g1);
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .card-title{font-size:16px;font-weight:700;color:var(--tx);}
+    .card-body{padding:22px;}
+
+    .clock-big{
+      font-size:56px;font-weight:800;color:var(--tx);
+      text-align:center;letter-spacing:2px;line-height:1;
+      margin-bottom:6px;font-variant-numeric:tabular-nums;
+    }
+    .clock-date{text-align:center;color:var(--g3);font-size:14px;margin-bottom:24px;}
+
+    .punch-btn{
+      width:100%;padding:18px;border-radius:12px;border:none;
+      font-size:20px;font-weight:800;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;gap:10px;
+      transition:all .2s;letter-spacing:1px;font-family:inherit;
+    }
+    .punch-btn.in  {background:var(--grn);color:#fff;}
+    .punch-btn.out {background:var(--red);color:#fff;}
+    .punch-btn.done{background:var(--g1);color:var(--g3);cursor:default;}
+    .punch-btn:not(.done):hover{filter:brightness(1.08);transform:translateY(-1px);}
+    .punch-icon{font-size:22px;}
+
+    .session-info{margin-top:16px;display:flex;flex-direction:column;gap:8px;}
+    .si-row{display:flex;justify-content:space-between;align-items:center;font-size:14px;}
+    .si-label{color:var(--g3);}
+    .si-val{font-weight:700;color:var(--tx);}
+    .si-val.ot{color:var(--org);}
+    .si-divider{border:none;border-top:1px solid var(--g1);margin:6px 0;}
+
+    /* ─── Hour breakdown ─── */
+    .hour-card-body{padding:18px 22px;}
+    .time-line{
+      display:flex;align-items:center;gap:0;
+      height:28px;border-radius:6px;overflow:hidden;
+      margin:14px 0 8px;
+    }
+    .tl-seg{height:100%;display:flex;align-items:center;justify-content:center;
+      font-size:11px;font-weight:700;color:#fff;transition:width .3s;}
+    .tl-brk{background:var(--g2);}
+    .tl-reg{background:var(--blu);}
+    .tl-ot1{background:var(--org);}
+    .tl-ot2{background:var(--red);}
+    .tl-legend{display:flex;gap:14px;flex-wrap:wrap;}
+    .tl-leg-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--g3);}
+    .tl-dot{width:10px;height:10px;border-radius:50%;}
+
+    .hour-row{
+      display:flex;justify-content:space-between;align-items:center;
+      padding:10px 0;border-bottom:1px solid var(--g1);font-size:15px;
+    }
+    .hour-row:last-child{border-bottom:none;}
+    .hr-label{color:var(--g3);}
+    .hr-val{font-weight:800;font-size:17px;}
+    .hr-val.reg{color:var(--blu);}
+    .hr-val.ot{color:var(--org);}
+    .hr-val.tot{color:var(--tx);}
+
+    /* ─── Tabs ─── */
+    .tabs{display:flex;gap:4px;background:var(--g1);border-radius:10px;padding:4px;margin-bottom:20px;}
+    .tab{
+      flex:1;padding:10px;border-radius:8px;border:none;background:none;
+      font-size:15px;font-weight:600;color:var(--g3);cursor:pointer;font-family:inherit;
+    }
+    .tab.active{background:var(--wh);color:var(--org);box-shadow:0 1px 4px rgba(0,0,0,.1);}
+
+    /* ─── Tab panels ─── */
+    .panel{display:none;}
+    .panel.active{display:block;}
+
+    /* ─── Records table ─── */
+    .rec-table{width:100%;border-collapse:collapse;}
+    .rec-table th{
+      background:var(--g1);padding:11px 14px;text-align:left;
+      font-size:13px;font-weight:600;color:var(--g3);white-space:nowrap;
+    }
+    .rec-table td{padding:13px 14px;font-size:14px;border-bottom:1px solid var(--g1);}
+    .rec-table tr:last-child td{border-bottom:none;}
+    .rec-table tr:hover td{background:var(--org-l);}
+    .chip{
+      display:inline-block;padding:3px 10px;border-radius:20px;
+      font-size:12px;font-weight:600;
+    }
+    .chip-grn{background:#E8F7EE;color:var(--grn);}
+    .chip-org{background:var(--org-l);color:var(--org);}
+    .chip-red{background:#FDECEA;color:var(--red);}
+    .chip-blu{background:#E8F0FB;color:var(--blu);}
+    .chip-g{background:var(--g1);color:var(--g3);}
+
+    /* ─── Leave form ─── */
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    @media(max-width:600px){.form-grid{grid-template-columns:1fr;}}
+    .form-row{margin-bottom:16px;}
+    .form-row.full{grid-column:1/-1;}
+    .f-label{display:block;font-size:14px;font-weight:600;color:var(--g3);margin-bottom:6px;}
+    .f-input,.f-select,.f-textarea{
+      width:100%;border:1.5px solid var(--g2);border-radius:8px;
+      padding:10px 14px;font-size:15px;color:var(--tx);
+      outline:none;font-family:inherit;background:var(--wh);
+    }
+    .f-input:focus,.f-select:focus,.f-textarea:focus{border-color:var(--org);}
+    .f-textarea{resize:vertical;min-height:80px;}
+    .f-note{font-size:12px;color:var(--g3);margin-top:4px;}
+    .duration-row{display:flex;gap:10px;align-items:flex-end;}
+    .duration-row .f-input{flex:1;}
+    .duration-row .f-select{width:90px;}
+    .btn-submit{
+      background:var(--org);color:#fff;border:none;
+      padding:13px 32px;border-radius:10px;font-size:16px;font-weight:700;
+      cursor:pointer;font-family:inherit;margin-top:8px;
+    }
+    .btn-submit:hover{opacity:.88;}
+
+    /* ─── Leave list ─── */
+    .leave-item{
+      background:var(--wh);border-radius:10px;padding:16px 20px;
+      margin-bottom:12px;box-shadow:var(--sh);
+      display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+    }
+    .li-info{flex:1;}
+    .li-title{font-size:16px;font-weight:700;margin-bottom:4px;}
+    .li-meta{font-size:13px;color:var(--g3);margin-bottom:6px;}
+    .li-reason{font-size:14px;color:var(--tx);}
+    .li-status{flex-shrink:0;text-align:right;}
+    .li-date{font-size:12px;color:var(--g3);margin-top:4px;}
+
+    /* ─── 時段規則條 ─── */
+    .rules-strip{border-top:1px solid var(--g1);padding:14px 0 2px;margin-top:14px;}
+    .rules-strip-title{font-size:11px;font-weight:700;color:var(--g3);
+      text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+    .rules-bar{display:flex;height:20px;border-radius:6px;overflow:hidden;margin-bottom:5px;}
+    .rb{display:flex;align-items:center;justify-content:center;
+      font-size:10px;font-weight:700;overflow:hidden;white-space:nowrap;}
+    .rb-reg {background:var(--blu);color:#fff;flex:4;}
+    .rb-brk {background:var(--g2);color:var(--g3);flex:1;}
+    .rb-ot1 {background:var(--org);color:#fff;flex:1.5;}
+    .rb-din {background:var(--g2);color:var(--g3);flex:0.5;}
+    .rb-ot2 {background:var(--red);color:#fff;flex:2;}
+    .rules-times{display:flex;justify-content:space-between;font-size:10px;color:var(--g3);padding:0 1px;}
+    .rules-notes{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;}
+    .rn-item{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--g3);}
+    .rn-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+
+    /* ─── Empty state ─── */
+    .empty{text-align:center;padding:40px;color:var(--g3);font-size:15px;}
+    .empty-icon{font-size:40px;margin-bottom:8px;}
+
+    /* ─── Toast ─── */
+    .toast{
+      position:fixed;bottom:24px;right:24px;
+      background:var(--tx);color:#fff;
+      padding:14px 22px;border-radius:10px;
+      font-size:15px;font-weight:600;z-index:9999;
+      opacity:0;transform:translateY(10px);
+      transition:all .25s;pointer-events:none;
+      box-shadow:0 4px 20px rgba(0,0,0,.2);
+    }
+    .toast.show{opacity:1;transform:translateY(0);}
+    .toast.ok{background:var(--grn);}
+    .toast.err{background:var(--red);}
+
+    /* ─── 打卡確認視窗 ─── */
+    .modal-overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,.5);
+      z-index:500;display:flex;align-items:center;justify-content:center;
+      opacity:0;pointer-events:none;transition:opacity .2s;
+    }
+    .modal-overlay.open{opacity:1;pointer-events:all;}
+    .modal-box{
+      background:var(--wh);border-radius:20px;
+      padding:36px 32px 28px;width:320px;max-width:90vw;
+      text-align:center;
+      box-shadow:0 12px 48px rgba(0,0,0,.22);
+      transform:scale(.92) translateY(12px);
+      transition:transform .22s ease, opacity .22s;
+      opacity:0;
+    }
+    .modal-overlay.open .modal-box{transform:scale(1) translateY(0);opacity:1;}
+    .modal-icon{
+      font-size:48px;margin-bottom:12px;line-height:1;
+    }
+    .modal-heading{
+      font-size:22px;font-weight:800;color:var(--tx);margin-bottom:8px;
+    }
+    .modal-sub{
+      font-size:15px;color:var(--g3);margin-bottom:6px;
+    }
+    .modal-time{
+      font-size:36px;font-weight:800;letter-spacing:2px;
+      color:var(--org);margin:12px 0 24px;
+      font-variant-numeric:tabular-nums;
+    }
+    .modal-actions{display:flex;gap:12px;}
+    .modal-btn{
+      flex:1;padding:13px;border-radius:12px;border:none;
+      font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;
+      transition:opacity .15s;
+    }
+    .modal-btn:hover{opacity:.85;}
+    .modal-btn.cancel{background:var(--g1);color:var(--g3);}
+    .modal-btn.confirm{background:var(--grn);color:#fff;}
+    .modal-btn.confirm.out-mode{background:var(--red);}
+  </style>
+</head>
+<body>
+
+<!-- ─── Login ─── -->
+<div id="loginScreen">
+  <div class="login-logo">
+    水林地瓜 ERP
+    <small>員工出勤打卡系統</small>
+  </div>
+  <div class="login-card">
+    <h2>請選擇員工登入</h2>
+    <select id="loginEmp">
+      <option value="">-- 選擇姓名 --</option>
+      <option value="E001|林美惠|農場生產">林美惠（農場生產）</option>
+      <option value="E002|陳建宏|加工包裝">陳建宏（加工包裝）</option>
+      <option value="E003|黃淑芬|門市銷售">黃淑芬（門市銷售）</option>
+      <option value="E004|王志明|倉儲物流">王志明（倉儲物流）</option>
+      <option value="E005|張雅婷|行政管理">張雅婷（行政管理）</option>
+      <option value="E006|李俊賢|農場生產">李俊賢（農場生產）</option>
+      <option value="E007|吳佳穎|門市銷售">吳佳穎（門市銷售）</option>
+      <option value="E008|蔡文彬|加工包裝">蔡文彬（加工包裝）</option>
+    </select>
+    <button class="btn-login" onclick="doLogin()">進入打卡系統</button>
+  </div>
+  <div class="sup-link" onclick="goSupervisor()">主管後台入口 →</div>
+</div>
+
+<!-- ─── App ─── -->
+<div id="app" style="display:none;">
+  <div class="topbar">
+    <div class="topbar-left">水林地瓜 — 出勤打卡</div>
+    <div class="topbar-right">
+      <div class="user-pill" id="userPill"></div>
+      <button class="btn-sm" onclick="goSupervisor()">主管後台</button>
+      <button class="btn-sm" onclick="logout()">登出</button>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="date-strip">
+      <div class="greet" id="greetText"></div>
+      <div class="dtime" id="headerDate"></div>
+    </div>
+
+    <div class="grid-main">
+      <!-- Punch card -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">即時打卡</div>
+          <div style="font-size:13px;color:var(--g3);" id="punchStatus"></div>
+        </div>
+        <div class="card-body">
+          <div class="clock-big" id="clockDisplay">00:00:00</div>
+          <div class="clock-date" id="clockDate"></div>
+          <button class="punch-btn in" id="punchBtn">
+            <span class="punch-icon">&#9654;</span>
+            <span id="punchLabel">上班打卡</span>
+          </button>
+          <div class="session-info" id="sessionInfo"></div>
+        </div>
+      </div>
+
+      <!-- Today hours -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">今日時數計算</div>
+          <div style="font-size:12px;color:var(--g3);">自動扣除休息時間</div>
+        </div>
+        <div class="hour-card-body">
+          <div id="hourDisplay">
+            <div style="color:var(--g2);font-size:14px;text-align:center;padding:30px 0;">
+              尚未打卡，時數計算將於上班後顯示
+            </div>
+          </div>
+          <!-- 固定規則條：永遠顯示 -->
+          <div class="rules-strip">
+            <div class="rules-strip-title">時段計算規則（每日）</div>
+            <div class="rules-bar">
+              <div class="rb rb-reg" title="正常 08:00–12:00">正常</div>
+              <div class="rb rb-brk" title="午休 12:00–13:00 不計">休</div>
+              <div class="rb rb-reg" title="正常 13:00–17:00">正常</div>
+              <div class="rb rb-ot1" title="加班 17:00–18:30">加班</div>
+              <div class="rb rb-din" title="晚餐 18:30–19:00 不計">休</div>
+              <div class="rb rb-ot2" title="加班 19:00–21:00">加班</div>
+            </div>
+            <div class="rules-times">
+              <span>上班</span>
+              <span>12:00</span>
+              <span>13:00</span>
+              <span>17:00</span>
+              <span>18:30</span>
+              <span>19:00</span>
+              <span>21:00</span>
+            </div>
+            <div class="rules-notes">
+              <div class="rn-item"><div class="rn-dot" style="background:var(--blu)"></div>正常時段（計入）</div>
+              <div class="rn-item"><div class="rn-dot" style="background:var(--org)"></div>17:00 後加班（計入）</div>
+              <div class="rn-item"><div class="rn-dot" style="background:var(--red)"></div>19:00 後加班（計入）</div>
+              <div class="rn-item"><div class="rn-dot" style="background:var(--g2)"></div>午休 / 晚餐（不計）</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('records',this)">出勤紀錄</button>
+      <button class="tab" onclick="switchTab('leave',this)">申請假單</button>
+      <button class="tab" onclick="switchTab('myLeave',this)">我的假單</button>
+    </div>
+
+    <!-- Panel: records -->
+    <div class="panel active" id="panel-records">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">個人出勤紀錄</div>
+          <div style="font-size:13px;color:var(--g3);">最近 14 天</div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="rec-table" id="recTable">
+            <thead>
+              <tr>
+                <th>日期</th>
+                <th>上班打卡</th>
+                <th>下班打卡</th>
+                <th>正常時數</th>
+                <th>加班時數</th>
+                <th>總計</th>
+                <th>狀態</th>
+              </tr>
+            </thead>
+            <tbody id="recTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel: leave apply -->
+    <div class="panel" id="panel-leave">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">請假申請</div>
+          <div style="font-size:13px;color:var(--g3);">送出後由主管審核</div>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-row">
+              <label class="f-label">假別</label>
+              <select class="f-select" id="leaveType">
+                <option>事假</option>
+                <option>病假</option>
+                <option>年假</option>
+                <option>特休</option>
+                <option>婚假</option>
+                <option>喪假</option>
+                <option>公假</option>
+                <option>其他</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label class="f-label">請假單位</label>
+              <select class="f-select" id="leaveUnit" onchange="updateDurationLabel()">
+                <option value="天">整天（天）</option>
+                <option value="半天">半天</option>
+                <option value="小時">小時</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label class="f-label">開始日期</label>
+              <input class="f-input" type="date" id="leaveStart" />
+            </div>
+            <div class="form-row">
+              <label class="f-label">結束日期</label>
+              <input class="f-input" type="date" id="leaveEnd" />
+              <div class="f-note" id="daysNote"></div>
+            </div>
+            <div class="form-row">
+              <label class="f-label" id="durationLabel">天數</label>
+              <div class="duration-row">
+                <input class="f-input" type="number" id="leaveDays" min="0.5" step="0.5" placeholder="請輸入" />
+                <select class="f-select" style="width:80px;" id="leaveUnitDisplay">
+                  <option>天</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <label class="f-label">代理人</label>
+              <select class="f-select" id="leaveProxy">
+                <option value="">-- 選擇代理人 --</option>
+                <option>林美惠</option><option>陳建宏</option><option>黃淑芬</option>
+                <option>王志明</option><option>張雅婷</option><option>李俊賢</option>
+                <option>吳佳穎</option><option>蔡文彬</option>
+              </select>
+            </div>
+            <div class="form-row full">
+              <label class="f-label">請假原因</label>
+              <textarea class="f-textarea" id="leaveReason" rows="3" placeholder="請說明請假原因..."></textarea>
+            </div>
+            <div class="form-row full">
+              <label class="f-label">備注（選填）</label>
+              <textarea class="f-textarea" id="leaveNotes" rows="2" placeholder="其他補充說明、特殊安排等..."></textarea>
+            </div>
+          </div>
+          <button class="btn-submit" onclick="submitLeave()">送出假單申請</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel: my leave -->
+    <div class="panel" id="panel-myLeave">
+      <div id="myLeaveList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── 打卡確認視窗 ─── -->
+<div class="modal-overlay" id="punchModal">
+  <div class="modal-box">
+    <div class="modal-icon" id="punchModalIcon">&#9654;</div>
+    <div class="modal-heading" id="punchModalTitle">確認上班打卡？</div>
+    <div class="modal-sub" id="punchModalSub"></div>
+    <div class="modal-time" id="punchModalTime"></div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closePunchModal()">取消</button>
+      <button class="modal-btn confirm" id="punchConfirmBtn" onclick="confirmPunch()">確認打卡</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Constants ─────────────────────────────────────────────────────
+const RULES = {
+  LUNCH_S : 12*60,      // 12:00
+  LUNCH_E : 13*60,      // 13:00
+  REG_END : 17*60,      // 17:00
+  DIN_S   : 18*60+30,   // 18:30
+  DIN_E   : 19*60,      // 19:00
+  OT2_E   : 21*60       // 21:00
+};
+
+// ── Time helpers ───────────────────────────────────────────────────
+const toMin = s => { const [h,m] = s.split(':').map(Number); return h*60+m; };
+const toHMS = ()=>{const n=new Date();return n.toTimeString().slice(0,8);};
+const toHM  = ()=>{const n=new Date();return n.toTimeString().slice(0,5);};
+const todayStr = ()=>{const n=new Date();return n.toISOString().slice(0,10);};
+const fmtMin = m=>{ const h=Math.floor(m/60); const mn=m%60;
+  return h>0 ? `${h}時${mn>0?mn+'分':''}` : `${mn}分`;};
+
+function calcHours(inStr, outStr){
+  if(!inStr||!outStr) return {regular:0,overtime:0,total:0,ot1:0,ot2:0};
+  const inM=toMin(inStr), outM=toMin(outStr);
+  if(outM<=inM) return {regular:0,overtime:0,total:0,ot1:0,ot2:0};
+  const w=(s,e,ws,we)=>Math.max(0,Math.min(e,we)-Math.max(s,ws));
+  const reg = w(inM,outM, 0,         RULES.LUNCH_S)
+            + w(inM,outM, RULES.LUNCH_E, RULES.REG_END);
+  const ot1 = w(inM,outM, RULES.REG_END, RULES.DIN_S);
+  const ot2 = w(inM,outM, RULES.DIN_E,  RULES.OT2_E);
+  return {
+    regular : +(reg/60).toFixed(1),
+    overtime: +((ot1+ot2)/60).toFixed(1),
+    ot1     : +(ot1/60).toFixed(1),
+    ot2     : +(ot2/60).toFixed(1),
+    total   : +((reg+ot1+ot2)/60).toFixed(1)
+  };
+}
+
+// ── Storage helpers ────────────────────────────────────────────────
+const getAtt  = ()=>JSON.parse(localStorage.getItem('slg_att')||'[]');
+const saveAtt = d=>localStorage.setItem('slg_att',JSON.stringify(d));
+const getLvs  = ()=>JSON.parse(localStorage.getItem('slg_lvs')||'[]');
+const saveLvs = d=>localStorage.setItem('slg_lvs',JSON.stringify(d));
+const getUser = ()=>JSON.parse(localStorage.getItem('slg_user')||'null');
+const saveUser= d=>localStorage.setItem('slg_user',JSON.stringify(d));
+
+// ── State ──────────────────────────────────────────────────────────
+let user = null;
+let liveTimer = null;
+let hourTimer = null;
+
+// ── Seed demo data ─────────────────────────────────────────────────
+function seedData(){
+  if(localStorage.getItem('slg_seeded')) return;
+  const records = [];
+  const demos = [
+    ['E001','林美惠','農場生產'],['E002','陳建宏','加工包裝'],
+    ['E003','黃淑芬','門市銷售'],['E004','王志明','倉儲物流'],
+    ['E007','吳佳穎','門市銷售']
+  ];
+  const days = 10;
+  demos.forEach(([id,name,dept])=>{
+    for(let i=days;i>=1;i--){
+      const d=new Date(); d.setDate(d.getDate()-i);
+      if(d.getDay()===0||d.getDay()===6) continue;
+      const inH=7+Math.floor(Math.random()*2);
+      const inM=Math.floor(Math.random()*30);
+      const outH=17+Math.floor(Math.random()*4);
+      const outM=Math.floor(Math.random()*60);
+      const inStr=`${String(inH).padStart(2,'0')}:${String(inM).padStart(2,'0')}`;
+      const outStr=`${String(outH).padStart(2,'0')}:${String(outM).padStart(2,'0')}`;
+      const h=calcHours(inStr,outStr);
+      records.push({
+        id:'A'+Date.now()+Math.random(),
+        empId:id,empName:name,dept,
+        date:d.toISOString().slice(0,10),
+        clockIn:inStr,clockOut:outStr,
+        regular:h.regular,overtime:h.overtime,total:h.total,
+        status:'completed'
+      });
+    }
+  });
+  saveAtt(records);
+  const leaves=[{
+    id:'L001',empId:'E002',empName:'陳建宏',dept:'加工包裝',
+    type:'病假',startDate:'2026-03-20',endDate:'2026-03-21',days:2,unit:'天',
+    reason:'感冒發燒需就醫休養',notes:'',proxy:'林美惠',
+    status:'approved',submittedAt:'2026-03-19T09:30:00',
+    approvedBy:'王主管',approvedAt:'2026-03-19T14:00:00',rejectReason:null
+  },{
+    id:'L002',empId:'E003',empName:'黃淑芬',dept:'門市銷售',
+    type:'事假',startDate:'2026-03-27',endDate:'2026-03-27',days:1,unit:'天',
+    reason:'家中有事需處理',notes:'已與同事換班',proxy:'吳佳穎',
+    status:'pending',submittedAt:'2026-03-25T10:00:00',
+    approvedBy:null,approvedAt:null,rejectReason:null
+  },{
+    id:'L003',empId:'E001',empName:'林美惠',dept:'農場生產',
+    type:'特休',startDate:'2026-04-01',endDate:'2026-04-03',days:3,unit:'天',
+    reason:'年度休假',notes:'農務已交接給李俊賢',proxy:'李俊賢',
+    status:'pending',submittedAt:'2026-03-24T08:45:00',
+    approvedBy:null,approvedAt:null,rejectReason:null
+  }];
+  saveLvs(leaves);
+  localStorage.setItem('slg_seeded','1');
+}
+
+// ── Login ──────────────────────────────────────────────────────────
+function doLogin(){
+  const v=document.getElementById('loginEmp').value;
+  if(!v){showToast('請選擇員工','err');return;}
+  const [id,name,dept]=v.split('|');
+  user={id,name,dept,role:'employee'};
+  saveUser(user);
+  startApp();
+}
+function logout(){
+  saveUser(null);
+  location.reload();
+}
+function goSupervisor(){
+  window.location.href='主管後台.html';
+}
+
+// ── Start app ──────────────────────────────────────────────────────
+function startApp(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('userPill').textContent=`${user.name}（${user.dept}）`;
+
+  // greet
+  const h=new Date().getHours();
+  const g=h<12?'早安':h<18?'午安':'晚安';
+  document.getElementById('greetText').textContent=`${g}，${user.name}`;
+
+  // set default dates
+  document.getElementById('leaveStart').value=todayStr();
+  document.getElementById('leaveEnd').value=todayStr();
+  updateDays();
+
+  startClock();
+  renderPunch();
+  renderHours();
+  renderRecords();
+  renderMyLeave();
+
+  // live updates
+  if(hourTimer) clearInterval(hourTimer);
+  hourTimer=setInterval(()=>{ renderHours(); },30000);
+}
+
+// ── Clock ──────────────────────────────────────────────────────────
+function startClock(){
+  if(liveTimer) clearInterval(liveTimer);
+  tick();
+  liveTimer=setInterval(tick,1000);
+}
+function tick(){
+  const n=new Date();
+  document.getElementById('clockDisplay').textContent=n.toTimeString().slice(0,8);
+  const days=['日','一','二','三','四','五','六'];
+  document.getElementById('clockDate').textContent=
+    `${n.getFullYear()} 年 ${n.getMonth()+1} 月 ${n.getDate()} 日（週${days[n.getDay()]}）`;
+  document.getElementById('headerDate').textContent=
+    n.toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric'});
+}
+
+// ── Punch ──────────────────────────────────────────────────────────
+function getTodayRecord(){
+  return getAtt().find(r=>r.empId===user.id && r.date===todayStr());
+}
+
+// ── 打卡確認視窗 ─────────────────────────────────────────────────
+let punchModalTimer = null;
+
+function doPunch(){
+  const existing = getTodayRecord();
+  const isClockIn = !existing;
+  const isClockOut = existing && !existing.clockOut;
+  if(!isClockIn && !isClockOut) return;
+
+  const now = toHM();
+  const icon  = isClockIn ? '&#9728;'  : '&#127754;';
+  const title = isClockIn ? '確認上班打卡？' : '確認下班打卡？';
+  const sub   = isClockIn
+    ? `打卡後系統開始計算今日工時`
+    : `上班時間：${existing.clockIn}　預計合計工時計算中`;
+
+  document.getElementById('punchModalIcon').innerHTML  = icon;
+  document.getElementById('punchModalTitle').textContent = title;
+  document.getElementById('punchModalSub').textContent   = sub;
+  document.getElementById('punchModalTime').textContent  = now;
+  const confirmBtn = document.getElementById('punchConfirmBtn');
+  confirmBtn.textContent = isClockIn ? '確認上班打卡' : '確認下班打卡';
+  confirmBtn.className   = 'modal-btn confirm' + (isClockIn ? '' : ' out-mode');
+
+  // 每秒更新視窗內的時間
+  clearInterval(punchModalTimer);
+  punchModalTimer = setInterval(()=>{
+    document.getElementById('punchModalTime').textContent = toHM();
+  }, 1000);
+
+  document.getElementById('punchModal').classList.add('open');
+}
+
+function closePunchModal(){
+  document.getElementById('punchModal').classList.remove('open');
+  clearInterval(punchModalTimer);
+}
+
+function confirmPunch(){
+  closePunchModal();
+  const att     = getAtt();
+  const today   = todayStr();
+  const existing = att.find(r=>r.empId===user.id && r.date===today);
+  // 防呆：已有完整紀錄則拒絕
+  if(existing && existing.clockOut){ renderPunch(); return; }
+
+  if(!existing){
+    // clock in
+    att.push({
+      id:'A'+Date.now(),empId:user.id,empName:user.name,dept:user.dept,
+      date:today,clockIn:toHM(),clockOut:null,
+      regular:0,overtime:0,total:0,status:'active'
+    });
+    saveAtt(att);
+    showToast(`上班打卡成功：${toHM()}`,'ok');
+  } else if(!existing.clockOut){
+    // clock out
+    const outTime = toHM();
+    const h = calcHours(existing.clockIn, outTime);
+    existing.clockOut  = outTime;
+    existing.regular   = h.regular;
+    existing.overtime  = h.overtime;
+    existing.total     = h.total;
+    existing.status    = 'completed';
+    saveAtt(att);
+    showToast(`下班打卡成功：${outTime}　總計 ${h.total} 時`,'ok');
+  }
+  renderPunch();
+  renderHours();
+  renderRecords();
+}
+
+function renderPunch(){
+  const rec=getTodayRecord();
+  const btn=document.getElementById('punchBtn');
+  const label=document.getElementById('punchLabel');
+  const status=document.getElementById('punchStatus');
+  const info=document.getElementById('sessionInfo');
+
+  if(!rec){
+    btn.className='punch-btn in';
+    btn.disabled=false;
+    btn.onclick=doPunch;
+    label.textContent='上班打卡';
+    status.textContent='今日尚未打卡';
+    info.innerHTML='';
+  } else if(!rec.clockOut){
+    btn.className='punch-btn out';
+    btn.disabled=false;
+    btn.onclick=doPunch;
+    label.textContent='下班打卡';
+    status.textContent='上班中';
+    info.innerHTML=`
+      <hr class="si-divider"/>
+      <div class="si-row"><span class="si-label">上班時間</span><span class="si-val">${rec.clockIn}</span></div>
+      <div class="si-row"><span class="si-label">目前時段</span><span class="si-val" id="liveSegment">計算中...</span></div>
+    `;
+    updateLiveSegment(rec.clockIn);
+  } else {
+    btn.className='punch-btn done';
+    btn.disabled=true;
+    btn.onclick=null;
+    label.textContent='今日已完成打卡';
+    status.textContent='已退勤';
+    info.innerHTML=`
+      <hr class="si-divider"/>
+      <div class="si-row"><span class="si-label">上班</span><span class="si-val">${rec.clockIn}</span></div>
+      <div class="si-row"><span class="si-label">下班</span><span class="si-val">${rec.clockOut}</span></div>
+      <div class="si-row"><span class="si-label">正常時數</span><span class="si-val" style="color:var(--blu)">${rec.regular} 時</span></div>
+      <div class="si-row"><span class="si-label">加班時數</span><span class="si-val si-val ot">${rec.overtime} 時</span></div>
+      <hr class="si-divider"/>
+      <div class="si-row"><span class="si-label"><strong>總計</strong></span><span class="si-val" style="font-size:18px;">${rec.total} 時</span></div>
+    `;
+  }
+}
+
+function updateLiveSegment(inStr){
+  const el=document.getElementById('liveSegment');
+  if(!el) return;
+  const now=toHM();
+  const h=calcHours(inStr,now);
+  const curMin=toMin(now);
+  let seg, segColor='var(--tx)';
+  if(curMin < RULES.LUNCH_S){
+    seg='上午正常時段（上班 ～ 12:00）'; segColor='var(--blu)';
+  } else if(curMin < RULES.LUNCH_E){
+    seg='午休 12:00 – 13:00　此段不計時數'; segColor='var(--g3)';
+  } else if(curMin < RULES.REG_END){
+    seg='下午正常時段（13:00 ～ 17:00）'; segColor='var(--blu)';
+  } else if(curMin < RULES.DIN_S){
+    seg='加班時段一（17:00 ～ 18:30）'; segColor='var(--org)';
+  } else if(curMin < RULES.DIN_E){
+    seg='晚餐 18:30 – 19:00　此段不計時數'; segColor='var(--g3)';
+  } else {
+    seg='加班時段二（19:00 ～ 21:00）'; segColor='var(--red)';
+  }
+  el.innerHTML=`<span style="color:${segColor};font-weight:700;">${seg}</span>　已計 <strong>${h.total}</strong> 時`;
+}
+
+// ── Hour display ───────────────────────────────────────────────────
+function renderHours(){
+  const rec=getTodayRecord();
+  const el=document.getElementById('hourDisplay');
+  if(!rec){
+    el.innerHTML='<div style="color:var(--g2);font-size:14px;text-align:center;padding:30px 0;">尚未打卡，時數計算將於上班後顯示</div>';
+    return;
+  }
+  const outTime=rec.clockOut||toHM();
+  const h=calcHours(rec.clockIn,outTime);
+  const span=(a,b)=>Math.max(0,toMin(b)-toMin(a));
+  const total=span(rec.clockIn,outTime)||1; // avoid div/0
+  const regPct=Math.min(100,((h.regular/h.total||0)*100)).toFixed(1);
+  const otPct =Math.min(100,((h.overtime/h.total||0)*100)).toFixed(1);
+
+  // timeline visual (simplified, based on windows)
+  const daySpan = (RULES.OT2_E - toMin(rec.clockIn))||1;
+  function pct(a,b){ return Math.max(0,(Math.min(b,toMin(outTime))-Math.max(a,toMin(rec.clockIn)))/daySpan*100).toFixed(1); }
+
+  el.innerHTML=`
+    <div class="hour-row">
+      <span class="hr-label">正常時數</span>
+      <span class="hr-val reg">${h.regular} 時</span>
+    </div>
+    <div class="hour-row">
+      <span class="hr-label">加班時數</span>
+      <span class="hr-val ot">${h.overtime} 時</span>
+    </div>
+    <div class="hour-row" style="border-bottom:none;">
+      <span class="hr-label"><strong>合計時數</strong></span>
+      <span class="hr-val tot" style="font-size:20px;">${h.total} 時</span>
+    </div>
+    <div style="margin-top:14px;">
+      <div style="font-size:12px;color:var(--g3);margin-bottom:6px;">今日時段示意</div>
+      <div class="time-line">
+        <div class="tl-seg tl-reg"  style="width:${pct(toMin(rec.clockIn), RULES.LUNCH_S)}%;" title="上午正常 → 12:00"></div>
+        <div class="tl-seg tl-brk"  style="width:${pct(RULES.LUNCH_S, RULES.LUNCH_E)}%;"     title="午休 12:00–13:00（不計）"></div>
+        <div class="tl-seg tl-reg"  style="width:${pct(RULES.LUNCH_E, RULES.REG_END)}%;"     title="下午正常 13:00–17:00"></div>
+        <div class="tl-seg tl-ot1"  style="width:${pct(RULES.REG_END, RULES.DIN_S)}%;"       title="加班 17:00–18:30"></div>
+        <div class="tl-seg tl-brk"  style="width:${pct(RULES.DIN_S, RULES.DIN_E)}%;"         title="晚餐 18:30–19:00（不計）"></div>
+        <div class="tl-seg tl-ot2"  style="width:${pct(RULES.DIN_E, RULES.OT2_E)}%;"         title="加班 19:00–21:00"></div>
+      </div>
+      <div class="tl-legend">
+        <div class="tl-leg-item"><div class="tl-dot" style="background:var(--blu)"></div>正常（上班 ↔ 12:00、13:00 ↔ 17:00）</div>
+        <div class="tl-leg-item"><div class="tl-dot" style="background:var(--org)"></div>加班一（17:00 – 18:30）</div>
+        <div class="tl-leg-item"><div class="tl-dot" style="background:var(--red)"></div>加班二（19:00 – 21:00）</div>
+        <div class="tl-leg-item"><div class="tl-dot" style="background:var(--g2)"></div>午休 12–13 / 晚餐 18:30–19:00（不計）</div>
+      </div>
+    </div>
+    ${!rec.clockOut?`<div style="font-size:12px;color:var(--org);margin-top:10px;text-align:center;">即時計算中，打下班卡後確認最終時數</div>`:''}
+  `;
+
+  // also update live segment if active
+  if(rec&&!rec.clockOut) updateLiveSegment(rec.clockIn);
+}
+
+// ── Records ────────────────────────────────────────────────────────
+function renderRecords(){
+  const att=getAtt().filter(r=>r.empId===user.id).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,14);
+  const tbody=document.getElementById('recTableBody');
+  if(!att.length){
+    tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--g3);">尚無出勤紀錄</td></tr>`;
+    return;
+  }
+  tbody.innerHTML=att.map(r=>{
+    const status=r.status==='active'
+      ? `<span class="chip chip-org">上班中</span>`
+      : `<span class="chip chip-grn">已完成</span>`;
+    return `<tr>
+      <td><strong>${r.date}</strong></td>
+      <td>${r.clockIn}</td>
+      <td>${r.clockOut||'—'}</td>
+      <td style="color:var(--blu);font-weight:700;">${r.regular||'—'} 時</td>
+      <td style="color:var(--org);font-weight:700;">${r.overtime>0?r.overtime+' 時':'—'}</td>
+      <td style="font-weight:800;">${r.total||'—'} 時</td>
+      <td>${status}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Leave ──────────────────────────────────────────────────────────
+function updateDurationLabel(){
+  const u=document.getElementById('leaveUnit').value;
+  document.getElementById('durationLabel').textContent=
+    u==='小時'?'時數':u==='半天'?'半天數':'天數';
+  document.getElementById('leaveUnitDisplay').innerHTML=`<option>${u}</option>`;
+}
+function updateDays(){
+  const s=document.getElementById('leaveStart').value;
+  const e=document.getElementById('leaveEnd').value;
+  if(!s||!e) return;
+  const diff=Math.max(1,Math.round((new Date(e)-new Date(s))/(86400000))+1);
+  document.getElementById('leaveDays').value=diff;
+  document.getElementById('daysNote').textContent=`共 ${diff} 天（含頭尾）`;
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  ['leaveStart','leaveEnd'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.addEventListener('change',updateDays);
+  });
+});
+
+function submitLeave(){
+  const type=document.getElementById('leaveType').value;
+  const unit=document.getElementById('leaveUnit').value;
+  const start=document.getElementById('leaveStart').value;
+  const end=document.getElementById('leaveEnd').value;
+  const days=parseFloat(document.getElementById('leaveDays').value);
+  const proxy=document.getElementById('leaveProxy').value;
+  const reason=document.getElementById('leaveReason').value.trim();
+  const notes=document.getElementById('leaveNotes').value.trim();
+  if(!start||!end){showToast('請填寫請假日期','err');return;}
+  if(!days||days<=0){showToast('請填寫請假天數','err');return;}
+  if(!reason){showToast('請填寫請假原因','err');return;}
+  const lvs=getLvs();
+  lvs.push({
+    id:'L'+Date.now(),
+    empId:user.id,empName:user.name,dept:user.dept,
+    type,startDate:start,endDate:end,days,unit,reason,notes,proxy,
+    status:'pending',
+    submittedAt:new Date().toISOString(),
+    approvedBy:null,approvedAt:null,rejectReason:null
+  });
+  saveLvs(lvs);
+  document.getElementById('leaveReason').value='';
+  document.getElementById('leaveNotes').value='';
+  showToast('假單已送出，等待主管審核','ok');
+  switchTab('myLeave',document.querySelectorAll('.tab')[2]);
+}
+
+function renderMyLeave(){
+  const lvs=getLvs().filter(r=>r.empId===user.id).sort((a,b)=>b.submittedAt.localeCompare(a.submittedAt));
+  const el=document.getElementById('myLeaveList');
+  if(!lvs.length){
+    el.innerHTML=`<div class="empty"><div class="empty-icon">&#128196;</div>尚無假單申請</div>`;
+    return;
+  }
+  const chipCls={pending:'chip-org',approved:'chip-grn',rejected:'chip-red'};
+  const chipLbl={pending:'審核中',approved:'已核准',rejected:'已駁回'};
+  el.innerHTML=lvs.map(l=>`
+    <div class="leave-item">
+      <div class="li-info">
+        <div class="li-title">${l.type} · ${l.days} ${l.unit}</div>
+        <div class="li-meta">${l.startDate} ～ ${l.endDate}${l.proxy?` · 代理：${l.proxy}`:''}</div>
+        <div class="li-reason">${l.reason}</div>
+        ${l.notes?`<div class="li-reason" style="color:var(--g3);font-size:13px;margin-top:4px;">${l.notes}</div>`:''}
+        ${l.rejectReason?`<div style="color:var(--red);font-size:13px;margin-top:6px;">駁回原因：${l.rejectReason}</div>`:''}
+      </div>
+      <div class="li-status">
+        <span class="chip ${chipCls[l.status]}">${chipLbl[l.status]}</span>
+        ${l.approvedBy?`<div class="li-date">由 ${l.approvedBy} 處理</div>`:''}
+        <div class="li-date">送出：${l.submittedAt.slice(0,10)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── Tabs ───────────────────────────────────────────────────────────
+function switchTab(name, btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+  if(name==='myLeave') renderMyLeave();
+  if(name==='records') renderRecords();
+}
+
+// ── Toast ──────────────────────────────────────────────────────────
+let toastT;
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast show'+(type?' '+type:'');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>t.className='toast',3000);
+}
+
+// ── Init ───────────────────────────────────────────────────────────
+seedData();
+const savedUser=getUser();
+if(savedUser && savedUser.role==='employee'){
+  user=savedUser;
+  startApp();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>水林地瓜 ERP — 技術文件</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --nav-w:260px;--acc:#0EA5E9;--acc-l:#E0F6FF;
+  --bg:#F8FAFC;--wh:#fff;--tx:#0F172A;
+  --g1:#F1F5F9;--g2:#CBD5E1;--g3:#64748B;
+  --grn:#10B981;--red:#EF4444;--org:#F97316;--pur:#8B5CF6;--gld:#F59E0B;
+  --r:10px;--sh:0 2px 12px rgba(0,0,0,.07);
+}
+body{font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;
+  background:var(--bg);color:var(--tx);font-size:15px;line-height:1.7;}
+
+/* ── Layout ── */
+.layout{display:flex;min-height:100vh;}
+.nav{width:var(--nav-w);background:var(--wh);border-right:1px solid var(--g2);
+  position:fixed;top:0;left:0;bottom:0;overflow-y:auto;padding:0 0 32px;}
+.main{margin-left:var(--nav-w);flex:1;max-width:900px;padding:56px 48px 80px;}
+@media(max-width:760px){
+  .nav{display:none;}.main{margin-left:0;padding:32px 20px 60px;}
+}
+
+/* ── Nav ── */
+.nav-logo{padding:24px 20px 16px;border-bottom:1px solid var(--g1);}
+.nav-logo .brand{font-size:15px;font-weight:800;color:var(--tx);}
+.nav-logo .ver{font-size:12px;color:var(--g3);margin-top:2px;}
+.nav-section{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:var(--g3);padding:18px 20px 5px;}
+.nav-link{display:block;padding:8px 20px;font-size:13px;color:var(--g3);
+  text-decoration:none;border-left:3px solid transparent;transition:all .13s;}
+.nav-link:hover{color:var(--acc);background:var(--acc-l);}
+.nav-link.active{color:var(--acc);border-left-color:var(--acc);
+  background:var(--acc-l);font-weight:600;}
+
+/* ── Content ── */
+h1{font-size:32px;font-weight:800;margin-bottom:8px;color:var(--tx);}
+h2{font-size:22px;font-weight:700;margin:44px 0 16px;color:var(--tx);
+  padding-bottom:10px;border-bottom:2px solid var(--g1);}
+h3{font-size:17px;font-weight:700;margin:28px 0 12px;color:var(--tx);}
+h4{font-size:15px;font-weight:700;margin:20px 0 8px;color:var(--g3);}
+p{margin-bottom:14px;color:var(--tx);}
+.lead{font-size:17px;color:var(--g3);margin-bottom:28px;line-height:1.65;}
+ul,ol{margin:0 0 14px 22px;}
+li{margin-bottom:5px;}
+a{color:var(--acc);text-decoration:none;}
+a:hover{text-decoration:underline;}
+hr{border:none;border-top:1px solid var(--g2);margin:40px 0;}
+
+/* ── Code ── */
+pre,code{font-family:"SF Mono","Fira Code",monospace;}
+code{background:var(--g1);border-radius:4px;padding:1px 6px;font-size:13px;color:#C11A56;}
+pre{background:#0F172A;color:#E2E8F0;border-radius:var(--r);
+  padding:20px 24px;overflow-x:auto;margin:16px 0 20px;font-size:13px;line-height:1.65;}
+pre code{background:none;color:inherit;padding:0;font-size:inherit;}
+.hlc{color:#7DD3FC;}  /* keyword */
+.hls{color:#86EFAC;}  /* string */
+.hlm{color:#FDE68A;}  /* comment */
+.hln{color:#FDA4AF;}  /* number/id */
+
+/* ── Tables ── */
+.tbl-wrap{overflow-x:auto;margin:16px 0 24px;}
+table{width:100%;border-collapse:collapse;font-size:14px;}
+th{background:var(--g1);padding:10px 14px;text-align:left;
+  font-size:12px;font-weight:700;color:var(--g3);
+  text-transform:uppercase;letter-spacing:.5px;border:1px solid var(--g2);}
+td{padding:11px 14px;border:1px solid var(--g2);vertical-align:top;}
+tr:nth-child(even) td{background:#FAFBFD;}
+
+/* ── Callout ── */
+.callout{border-radius:var(--r);padding:16px 20px;margin:20px 0;
+  border-left:4px solid;display:flex;gap:12px;align-items:flex-start;}
+.callout-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+.callout-body{font-size:14px;line-height:1.6;}
+.callout.info{background:#F0F9FF;border-color:var(--acc);}
+.callout.warn{background:#FFFBEB;border-color:var(--gld);}
+.callout.tip {background:#F0FDF4;border-color:var(--grn);}
+
+/* ── Chips ── */
+.chip{display:inline-block;padding:2px 9px;border-radius:12px;
+  font-size:12px;font-weight:600;white-space:nowrap;}
+.chip-grn{background:#DCFCE7;color:#16A34A;}
+.chip-org{background:#FFF7ED;color:var(--org);}
+.chip-pur{background:#F5F3FF;color:var(--pur);}
+.chip-red{background:#FEF2F2;color:var(--red);}
+.chip-blu{background:var(--acc-l);color:var(--acc);}
+.chip-gld{background:#FFFBEB;color:var(--gld);}
+
+/* ── Architecture diagram ── */
+.arch-box{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0 28px;}
+.a-mod{background:var(--wh);border:1.5px solid var(--g2);border-radius:10px;
+  padding:14px 16px;text-align:center;box-shadow:var(--sh);}
+.a-mod .a-icon{font-size:26px;margin-bottom:6px;}
+.a-mod .a-name{font-size:13px;font-weight:700;}
+.a-mod .a-desc{font-size:11px;color:var(--g3);margin-top:3px;}
+.a-storage{background:linear-gradient(135deg,#F0F9FF,#E0F2FE);
+  border:1.5px dashed var(--acc);border-radius:10px;
+  padding:16px 20px;margin:20px 0;text-align:center;}
+.a-storage .a-icon{font-size:30px;margin-bottom:6px;}
+.a-storage .a-name{font-size:15px;font-weight:700;color:var(--acc);}
+.a-storage .a-desc{font-size:13px;color:var(--g3);margin-top:4px;}
+
+/* ── Perm matrix ── */
+.perm-matrix{overflow-x:auto;margin:16px 0;}
+.perm-matrix table th{background:#0F172A;color:#fff;}
+.pm-sup{background:#FFFBEB;color:var(--gld);font-size:11px;font-weight:700;
+  padding:2px 7px;border-radius:5px;display:inline-block;}
+.pm-stf{background:#F0FDF4;color:var(--grn);font-size:11px;font-weight:700;
+  padding:2px 7px;border-radius:5px;display:inline-block;}
+.pm-ro {background:#EFF6FF;color:#2563EB;font-size:11px;font-weight:700;
+  padding:2px 7px;border-radius:5px;display:inline-block;}
+.pm-no {background:var(--g1);color:var(--g3);font-size:11px;
+  padding:2px 7px;border-radius:5px;display:inline-block;}
+
+/* ── TOC badge ── */
+.toc-badge{display:inline-block;font-size:11px;background:var(--acc-l);
+  color:var(--acc);border-radius:4px;padding:1px 6px;font-weight:600;margin-left:6px;}
+.page-header{margin-bottom:36px;}
+.badge-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ── Navigation ── -->
+<nav class="nav">
+  <div class="nav-logo">
+    <div class="brand">水林地瓜 ERP</div>
+    <div class="ver">技術文件 v1.0 &nbsp;·&nbsp; 2026-03</div>
+  </div>
+  <div class="nav-section">概覽</div>
+  <a href="#overview" class="nav-link">系統概覽</a>
+  <a href="#arch" class="nav-link">技術架構</a>
+  <a href="#modules" class="nav-link">模組一覽</a>
+  <div class="nav-section">模組詳情</div>
+  <a href="#portal" class="nav-link">總後台</a>
+  <a href="#field" class="nav-link">田間系統</a>
+  <a href="#warehouse" class="nav-link">倉儲系統</a>
+  <a href="#processing" class="nav-link">加工系統</a>
+  <a href="#sales" class="nav-link">銷售系統</a>
+  <a href="#hr" class="nav-link">主管後台</a>
+  <a href="#bonus" class="nav-link">獎金系統</a>
+  <div class="nav-section">資料設計</div>
+  <a href="#storage" class="nav-link">localStorage Schema</a>
+  <a href="#auth" class="nav-link">帳號與權限</a>
+  <a href="#dataflow" class="nav-link">跨系統資料流</a>
+  <div class="nav-section">整合</div>
+  <a href="#api" class="nav-link">硬體 API 預留</a>
+  <a href="#roadmap" class="nav-link">未來規劃</a>
+</nav>
+
+<!-- ── Main ── -->
+<main class="main">
+
+<div class="page-header">
+  <h1>水林地瓜 ERP 技術文件</h1>
+  <p class="lead">本文件說明水林地瓜農業 ERP 平台的技術架構、模組設計、資料結構與系統整合規範，供開發人員及技術主管參考。</p>
+  <div class="badge-row">
+    <span class="chip chip-grn">版本 1.0</span>
+    <span class="chip chip-blu">純前端 HTML/CSS/JS</span>
+    <span class="chip chip-pur">localStorage 持久化</span>
+    <span class="chip chip-gld">7 個子系統</span>
+  </div>
+</div>
+
+<hr/>
+
+<!-- ═══════════════════════ 1. OVERVIEW ═══════════════════════ -->
+<h2 id="overview">1. 系統概覽</h2>
+
+<p>水林地瓜 ERP 是一套專為農業生產企業設計的輕量級企業資源規劃系統。系統以 <strong>純 HTML / CSS / JavaScript</strong> 實作，無需後端伺服器、無需框架、可在任何現代瀏覽器直接開啟使用。</p>
+
+<div class="callout info">
+  <div class="callout-icon">&#9432;</div>
+  <div class="callout-body">
+    <strong>設計理念：</strong>優先快速部署與離線使用。所有資料存於瀏覽器 <code>localStorage</code>，同一台電腦/瀏覽器的所有系統共享同一份資料，實現即時跨模組同步。
+  </div>
+</div>
+
+<h3>系統範圍</h3>
+<p>平台覆蓋農業企業的以下主要業務流程：</p>
+<ul>
+  <li><strong>農田端</strong>：農民資料建檔、地塊管理、作物紀錄</li>
+  <li><strong>倉儲端</strong>：品種建檔、入出庫管理、冷凍艙控制</li>
+  <li><strong>加工端</strong>：加工批次管理、選果機作業、品管記錄</li>
+  <li><strong>銷售端</strong>：電商前台、訂單管理、庫存自動扣減</li>
+  <li><strong>人資端</strong>：出勤打卡、請假審核、薪資計算</li>
+  <li><strong>獎勵端</strong>：獎金機制建立、考核連動、薪資核對</li>
+  <li><strong>管理端</strong>：總後台入口、人員帳號、系統權限</li>
+</ul>
+
+<h3>檔案清單</h3>
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>檔案</th><th>系統名稱</th><th>主要功能</th><th>主色調</th></tr></thead>
+  <tbody>
+    <tr><td><code>總後台.html</code></td><td>系統總後台</td><td>統一入口、人員管理、權限矩陣</td><td>#0A0F1E 深藍黑</td></tr>
+    <tr><td><code>田間系統.html</code></td><td>田間管理系統</td><td>農民建檔、地塊、種植記錄</td><td>#3AAB6D 農場綠</td></tr>
+    <tr><td><code>倉儲系統.html</code></td><td>倉儲管理系統</td><td>入出庫、品種、冷凍艙門控制</td><td>#1D5C72 深青</td></tr>
+    <tr><td><code>加工系統.html</code></td><td>加工管理系統</td><td>加工批次、選果機、留水線</td><td>#2563EB 藍</td></tr>
+    <tr><td><code>銷售系統.html</code></td><td>銷售管理系統</td><td>電商前台、訂單、庫存扣減</td><td>#E8731A 橙</td></tr>
+    <tr><td><code>主管後台.html</code></td><td>主管出勤後台</td><td>出勤記錄、請假審核、薪資計算</td><td>#7B4F2E 棕</td></tr>
+    <tr><td><code>獎金系統.html</code></td><td>獎金管理系統</td><td>獎金機制、考核連動、薪資核對</td><td>#5B3D8F 紫</td></tr>
+    <tr><td><code>員工打卡系統.html</code></td><td>員工打卡端</td><td>員工上下班打卡介面</td><td>#3A7BB5 藍</td></tr>
+  </tbody>
+</table>
+</div>
+
+<hr/>
+
+<!-- ═══════════════════════ 2. ARCHITECTURE ═══════════════════════ -->
+<h2 id="arch">2. 技術架構</h2>
+
+<h3>技術堆疊</h3>
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>層級</th><th>技術</th><th>說明</th></tr></thead>
+  <tbody>
+    <tr><td>介面</td><td>HTML5 / CSS3</td><td>語意化標籤、CSS 變數、Flexbox / Grid 版面</td></tr>
+    <tr><td>互動</td><td>原生 JavaScript (ES2020)</td><td>無框架，使用 <code>const/let</code>、箭頭函數、可選鏈 <code>?.</code>、模板字串</td></tr>
+    <tr><td>持久化</td><td>localStorage / sessionStorage</td><td>localStorage 存業務資料（跨分頁共享）；sessionStorage 存登入狀態（分頁獨立）</td></tr>
+    <tr><td>字型</td><td>系統字型堆疊</td><td>PingFang TC → Microsoft JhengHei → Noto Sans TC，無外部字型請求</td></tr>
+    <tr><td>圖示</td><td>Unicode Emoji</td><td>無外部 icon library 依賴</td></tr>
+    <tr><td>部署</td><td>靜態檔案</td><td>可置於任何靜態伺服器或直接本機開啟</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>系統架構圖</h3>
+<div class="arch-box">
+  <div class="a-mod"><div class="a-icon">&#9729;</div><div class="a-name">總後台</div><div class="a-desc">入口 / 帳號 / 權限</div></div>
+  <div class="a-mod"><div class="a-icon">&#127807;</div><div class="a-name">田間系統</div><div class="a-desc">農民 / 地塊</div></div>
+  <div class="a-mod"><div class="a-icon">&#127981;</div><div class="a-name">倉儲系統</div><div class="a-desc">入出庫 / 艙門</div></div>
+  <div class="a-mod"><div class="a-icon">&#9881;</div><div class="a-name">加工系統</div><div class="a-desc">批次 / 選果</div></div>
+  <div class="a-mod"><div class="a-icon">&#128722;</div><div class="a-name">銷售系統</div><div class="a-desc">電商 / 訂單</div></div>
+  <div class="a-mod"><div class="a-icon">&#128197;</div><div class="a-name">主管後台</div><div class="a-desc">出勤 / 薪資</div></div>
+  <div class="a-mod"><div class="a-icon">&#127942;</div><div class="a-name">獎金系統</div><div class="a-desc">機制 / 考核</div></div>
+</div>
+<div class="a-storage">
+  <div class="a-icon">&#128452;</div>
+  <div class="a-name">瀏覽器 localStorage（共享資料層）</div>
+  <div class="a-desc">所有系統讀寫相同 localStorage，以 <code>slg_</code> 前綴統一命名空間</div>
+</div>
+
+<h3>登入驗證流程</h3>
+<pre><code><span class="hlm">// 每個子系統的標準登入流程</span>
+<span class="hlc">function</span> <span class="hls">doLogin</span>() {
+  <span class="hlm">// 1. 讀取使用者輸入</span>
+  <span class="hlc">const</span> account = getElementById(<span class="hls">'loginAccount'</span>).value;
+  <span class="hlc">const</span> password = getElementById(<span class="hls">'loginPassword'</span>).value;
+
+  <span class="hlm">// 2. 比對 slg_users（由總後台人員管理維護）</span>
+  <span class="hlc">const</span> users = JSON.parse(localStorage.getItem(<span class="hls">'slg_users'</span>) || <span class="hls">'[]'</span>);
+  <span class="hlc">const</span> user = users.find(u =>
+    u.account === account && u.password === password && u.status === <span class="hls">'active'</span>
+  );
+  <span class="hlc">if</span> (!user) { showToast(<span class="hls">'帳號或密碼錯誤'</span>); <span class="hlc">return</span>; }
+
+  <span class="hlm">// 3. 查詢 slg_user_perms 確認此系統存取等級</span>
+  <span class="hlc">const</span> perms = JSON.parse(localStorage.getItem(<span class="hls">'slg_user_perms'</span>) || <span class="hls">'{}'</span>);
+  <span class="hlc">const</span> perm = (perms[user.id] || {})[<span class="hls">'SYSTEM_ID'</span>] || <span class="hls">'none'</span>;
+  <span class="hlc">if</span> (perm === <span class="hls">'none'</span>) { showToast(<span class="hls">'無存取權限'</span>); <span class="hlc">return</span>; }
+
+  <span class="hlm">// 4. 寫入 sessionStorage，觸發畫面顯示</span>
+  sessionStorage.setItem(<span class="hls">'xxx_role'</span>, perm === <span class="hls">'supervisor'</span> ? <span class="hls">'主管'</span> : <span class="hls">'人員'</span>);
+  sessionStorage.setItem(<span class="hls">'xxx_name'</span>, user.name);
+  applyLogin();
+}</code></pre>
+
+<hr/>
+
+<!-- ═══════════════════════ 3. MODULES ═══════════════════════ -->
+<h2 id="modules">3. 模組一覽</h2>
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>模組</th><th>systemId</th><th>sessionStorage 前綴</th><th>主要角色</th><th>admin-only 控制</th></tr></thead>
+  <tbody>
+    <tr><td>總後台</td><td>—</td><td><code>adm_</code></td><td>系統管理員</td><td>全部</td></tr>
+    <tr><td>田間系統</td><td><code>field</code></td><td><code>fld_</code></td><td>農場主管 / 農場人員</td><td>新增、刪除、CSV 匯出</td></tr>
+    <tr><td>倉儲系統</td><td><code>warehouse</code></td><td><code>wh_</code></td><td>建檔主管 / 總後台</td><td>品種建檔、艙門控制</td></tr>
+    <tr><td>加工系統</td><td><code>processing</code></td><td><code>proc_</code></td><td>加工主管 / 加工人員</td><td>產品管理、選果設定</td></tr>
+    <tr><td>銷售系統</td><td><code>sales</code></td><td><code>sal_</code></td><td>銷售主管 / 銷售人員</td><td>商品設定、價格調整</td></tr>
+    <tr><td>主管後台</td><td><code>hr</code></td><td><code>mgr_</code></td><td>人資主管 / 出勤主管</td><td>薪資設定、假別管理</td></tr>
+    <tr><td>獎金系統</td><td><code>bonus</code></td><td><code>bnc_</code></td><td>人資主管 / 一般查詢</td><td>機制建立、發放審核</td></tr>
+  </tbody>
+</table>
+</div>
+
+<hr/>
+
+<!-- ═══════════════════════ MODULE DETAILS ═══════════════════════ -->
+<h2 id="portal">4. 總後台</h2>
+<p>統一的管理員入口，提供系統全局視角與人員管理能力。</p>
+<h4>頁面功能</h4>
+<ul>
+  <li><strong>系統總覽</strong>：7 個子系統入口卡，即時顯示各系統關鍵數字</li>
+  <li><strong>人員管理</strong>：員工帳號 CRUD，設定各系統存取等級（無權限 / 唯讀 / 人員 / 主管）</li>
+  <li><strong>權限矩陣</strong>：全員 × 全系統的二維視圖，可按部門篩選</li>
+  <li><strong>系統設定</strong>：管理員帳號 / 密碼更改、JSON 全量備份下載、權限重置</li>
+</ul>
+<h4>管理員登入</h4>
+<pre><code><span class="hlm">// localStorage key: slg_admin_cfg</span>
+{
+  <span class="hls">"account"</span>:  <span class="hls">"admin"</span>,    <span class="hlm">// 預設值，可於系統設定修改</span>
+  <span class="hls">"password"</span>: <span class="hls">"0000"</span>,    <span class="hlm">// 預設值</span>
+  <span class="hls">"name"</span>:     <span class="hls">"系統管理員"</span>
+}</code></pre>
+
+<h2 id="field">5. 田間系統</h2>
+<p>管理農民基本資料與其名下的多個地塊資訊。</p>
+<h4>關鍵設計：一農民多地塊</h4>
+<pre><code><span class="hlm">// localStorage key: slg_farmers</span>
+{
+  id: <span class="hls">"F001"</span>,
+  name: <span class="hls">"農民姓名"</span>,
+  phone: <span class="hls">"0912345678"</span>,
+  parcels: [                        <span class="hlm">// 地塊陣列（可無上限新增）</span>
+    { no: <span class="hls">"A-001"</span>, area: <span class="hln">0.8</span> },   <span class="hlm">// 地號, 公頃</span>
+    { no: <span class="hls">"A-002"</span>, area: <span class="hln">1.2</span> }
+  ]
+}
+<span class="hlm">// 向下相容：舊資料的 parcelNo string 由 getFarmerParcels() 自動轉換</span></code></pre>
+
+<h2 id="warehouse">6. 倉儲系統</h2>
+<p>管理地瓜品種、入出庫、冷凍艙及加工類產品設定。</p>
+<h4>共享資料鍵</h4>
+<ul>
+  <li><code>slg_wh_var</code> — 品種清單（加工/銷售系統讀取）</li>
+  <li><code>slg_proc_products</code> — 加工類產品（與加工系統共享）</li>
+  <li><code>slg_wh_out</code> — 出庫記錄（銷售系統寫入，倉儲/加工讀取計算庫存）</li>
+</ul>
+<h4>艙門控制</h4>
+<pre><code><span class="hlm">// localStorage key: slg_wh_doors</span>
+[{ id: <span class="hls">"D1"</span>, name: <span class="hls">"1號冷凍庫"</span>, status: <span class="hls">"closed"</span>, temp: <span class="hln">-18</span> }]
+<span class="hlm">// 全部登入角色（supervisor / admin）皆可開關艙門</span></code></pre>
+
+<h2 id="processing">7. 加工系統</h2>
+<p>加工批次管理與選果機器作業記錄。</p>
+<h4>選果系統資料結構（留水線 Database）</h4>
+<pre><code><span class="hlm">// localStorage key: slg_sort_records</span>
+{
+  id, batchNo: <span class="hls">"ST-20260326-001"</span>,
+  date, time, operator, varietyId, varietyName,
+  totalInput, grades: [
+    { gradeId, gradeName, color, qty, unit }
+  ],
+  totalOutput, yieldRate,
+  machineData: {
+    waterTemp, flowRate, beltSpeed, machineId,
+    <span class="hlm">// 預留欄位（未來 PLC / 感測器串接）：</span>
+    lineSpeed: <span class="hlc">null</span>, humidity: <span class="hlc">null</span>,
+    ambientTemp: <span class="hlc">null</span>, cycleTime: <span class="hlc">null</span>
+  },
+  source: <span class="hls">"manual"</span>  <span class="hlm">// "manual" | "machine"</span>
+}</code></pre>
+
+<h2 id="sales">8. 銷售系統</h2>
+<p>電商前台 + 後台訂單管理，訂單確認自動扣倉庫庫存。</p>
+<h4>庫存計算邏輯</h4>
+<pre><code><span class="hlm">// 加工類產品可用庫存 = 加工產出量 - 已售出量</span>
+<span class="hlc">function</span> <span class="hls">calcProcStock</span>(sourceId, spec) {
+  <span class="hlc">const</span> inQty  = getProcRecs().filter(r => r.productId === sourceId)
+                               .reduce((s,r) => s + r.netWeight, <span class="hln">0</span>);
+  <span class="hlc">const</span> outQty = getWhOut().filter(o =>
+    o.productId === sourceId && o.productType === <span class="hls">'processed'</span>
+  ).reduce((s,o) => s + o.qty, <span class="hln">0</span>);
+  <span class="hlc">return</span> Math.max(<span class="hln">0</span>, inQty - outQty);
+}</code></pre>
+<h4>訂單狀態流轉</h4>
+<p><code>pending</code> → <code>confirmed</code> → <code>packing</code> → <code>shipped</code> → <code>done</code> / <code>cancelled</code></p>
+<p>確認訂單時，系統自動將每個品項寫入 <code>slg_wh_out</code>；取消訂單時，刪除對應 <code>orderId</code> 的出庫記錄。</p>
+
+<h2 id="hr">9. 主管後台</h2>
+<p>員工出勤、請假、薪資計算。</p>
+<h4>薪資計算規則（參考）</h4>
+<ul>
+  <li>正常工時上限：每日 8 小時（至 17:00）</li>
+  <li>加班費：第一段 × 1.34，第二段 × 1.67（依勞基法）</li>
+  <li>午餐扣除：12:00 – 13:00；晚餐 18:30 – 19:00</li>
+  <li>獎金加總：讀取 <code>slg_bonus_records</code>（status = <code>paid</code>）</li>
+</ul>
+
+<h2 id="bonus">10. 獎金系統</h2>
+<p>獎勵機制建立與發放管理，狀態 <code>paid</code> 的記錄自動供薪資系統讀取。</p>
+<h4>機制類型</h4>
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>類型</th><th>key</th><th>觸發條件（草稿）</th></tr></thead>
+  <tbody>
+    <tr><td>全勤獎金</td><td><code>attendance</code></td><td>月請假 ≤ 容許次數</td></tr>
+    <tr><td>績效獎金</td><td><code>performance</code></td><td>考核分數 × 係數（待考核系統接入）</td></tr>
+    <tr><td>業績獎金</td><td><code>sales</code></td><td>月銷售額超過門檻後提成</td></tr>
+    <tr><td>特殊表彰</td><td><code>special</code></td><td>主管手動頒發</td></tr>
+    <tr><td>自訂</td><td><code>custom</code></td><td>自訂規則</td></tr>
+  </tbody>
+</table>
+</div>
+
+<hr/>
+
+<!-- ═══════════════════════ STORAGE SCHEMA ═══════════════════════ -->
+<h2 id="storage">11. localStorage Schema</h2>
+<div class="callout tip">
+  <div class="callout-icon">&#128204;</div>
+  <div class="callout-body">所有業務資料鍵以 <code>slg_</code> 為前綴。管理員設定鍵以 <code>slg_admin_</code> 為前綴。</div>
+</div>
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>localStorage Key</th><th>資料型別</th><th>擁有者</th><th>讀取者</th><th>說明</th></tr></thead>
+  <tbody>
+    <tr><td><code>slg_users</code></td><td>Array</td><td>總後台</td><td>所有子系統</td><td>員工帳號（含 account / password）</td></tr>
+    <tr><td><code>slg_user_perms</code></td><td>Object</td><td>總後台</td><td>所有子系統</td><td>員工對每個系統的存取等級</td></tr>
+    <tr><td><code>slg_admin_cfg</code></td><td>Object</td><td>總後台</td><td>總後台</td><td>管理員帳號密碼與顯示名稱</td></tr>
+    <tr><td><code>slg_farmers</code></td><td>Array</td><td>田間系統</td><td>—</td><td>農民資料（含多地塊 parcels[]）</td></tr>
+    <tr><td><code>slg_wh_var</code></td><td>Array</td><td>倉儲系統</td><td>加工、銷售</td><td>地瓜品種清單</td></tr>
+    <tr><td><code>slg_wh_inbound</code></td><td>Array</td><td>倉儲系統</td><td>倉儲</td><td>入庫記錄</td></tr>
+    <tr><td><code>slg_wh_doors</code></td><td>Array</td><td>倉儲系統</td><td>倉儲</td><td>冷凍艙門狀態</td></tr>
+    <tr><td><code>slg_proc_products</code></td><td>Array</td><td>倉儲系統</td><td>加工、銷售</td><td>加工類產品定義</td></tr>
+    <tr><td><code>slg_proc_records</code></td><td>Array</td><td>加工系統</td><td>銷售（庫存計算）</td><td>加工批次記錄</td></tr>
+    <tr><td><code>slg_sort_records</code></td><td>Array</td><td>加工系統</td><td>加工</td><td>選果機作業記錄（留水線 DB）</td></tr>
+    <tr><td><code>slg_sort_cfg</code></td><td>Object</td><td>加工系統</td><td>加工</td><td>選果設定（品相、單位、機器列表）</td></tr>
+    <tr><td><code>slg_sales_products</code></td><td>Array</td><td>銷售系統</td><td>銷售</td><td>電商商品（含定價、圖片 URL）</td></tr>
+    <tr><td><code>slg_sales_orders</code></td><td>Array</td><td>銷售系統</td><td>銷售</td><td>訂單記錄（含狀態流轉）</td></tr>
+    <tr><td><code>slg_wh_out</code></td><td>Array</td><td>銷售系統</td><td>倉儲、加工</td><td>出庫扣減記錄（跨系統庫存扣量）</td></tr>
+    <tr><td><code>slg_emp_cfg</code></td><td>Object</td><td>主管後台</td><td>獎金系統</td><td>員工薪資設定（時薪等）</td></tr>
+    <tr><td><code>slg_att</code></td><td>Array</td><td>主管後台</td><td>主管後台</td><td>出勤打卡記錄</td></tr>
+    <tr><td><code>slg_bonus_rules</code></td><td>Array</td><td>獎金系統</td><td>獎金系統</td><td>獎勵機制定義</td></tr>
+    <tr><td><code>slg_bonus_records</code></td><td>Array</td><td>獎金系統</td><td>主管後台（薪資）</td><td>獎金發放記錄（status=paid 供薪資讀取）</td></tr>
+    <tr><td><code>slg_bonus_cfg</code></td><td>Object</td><td>獎金系統</td><td>獎金系統</td><td>全域獎金參考參數</td></tr>
+  </tbody>
+</table>
+</div>
+
+<hr/>
+
+<!-- ═══════════════════════ AUTH ═══════════════════════ -->
+<h2 id="auth">12. 帳號與權限設計</h2>
+
+<h3>員工帳號結構</h3>
+<pre><code><span class="hlm">// slg_users 陣列中每筆記錄</span>
+{
+  id:       <span class="hls">"E001"</span>,          <span class="hlm">// 唯一識別碼</span>
+  name:     <span class="hls">"林美惠"</span>,
+  dept:     <span class="hls">"農場生產"</span>,
+  account:  <span class="hls">"E001"</span>,          <span class="hlm">// 登入帳號（唯一，可自訂）</span>
+  password: <span class="hls">"1234"</span>,          <span class="hlm">// 登入密碼（明文，Demo 用途）</span>
+  phone, email, status,    <span class="hlm">// "active" | "inactive"</span>
+  notes, createdAt, updatedAt
+}</code></pre>
+
+<h3>權限模型</h3>
+<pre><code><span class="hlm">// slg_user_perms</span>
+{
+  <span class="hls">"E001"</span>: {
+    field:       <span class="hls">"staff"</span>,      <span class="hlm">// 田間系統</span>
+    warehouse:   <span class="hls">"readonly"</span>,   <span class="hlm">// 倉儲系統</span>
+    processing:  <span class="hls">"none"</span>,
+    sales:       <span class="hls">"none"</span>,
+    hr:          <span class="hls">"none"</span>,
+    bonus:       <span class="hls">"none"</span>,
+    punchcard:   <span class="hls">"staff"</span>
+  }
+}</code></pre>
+
+<h3>存取等級說明</h3>
+<div class="perm-matrix">
+<table>
+  <thead><tr><th>等級</th><th>值</th><th>說明</th><th>對應子系統角色</th></tr></thead>
+  <tbody>
+    <tr><td><span class="pm-no">無權限</span></td><td><code>none</code></td><td>無法登入該系統</td><td>登入時直接拒絕</td></tr>
+    <tr><td><span class="pm-ro">唯讀</span></td><td><code>readonly</code></td><td>僅可查看，不可新增/編輯</td><td>一般人員（隱藏操作按鈕）</td></tr>
+    <tr><td><span class="pm-stf">人員</span></td><td><code>staff</code></td><td>一般作業功能</td><td>一般人員（有基本操作）</td></tr>
+    <tr><td><span class="pm-sup">主管</span></td><td><code>supervisor</code></td><td>完整管理功能</td><td>主管（顯示 admin-only 元素）</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>預設部門權限範本</h3>
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>部門</th><th>田間</th><th>倉儲</th><th>加工</th><th>銷售</th><th>主管後台</th><th>獎金</th></tr></thead>
+  <tbody>
+    <tr><td>農場生產</td><td><span class="pm-stf">人員</span></td><td><span class="pm-ro">唯讀</span></td><td><span class="pm-no">無</span></td><td><span class="pm-no">無</span></td><td><span class="pm-no">無</span></td><td><span class="pm-no">無</span></td></tr>
+    <tr><td>加工包裝</td><td><span class="pm-no">無</span></td><td><span class="pm-stf">人員</span></td><td><span class="pm-stf">人員</span></td><td><span class="pm-no">無</span></td><td><span class="pm-no">無</span></td><td><span class="pm-no">無</span></td></tr>
+    <tr><td>門市銷售</td><td><span class="pm-no">無</span></td><td><span class="pm-ro">唯讀</span></td><td><span class="pm-no">無</span></td><td><span class="pm-stf">人員</span></td><td><span class="pm-no">無</span></td><td><span class="pm-no">無</span></td></tr>
+    <tr><td>倉儲物流</td><td><span class="pm-no">無</span></td><td><span class="pm-sup">主管</span></td><td><span class="pm-ro">唯讀</span></td><td><span class="pm-no">無</span></td><td><span class="pm-no">無</span></td><td><span class="pm-no">無</span></td></tr>
+    <tr><td>行政管理</td><td><span class="pm-no">無</span></td><td><span class="pm-ro">唯讀</span></td><td><span class="pm-no">無</span></td><td><span class="pm-ro">唯讀</span></td><td><span class="pm-sup">主管</span></td><td><span class="pm-stf">人員</span></td></tr>
+  </tbody>
+</table>
+</div>
+
+<hr/>
+
+<!-- ═══════════════════════ DATA FLOW ═══════════════════════ -->
+<h2 id="dataflow">13. 跨系統資料流</h2>
+<pre><code>
+田間系統                倉儲系統              加工系統              銷售系統
+  slg_farmers      slg_wh_var ─────────► slg_proc_records
+  （農民/地塊）     slg_proc_products ──►  slg_sort_records       slg_sales_orders
+                                                │                       │
+                                                │  庫存計算              │ 確認訂單
+                                                ▼                       ▼
+                                         slg_wh_out ◄──────────────────┘
+                                        （出庫扣量）
+
+主管後台                獎金系統
+  slg_att          slg_bonus_records ──► 主管後台薪資計算
+  slg_emp_cfg ──►  （status=paid）
+</code></pre>
+
+<div class="callout warn">
+  <div class="callout-icon">&#9888;</div>
+  <div class="callout-body">
+    <strong>同源限制：</strong>localStorage 以瀏覽器 + 來源（origin）為單位隔離。所有 HTML 檔案需在同一個 origin（例如同一本機目錄或同一個 Web Server）下開啟，才能共享資料。
+  </div>
+</div>
+
+<hr/>
+
+<!-- ═══════════════════════ API ═══════════════════════ -->
+<h2 id="api">14. 硬體 API 預留點</h2>
+<p>加工系統的選果機器介面預留了 PLC / IoT 感測器的串接入口，以標準化的方式等待未來實作：</p>
+<pre><code><span class="hlm">// === 機器 API 串接預留 ===</span>
+<span class="hlm">// 以下為未來 PLC / 感測器串接的 fetch 範本，目前以模擬資料取代</span>
+
+<span class="hlc">async function</span> <span class="hls">fetchMachineStatus</span>(machine) {
+  <span class="hlc">if</span> (!machine.apiEndpoint) <span class="hlc">return null</span>; <span class="hlm">// 無設定 endpoint 時略過</span>
+  <span class="hlc">try</span> {
+    <span class="hlc">const</span> res = <span class="hlc">await</span> fetch(machine.apiEndpoint + <span class="hls">'/status'</span>);
+    <span class="hlc">const</span> data = <span class="hlc">await</span> res.json();
+    <span class="hlm">// 回傳欄位：waterTemp, flowRate, beltSpeed, lineSpeed,</span>
+    <span class="hlm">//           humidity, ambientTemp, cycleTime</span>
+    updateMachineDisplay(data);
+  } <span class="hlc">catch</span>(e) {
+    console.warn(<span class="hls">'機器離線，切換為手動模式'</span>, e);
+  }
+}
+
+<span class="hlm">// machineData 結構（預留欄位以 null 佔位）：</span>
+machineData: {
+  waterTemp:   <span class="hln">null</span>,  <span class="hlm">// °C</span>
+  flowRate:    <span class="hln">null</span>,  <span class="hlm">// L/min</span>
+  beltSpeed:   <span class="hln">null</span>,  <span class="hlm">// m/s</span>
+  machineId:   <span class="hln">null</span>,
+  lineSpeed:   <span class="hln">null</span>,  <span class="hlm">// ← 留水線預留</span>
+  humidity:    <span class="hln">null</span>,
+  ambientTemp: <span class="hln">null</span>,
+  cycleTime:   <span class="hln">null</span>
+}</code></pre>
+
+<h4>選果機器設定介面</h4>
+<p>加工系統 → 選果設定 → 機器管理，可設定機器名稱與 API Endpoint URL，系統啟動時自動嘗試連線。</p>
+
+<hr/>
+
+<!-- ═══════════════════════ ROADMAP ═══════════════════════ -->
+<h2 id="roadmap">15. 未來規劃</h2>
+
+<h3>短期（v1.1）</h3>
+<ul>
+  <li>考核系統：員工季度 / 年度考核，產生評分並自動連結獎金係數</li>
+  <li>獎金考核連動：獎金系統「考核連動」頁面開放設定（目前為草稿）</li>
+  <li>田間系統登入：補充帳號密碼登入機制（目前以開放模式存取）</li>
+  <li>密碼加密：目前明文儲存密碼，建議改為 SHA-256 雜湊</li>
+</ul>
+
+<h3>中期（v2.0）</h3>
+<ul>
+  <li>後端 API 化：將 localStorage 資料層替換為 REST API（Node.js / Go），實現多裝置同步</li>
+  <li>選果機器硬體串接：實作 <code>fetchMachineStatus()</code> 對接實際 PLC 端點</li>
+  <li>報表系統：各系統資料的統計報表（月報、年報、趨勢圖）</li>
+  <li>通知系統：庫存低量警示、訂單狀態推播</li>
+</ul>
+
+<h3>長期（v3.0）</h3>
+<ul>
+  <li>PWA 離線支援：Service Worker 快取，田間人員離線記錄後同步</li>
+  <li>行動端最佳化：打卡、田間記錄改為 Mobile-first 介面</li>
+  <li>RBAC 細化：從「主管 / 人員 / 唯讀」擴展為自訂角色 + 功能點授權</li>
+  <li>AI 助手：整合 Claude API，提供作物建議、庫存預測、薪資試算</li>
+</ul>
+
+<div class="callout info" style="margin-top:40px;">
+  <div class="callout-icon">&#128214;</div>
+  <div class="callout-body">
+    <strong>文件版本：</strong>v1.0 &nbsp;·&nbsp; 更新日期：2026-03-26<br/>
+    <strong>系統版本：</strong>水林地瓜 ERP v1.0<br/>
+    <strong>聯絡：</strong>如有技術問題請聯絡系統管理員
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+// Active nav highlight on scroll
+const sections=document.querySelectorAll('h2[id]');
+const links=document.querySelectorAll('.nav-link');
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      links.forEach(l=>l.classList.remove('active'));
+      const l=document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+      if(l) l.classList.add('active');
+    }
+  });
+},{threshold:0.3,rootMargin:'-60px 0px 0px 0px'});
+sections.forEach(s=>observer.observe(s));
+</script>
+</body>
+</html>

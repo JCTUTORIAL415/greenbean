@@ -1,0 +1,2290 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>水林地瓜 — 倉儲管理系統</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --org:#E8731A;--org-l:#FDF0E6;--org-m:#F5A84B;
+      --brn:#7B4F2E;--bg:#F7F4F0;--wh:#fff;
+      --g1:#F0EDE8;--g2:#D5CEC6;--g3:#8C8078;--tx:#2D2018;
+      --grn:#3AAB6D;--red:#D94F3D;--blu:#3A7BB5;--pur:#9B59B6;
+      --r:12px;--sh:0 2px 16px rgba(0,0,0,.09);
+    }
+    body{font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;
+      background:var(--bg);color:var(--tx);font-size:15px;display:flex;min-height:100vh;}
+
+    /* ─── Login ─── */
+    .login-overlay{position:fixed;inset:0;
+      background:linear-gradient(135deg,#2D1A0A,var(--brn));
+      z-index:999;display:flex;align-items:center;justify-content:center;}
+    .login-box{background:var(--wh);border-radius:16px;padding:36px 38px;
+      width:380px;max-width:92vw;box-shadow:0 20px 60px rgba(0,0,0,.4);text-align:center;}
+    .login-logo{font-size:26px;font-weight:900;color:var(--brn);letter-spacing:1px;}
+    .login-sub{font-size:13px;color:var(--g3);margin:4px 0 26px;}
+    .role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
+    .role-card{border:2px solid var(--g2);border-radius:10px;padding:14px 10px;
+      cursor:pointer;transition:all .15s;text-align:center;}
+    .role-card:hover{border-color:var(--org-m);}
+    .role-card.sel{border-color:var(--org);background:var(--org-l);}
+    .role-icon{font-size:26px;margin-bottom:5px;}
+    .role-name{font-size:13px;font-weight:700;}
+    .role-desc{font-size:11px;color:var(--g3);margin-top:2px;}
+
+    /* ─── Sidebar ─── */
+    .sidebar{width:215px;background:var(--brn);min-height:100vh;
+      display:flex;flex-direction:column;flex-shrink:0;
+      position:fixed;top:0;left:0;bottom:0;z-index:20;}
+    .sb-logo{padding:20px 16px 14px;border-bottom:1px solid rgba(255,255,255,.13);}
+    .sb-logo .brand{font-size:16px;font-weight:800;color:#fff;letter-spacing:1px;}
+    .sb-logo .sub{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px;}
+    .sb-menu{flex:1;padding:8px 0;overflow-y:auto;}
+    .sb-section{font-size:10px;font-weight:700;letter-spacing:1.2px;
+      color:rgba(255,255,255,.35);padding:12px 16px 3px;text-transform:uppercase;}
+    .sb-item{display:flex;align-items:center;gap:8px;padding:10px 16px;
+      color:rgba(255,255,255,.7);cursor:pointer;font-size:13px;
+      border-left:3px solid transparent;transition:all .15s;white-space:nowrap;}
+    .sb-item:hover{background:rgba(255,255,255,.08);color:#fff;}
+    .sb-item.active{background:rgba(232,115,26,.28);color:#fff;
+      border-left-color:var(--org-m);font-weight:600;}
+    .sb-icon{font-size:15px;width:19px;text-align:center;flex-shrink:0;}
+    .sb-badge{margin-left:auto;background:var(--red);color:#fff;
+      border-radius:20px;padding:1px 6px;font-size:10px;font-weight:700;}
+    .sb-foot{padding:12px 16px;border-top:1px solid rgba(255,255,255,.13);}
+    .sb-user{color:#fff;font-weight:700;font-size:13px;}
+    .sb-role{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px;}
+
+    /* ─── Main ─── */
+    .main{margin-left:215px;flex:1;display:flex;flex-direction:column;}
+    .topbar{background:var(--wh);border-bottom:1px solid var(--g2);
+      padding:0 26px;height:56px;display:flex;align-items:center;
+      justify-content:space-between;position:sticky;top:0;z-index:10;}
+    .topbar-title{font-size:17px;font-weight:700;color:var(--brn);}
+    .topbar-r{display:flex;align-items:center;gap:10px;}
+    .avatar{width:32px;height:32px;border-radius:50%;background:var(--org);
+      color:#fff;display:flex;align-items:center;justify-content:center;
+      font-weight:800;font-size:12px;}
+    .btn{padding:7px 15px;border-radius:8px;border:none;font-size:13px;
+      font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s;white-space:nowrap;}
+    .btn:hover{opacity:.85;}
+    .btn-pri{background:var(--org);color:#fff;}
+    .btn-out{background:transparent;border:1.5px solid var(--g2);color:var(--g3);}
+    .btn-grn{background:var(--grn);color:#fff;}
+    .btn-red{background:var(--red);color:#fff;}
+    .btn-blu{background:var(--blu);color:#fff;}
+    .btn-sm{padding:4px 10px;font-size:12px;}
+    .btn-icon{padding:5px 9px;font-size:13px;}
+
+    .content{padding:20px 24px 48px;}
+    .panel{display:none;}
+    .panel.active{display:block;}
+
+    /* ─── Stats ─── */
+    .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px;}
+    @media(max-width:1100px){.stats{grid-template-columns:repeat(3,1fr);}}
+    .stat{background:var(--wh);border-radius:var(--r);padding:15px 17px;
+      box-shadow:var(--sh);border-top:4px solid transparent;}
+    .stat.c1{border-top-color:var(--org);}
+    .stat.c2{border-top-color:var(--grn);}
+    .stat.c3{border-top-color:var(--blu);}
+    .stat.c4{border-top-color:var(--pur);}
+    .stat.c5{border-top-color:var(--red);}
+    .stat-lbl{font-size:12px;color:var(--g3);margin-bottom:4px;}
+    .stat-val{font-size:24px;font-weight:800;line-height:1;}
+    .stat-sub{font-size:11px;color:var(--g3);margin-top:3px;}
+
+    /* ─── Alert banners ─── */
+    .alert-wrap{margin-bottom:16px;}
+    .alert-banner{border-radius:var(--r);padding:12px 16px;margin-bottom:8px;
+      display:flex;align-items:flex-start;gap:10px;}
+    .alert-banner:last-child{margin-bottom:0;}
+    .alert-banner.warn{background:#FFF8E6;border:1.5px solid var(--org-m);}
+    .alert-banner.danger{background:#FDECEA;border:2px solid var(--red);}
+    .alert-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+    .alert-body{flex:1;}
+    .alert-title{font-size:13px;font-weight:700;margin-bottom:2px;}
+    .alert-list{font-size:12px;line-height:1.9;}
+
+    /* ─── Card ─── */
+    .card{background:var(--wh);border-radius:var(--r);box-shadow:var(--sh);
+      overflow:hidden;margin-bottom:16px;}
+    .card-head{padding:13px 18px;border-bottom:1px solid var(--g1);
+      display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+    .card-title{font-size:14px;font-weight:700;}
+    .card-body{padding:18px;}
+
+    /* ─── Table ─── */
+    .tbl{width:100%;border-collapse:collapse;}
+    .tbl th{background:var(--g1);padding:9px 12px;text-align:left;
+      font-size:12px;font-weight:600;color:var(--g3);white-space:nowrap;}
+    .tbl td{padding:10px 12px;font-size:13px;border-bottom:1px solid var(--g1);}
+    .tbl tr:last-child td{border-bottom:none;}
+    .tbl tbody tr:hover td{background:var(--org-l);}
+
+    /* ─── Chips ─── */
+    .chip{display:inline-block;padding:2px 8px;border-radius:20px;
+      font-size:11px;font-weight:700;white-space:nowrap;}
+    .chip-grn{background:#E8F7EE;color:var(--grn);}
+    .chip-org{background:var(--org-l);color:var(--org);}
+    .chip-red{background:#FDECEA;color:var(--red);}
+    .chip-blu{background:#E8F0FB;color:var(--blu);}
+    .chip-g{background:var(--g1);color:var(--g3);}
+    .chip-pur{background:#F3E8FB;color:var(--pur);}
+
+    /* ─── Day progress ─── */
+    .day-bar{display:flex;align-items:center;gap:6px;min-width:120px;}
+    .day-bg{flex:1;height:7px;background:var(--g1);border-radius:4px;overflow:hidden;}
+    .day-fill{height:100%;border-radius:4px;}
+    .day-fill.fresh{background:var(--grn);}
+    .day-fill.warn{background:var(--org);}
+    .day-fill.over{background:var(--red);}
+    .day-num{font-size:12px;font-weight:700;min-width:34px;}
+
+    /* ─── Inbound form ─── */
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    .form-grid.g3{grid-template-columns:1fr 1fr 1fr;}
+    @media(max-width:700px){.form-grid,.form-grid.g3{grid-template-columns:1fr;}}
+    .f-full{grid-column:1/-1;}
+    .f-lbl{display:block;font-size:12px;font-weight:600;color:var(--g3);margin-bottom:4px;}
+    .f-ctrl{width:100%;border:1.5px solid var(--g2);border-radius:8px;
+      padding:9px 12px;font-size:14px;color:var(--tx);outline:none;
+      font-family:inherit;background:var(--wh);}
+    .f-ctrl:focus{border-color:var(--org);}
+    .f-ctrl[readonly]{background:var(--g1);color:var(--g3);}
+    .net-display{background:linear-gradient(135deg,#E8F7EE,#F0FBF5);
+      border:2px solid var(--grn);border-radius:10px;padding:14px;text-align:center;}
+    .net-lbl{font-size:12px;color:var(--g3);margin-bottom:2px;}
+    .net-val{font-size:34px;font-weight:900;color:var(--grn);line-height:1;}
+    .net-unit{font-size:13px;color:var(--g3);}
+
+    /* ─── Warehouse grid ─── */
+    .wh-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;}
+    .wh-card{background:var(--wh);border-radius:var(--r);box-shadow:var(--sh);
+      border-top:4px solid var(--brn);overflow:hidden;}
+    .wh-card-head{padding:12px 16px;display:flex;align-items:center;
+      justify-content:space-between;border-bottom:1px solid var(--g1);}
+    .wh-name{font-size:15px;font-weight:800;color:var(--brn);}
+    .wh-card-body{padding:10px 16px;}
+    .zone-row{display:flex;align-items:center;justify-content:space-between;
+      padding:7px 0;border-bottom:1px solid var(--g1);font-size:13px;}
+    .zone-row:last-child{border-bottom:none;}
+    .zone-name-lbl{font-weight:600;}
+    .zone-stats{display:flex;align-items:center;gap:8px;}
+    .zone-weight{font-weight:700;color:var(--blu);}
+    .zone-alert-dot{width:10px;height:10px;border-radius:50%;
+      background:var(--red);display:inline-block;animation:pulse 1.2s infinite;}
+    @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+
+    /* ─── Tabs ─── */
+    .tabs{display:flex;gap:4px;background:var(--g1);border-radius:10px;
+      padding:4px;margin-bottom:16px;}
+    .tab{flex:0 0 auto;padding:8px 16px;border-radius:8px;border:none;
+      background:none;font-size:13px;font-weight:600;color:var(--g3);
+      cursor:pointer;font-family:inherit;transition:all .15s;}
+    .tab.active{background:var(--wh);color:var(--org);box-shadow:0 1px 4px rgba(0,0,0,.1);}
+    .sub-panel{display:none;}
+    .sub-panel.active{display:block;}
+
+    /* ─── Filter ─── */
+    .filter-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;}
+    .f-input,.f-select{border:1.5px solid var(--g2);border-radius:8px;
+      padding:7px 11px;font-size:13px;color:var(--tx);
+      background:var(--wh);outline:none;font-family:inherit;}
+    .f-input:focus,.f-select:focus{border-color:var(--org);}
+
+    /* ─── Modal ─── */
+    .modal-overlay{display:none;position:fixed;inset:0;
+      background:rgba(0,0,0,.45);z-index:200;
+      align-items:flex-start;justify-content:center;
+      padding:20px 12px;overflow-y:auto;}
+    .modal-overlay.open{display:flex;}
+    .modal{background:var(--wh);border-radius:var(--r);
+      width:480px;max-width:95vw;box-shadow:0 8px 40px rgba(0,0,0,.22);margin:auto;}
+    .modal.wide{width:620px;}
+    .modal.xl{width:800px;}
+    .modal-head{padding:14px 18px;border-bottom:1px solid var(--g1);
+      display:flex;align-items:center;justify-content:space-between;}
+    .modal-title{font-size:15px;font-weight:700;}
+    .modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--g3);line-height:1;}
+    .modal-body{padding:18px;max-height:72vh;overflow-y:auto;}
+    .modal-foot{padding:12px 18px;border-top:1px solid var(--g1);
+      display:flex;justify-content:flex-end;gap:8px;}
+    .info-row{display:flex;justify-content:space-between;font-size:13px;
+      padding:5px 0;border-bottom:1px solid var(--g1);}
+    .info-row:last-child{border-bottom:none;}
+    .info-lbl{color:var(--g3);}
+    .info-val{font-weight:700;}
+
+    /* ─── Upload area ─── */
+    .upload-area{border:2px dashed var(--g2);border-radius:10px;padding:28px;
+      text-align:center;cursor:pointer;transition:border-color .15s;}
+    .upload-area:hover{border-color:var(--org);}
+    .fp-img{max-width:100%;border-radius:8px;border:1px solid var(--g2);margin-top:10px;}
+
+    /* ─── Settings ─── */
+    .settings-section{font-size:11px;font-weight:700;color:var(--g3);
+      text-transform:uppercase;letter-spacing:.8px;
+      padding:14px 0 6px;border-bottom:1px solid var(--g1);margin-bottom:12px;}
+    .setting-row{display:flex;align-items:center;justify-content:space-between;
+      padding:10px 0;border-bottom:1px solid var(--g1);gap:12px;}
+    .setting-row:last-child{border-bottom:none;}
+    .setting-lbl{font-size:14px;font-weight:600;}
+    .setting-sub{font-size:12px;color:var(--g3);}
+    .setting-ctrl{width:120px;border:1.5px solid var(--g2);border-radius:8px;
+      padding:7px 10px;font-size:14px;text-align:right;outline:none;font-family:inherit;}
+    .setting-ctrl:focus{border-color:var(--org);}
+
+    /* ─── Empty ─── */
+    .empty{text-align:center;padding:36px;color:var(--g3);}
+    .empty-icon{font-size:34px;margin-bottom:6px;}
+
+    /* ─── Toast ─── */
+    .toast{position:fixed;bottom:22px;right:22px;background:var(--tx);color:#fff;
+      padding:11px 18px;border-radius:10px;font-size:14px;font-weight:600;
+      z-index:9999;opacity:0;transform:translateY(8px);
+      transition:all .25s;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.2);}
+    .toast.show{opacity:1;transform:translateY(0);}
+    .toast.ok{background:var(--grn);}
+    .toast.err{background:var(--red);}
+
+    /* ─── Receipt (print only) ─── */
+    #printReceipt{display:none;}
+    .receipt{width:320px;font-family:"Courier New",monospace;font-size:13px;
+      color:#000;border:2px solid #000;padding:12px 14px;line-height:1.6;}
+    .receipt-hd{text-align:center;font-weight:bold;font-size:15px;
+      border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:8px;}
+    .receipt-hd2{text-align:center;font-size:11px;margin-bottom:6px;}
+    .r-row{display:flex;justify-content:space-between;font-size:12px;}
+    .r-big{font-size:22px;font-weight:900;text-align:center;
+      border:2px solid #000;padding:7px;margin:8px 0;letter-spacing:2px;}
+    .r-div{border-top:1px dashed #000;margin:7px 0;}
+    .r-center{text-align:center;font-size:12px;}
+    .r-section{font-size:11px;font-weight:bold;margin-bottom:2px;color:#555;}
+    @media print{
+      body>*{display:none!important;}
+      #printReceipt{display:flex!important;align-items:flex-start;
+        justify-content:center;padding:10px;background:#fff;}
+    }
+
+    /* ─── Door Control ─── */
+    .door-panel-warn{
+      background:linear-gradient(135deg,#1A0A00,#3D1A00);
+      border-radius:var(--r);padding:14px 20px;margin-bottom:18px;
+      display:flex;align-items:center;gap:12px;border:2px solid #C0392B;
+    }
+    .door-panel-warn-text{color:#FFD0C0;font-size:13px;line-height:1.6;}
+    .door-panel-warn-title{color:#FF8060;font-weight:800;font-size:14px;margin-bottom:3px;}
+    .door-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;}
+    .door-card{background:var(--wh);border-radius:var(--r);box-shadow:var(--sh);
+      padding:22px 18px;text-align:center;border:2px solid var(--g2);transition:all .35s;}
+    .door-card.open{border-color:var(--grn);background:linear-gradient(180deg,#E8F7EE 0%,#fff 60%);}
+    .door-card.opening{border-color:var(--org);background:linear-gradient(180deg,#FDF0E6 0%,#fff 60%);}
+    .led{width:22px;height:22px;border-radius:50%;display:inline-block;
+      margin-bottom:12px;flex-shrink:0;}
+    .led-red{background:radial-gradient(circle at 35% 35%,#FF6B6B,#A30000);
+      box-shadow:0 0 10px rgba(211,47,47,.6);}
+    .led-grn{background:radial-gradient(circle at 35% 35%,#6EE89A,#1B7A43);
+      box-shadow:0 0 12px rgba(58,171,109,.8);animation:ledpulse 1.4s infinite;}
+    .led-yel{background:radial-gradient(circle at 35% 35%,#FFE066,#C07800);
+      box-shadow:0 0 10px rgba(240,193,64,.8);animation:ledpulse .55s infinite;}
+    @keyframes ledpulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+    .door-wh-name{font-size:16px;font-weight:800;color:var(--brn);margin-bottom:5px;}
+    .door-status{font-size:13px;font-weight:700;margin-bottom:14px;letter-spacing:.3px;}
+    .door-status.open{color:var(--grn);}
+    .door-status.closed{color:var(--red);}
+    .door-status.opening{color:var(--org);}
+    .door-meta{font-size:12px;color:var(--g3);margin-bottom:12px;line-height:1.7;}
+    .door-timer{font-size:13px;font-weight:700;color:var(--org);margin-bottom:12px;}
+    .door-log-wrap{max-height:540px;overflow-y:auto;}
+    /* confirm modal warning */
+    .door-confirm-box{background:#FFF8E6;border:2px solid var(--org);
+      border-radius:10px;padding:14px 16px;margin-bottom:16px;}
+    .door-confirm-title{font-size:15px;font-weight:800;color:#8A3500;margin-bottom:6px;}
+    .door-confirm-meta{font-size:13px;color:#7A4F00;line-height:1.6;}
+  </style>
+</head>
+<body>
+
+<!-- ─── Login ─── -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div class="login-logo">水林地瓜 ERP</div>
+    <div class="login-sub">倉儲管理系統 — 請輸入帳號密碼</div>
+    <div style="margin-bottom:12px;">
+      <label class="f-lbl" style="display:block;font-size:13px;font-weight:600;color:#64748B;margin-bottom:5px;">帳號</label>
+      <input class="f-ctrl" type="text" id="loginAccount" placeholder="請輸入帳號"
+        style="margin-bottom:0;"
+        onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()"/>
+    </div>
+    <div style="margin-bottom:16px;">
+      <label class="f-lbl" style="display:block;font-size:13px;font-weight:600;color:#64748B;margin-bottom:5px;">密碼</label>
+      <input class="f-ctrl" type="password" id="loginPassword" placeholder="請輸入密碼"
+        onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <button class="btn btn-pri" style="width:100%;padding:11px;" onclick="doLogin()">登入系統</button>
+    <div style="font-size:12px;color:#94A3B8;text-align:center;margin-top:12px;">預設帳號：員工ID（如 E001），密碼：1234</div>
+  </div>
+</div>
+
+<!-- ─── Sidebar ─── -->
+<aside class="sidebar" id="sidebar" style="display:none;">
+  <div class="sb-logo">
+    <div class="brand">水林地瓜 ERP</div>
+    <div class="sub">倉儲管理系統</div>
+  </div>
+  <nav class="sb-menu">
+    <div class="sb-section">主要功能</div>
+    <div class="sb-item active" onclick="switchPage('dash',this)">
+      <span class="sb-icon">&#127968;</span>儀表板
+      <span class="sb-badge" id="alertBadge" style="display:none;">0</span>
+    </div>
+    <div class="sb-item" onclick="switchPage('inbound',this)">
+      <span class="sb-icon">&#128230;</span>入庫作業
+    </div>
+    <div class="sb-item" onclick="switchPage('inventory',this)">
+      <span class="sb-icon">&#128202;</span>庫存總覽
+    </div>
+    <div class="sb-section">管理設定</div>
+    <div class="sb-item admin-only" onclick="switchPage('whmgmt',this)">
+      <span class="sb-icon">&#127981;</span>冷凍庫管理
+    </div>
+    <div class="sb-item admin-only" onclick="switchPage('master',this)">
+      <span class="sb-icon">&#128196;</span>基本資料
+    </div>
+    <div class="sb-item admin-only" onclick="switchPage('settings',this)">
+      <span class="sb-icon">&#9881;</span>系統設定
+    </div>
+    <div class="sb-section">硬體控制</div>
+    <div class="sb-item" id="sbDoorItem" onclick="switchPage('doors',this)">
+      <span class="sb-icon">&#128275;</span>艙門控制
+      <span class="sb-badge" id="doorOpenBadge" style="display:none;">!</span>
+    </div>
+    <div class="sb-item" onclick="switchPage('doorlog',this)">
+      <span class="sb-icon">&#128196;</span>艙門記錄
+    </div>
+    <div class="sb-section">系統</div>
+    <div class="sb-item" onclick="window.location.href='加工系統.html'">
+      <span class="sb-icon">&#127981;</span>加工系統
+    </div>
+    <div class="sb-item" onclick="window.location.href='銷售系統.html'">
+      <span class="sb-icon">&#128722;</span>銷售系統
+    </div>
+    <div class="sb-item" onclick="window.location.href='主管後台.html'">
+      <span class="sb-icon">&#128197;</span>出勤後台
+    </div>
+    <div class="sb-item" onclick="window.location.href='考核系統.html'">
+      <span class="sb-icon">&#9989;</span>考核系統
+    </div>
+    <div class="sb-item" onclick="window.location.href='總後台.html'"
+      style="margin-top:8px;border-top:1px solid rgba(255,255,255,.12);padding-top:14px;">
+      <span class="sb-icon">&#9729;</span>總後台
+    </div>
+  </nav>
+  <div class="sb-foot">
+    <div class="sb-user" id="sbUserName">—</div>
+    <div class="sb-role" id="sbUserRole">—</div>
+  </div>
+</aside>
+
+<!-- ─── Main ─── -->
+<div class="main" id="mainArea" style="display:none;">
+  <div class="topbar">
+    <div class="topbar-title" id="pageTitle">儀表板</div>
+    <div class="topbar-r">
+      <div style="font-size:12px;color:var(--g3);" id="todayLabel"></div>
+      <button class="btn btn-out btn-sm" onclick="refreshAll()">重新整理</button>
+      <div class="avatar" id="topAvatar">—</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ─── Dashboard ─── -->
+    <div class="panel active" id="page-dash">
+      <div class="stats" id="dashStats"></div>
+      <div class="alert-wrap" id="alertWrap"></div>
+      <div class="wh-grid" id="dashWhGrid"></div>
+    </div>
+
+    <!-- ─── Inbound ─── -->
+    <div class="panel" id="page-inbound">
+      <div style="display:grid;grid-template-columns:1fr 340px;gap:18px;" id="inboundLayout">
+        <!-- Form -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">&#128230; 入庫建檔</div>
+            <div style="font-size:12px;color:var(--g3);" id="inboundOrderPreview"></div>
+          </div>
+          <div class="card-body">
+            <div class="form-grid" style="margin-bottom:14px;">
+              <div>
+                <label class="f-lbl">單號（自動產生，可修改）</label>
+                <input class="f-ctrl" type="text" id="ibOrderNo"/>
+              </div>
+              <div>
+                <label class="f-lbl">備注</label>
+                <input class="f-ctrl" type="text" id="ibNote" placeholder="選填備注..."/>
+              </div>
+              <div>
+                <label class="f-lbl">日期</label>
+                <input class="f-ctrl" type="date" id="ibDate"/>
+              </div>
+              <div>
+                <label class="f-lbl">時間</label>
+                <input class="f-ctrl" type="time" id="ibTime"/>
+              </div>
+              <div>
+                <label class="f-lbl">農民姓名</label>
+                <select class="f-ctrl" id="ibFarmer" onchange="ibFarmerChange()">
+                  <option value="">請選擇農民</option>
+                </select>
+              </div>
+              <div>
+                <label class="f-lbl">農民（手動輸入，可覆蓋選單）</label>
+                <input class="f-ctrl" type="text" id="ibFarmerText" placeholder="直接輸入農民姓名"/>
+              </div>
+              <div>
+                <label class="f-lbl">品種</label>
+                <select class="f-ctrl" id="ibVariety">
+                  <option value="">請選擇品種</option>
+                </select>
+              </div>
+              <div>
+                <label class="f-lbl">品相 / 規格</label>
+                <select class="f-ctrl" id="ibGrade">
+                  <option value="">請選擇品相</option>
+                </select>
+              </div>
+              <div>
+                <label class="f-lbl">冷凍庫</label>
+                <select class="f-ctrl" id="ibWarehouse" onchange="ibWhChange()">
+                  <option value="">請選擇冷凍庫</option>
+                </select>
+              </div>
+              <div>
+                <label class="f-lbl">入庫區域</label>
+                <select class="f-ctrl" id="ibZone">
+                  <option value="">請先選擇冷凍庫</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-grid g3" style="margin-bottom:14px;">
+              <div>
+                <label class="f-lbl">毛重（kg）</label>
+                <input class="f-ctrl" type="number" id="ibGross" min="0" step="0.1"
+                  oninput="calcNetWeight()" placeholder="磅秤讀數"/>
+              </div>
+              <div>
+                <label class="f-lbl">鐵架重量（kg）</label>
+                <input class="f-ctrl" type="number" id="ibRack" min="0" step="0.1"
+                  oninput="calcNetWeight()" placeholder="預設 1200"/>
+              </div>
+              <div>
+                <div class="net-display" style="margin-top:20px;">
+                  <div class="net-lbl">淨重（自動計算）</div>
+                  <div class="net-val" id="netWeightVal">—</div>
+                  <div class="net-unit">公斤 kg</div>
+                </div>
+              </div>
+            </div>
+            <div class="form-grid" style="margin-bottom:18px;">
+              <div>
+                <label class="f-lbl">最長存放天數（天）</label>
+                <input class="f-ctrl" type="number" id="ibMaxDays" min="1" step="1" placeholder="由品種設定帶入"/>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;justify-content:flex-end;">
+              <button class="btn btn-out" onclick="clearInboundForm()">清除</button>
+              <button class="btn btn-pri" onclick="submitInbound()">&#128230; 確認入庫 &amp; 列印收據</button>
+            </div>
+          </div>
+        </div>
+        <!-- Recent records -->
+        <div>
+          <div class="card" style="margin-bottom:0;">
+            <div class="card-head">
+              <div class="card-title">今日入庫記錄</div>
+              <span id="todayInCount" style="font-size:12px;color:var(--g3);"></span>
+            </div>
+            <div id="recentInbound" style="max-height:520px;overflow-y:auto;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Inventory ─── -->
+    <div class="panel" id="page-inventory">
+      <div class="filter-bar">
+        <select class="f-select" id="invWh" onchange="renderInventory()">
+          <option value="">全部冷凍庫</option>
+        </select>
+        <select class="f-select" id="invZone" onchange="renderInventory()">
+          <option value="">全部區域</option>
+        </select>
+        <select class="f-select" id="invVar" onchange="renderInventory()">
+          <option value="">全部品種</option>
+        </select>
+        <select class="f-select" id="invGrd" onchange="renderInventory()">
+          <option value="">全部品相</option>
+        </select>
+        <select class="f-select" id="invStatus" onchange="renderInventory()">
+          <option value="active">庫存中</option>
+          <option value="all">全部</option>
+          <option value="shipped">已出庫</option>
+        </select>
+        <input class="f-input" type="text" id="invSearch" placeholder="搜尋農民/單號..."
+          oninput="renderInventory()" style="width:160px;"/>
+        <button class="btn btn-out btn-sm" onclick="exportInvCSV()">匯出 CSV</button>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">庫存明細</div>
+          <div style="font-size:12px;color:var(--g3);" id="invCountLabel"></div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="tbl" id="invTable">
+            <thead>
+              <tr>
+                <th>單號</th><th>農民</th><th>品種</th><th>品相</th>
+                <th>冷凍庫</th><th>區域</th>
+                <th>淨重(kg)</th><th>入庫日期</th>
+                <th>存放天數</th><th>上限</th><th>狀態</th><th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="invBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Warehouse Management ─── -->
+    <div class="panel" id="page-whmgmt">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:14px;gap:8px;">
+        <button class="btn btn-pri" onclick="openAddWh()">&#43; 新增冷凍庫</button>
+      </div>
+      <div class="wh-grid" id="whMgmtGrid"></div>
+    </div>
+
+    <!-- ─── Master Data ─── -->
+    <div class="panel" id="page-master">
+      <div class="tabs">
+        <button class="tab active" onclick="switchMasterTab('varieties',this)">品種</button>
+        <button class="tab" onclick="switchMasterTab('grades',this)">品相 / 規格</button>
+        <button class="tab" onclick="switchMasterTab('farmers',this)">農民名單</button>
+        <button class="tab" onclick="switchMasterTab('procprods',this)">加工產品</button>
+      </div>
+      <div class="sub-panel active" id="sp-varieties">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">品種管理</div>
+            <button class="btn btn-pri btn-sm" onclick="openAddVariety()">&#43; 新增品種</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="tbl"><thead><tr>
+              <th>品種名稱</th><th>預設最長存放天數</th><th>操作</th>
+            </tr></thead><tbody id="varietyBody"></tbody></table>
+          </div>
+        </div>
+      </div>
+      <div class="sub-panel" id="sp-grades">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">品相 / 規格管理</div>
+            <button class="btn btn-pri btn-sm" onclick="openAddGrade()">&#43; 新增品相</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="tbl"><thead><tr>
+              <th>品相名稱</th><th>排序</th><th>操作</th>
+            </tr></thead><tbody id="gradeBody"></tbody></table>
+          </div>
+        </div>
+      </div>
+      <div class="sub-panel" id="sp-farmers">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">農民名單</div>
+            <button class="btn btn-pri btn-sm" onclick="openAddFarmer()">&#43; 新增農民</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="tbl"><thead><tr>
+              <th>姓名</th><th>電話</th><th>操作</th>
+            </tr></thead><tbody id="farmerBody"></tbody></table>
+          </div>
+        </div>
+      </div>
+      <div class="sub-panel" id="sp-procprods">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">加工類產品管理</div>
+            <div style="font-size:12px;color:var(--g3);">（與加工系統共用產品資料）</div>
+            <button class="btn btn-pri btn-sm" onclick="openAddProcProd()">&#43; 新增產品</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="tbl"><thead><tr>
+              <th>產品名稱</th><th>單位</th><th>規格 / 品相</th><th>備注</th><th>操作</th>
+            </tr></thead><tbody id="procProdBody"></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Door Control ─── -->
+    <div class="panel" id="page-doors">
+      <div class="door-panel-warn">
+        <span style="font-size:28px;">&#9888;&#65039;</span>
+        <div class="door-panel-warn-text">
+          <div class="door-panel-warn-title">艙門遠端控制 — 僅限授權倉儲主管操作</div>
+          開啟艙門前請確認已通知現場人員，所有操作皆會記錄稽核日誌。<br/>
+          硬體連線狀態：<span id="hwStatus" style="color:#7CFC00;font-weight:700;">模擬模式（未連接實體控制器）</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+        <span id="doorOpenCount" style="font-size:13px;color:var(--g3);align-self:center;"></span>
+        <button class="btn btn-out btn-sm" style="margin-left:auto;" onclick="renderDoors()">重新整理狀態</button>
+      </div>
+      <div class="door-grid" id="doorGrid"></div>
+    </div>
+
+    <!-- ─── Door Log ─── -->
+    <div class="panel" id="page-doorlog">
+      <div class="filter-bar">
+        <input class="f-input" type="date" id="doorLogFrom" style="width:140px;"/>
+        <span style="color:var(--g3);">至</span>
+        <input class="f-input" type="date" id="doorLogTo" style="width:140px;"/>
+        <select class="f-select" id="doorLogWhFilter" onchange="renderDoorLog()">
+          <option value="">全部冷凍庫</option>
+        </select>
+        <button class="btn btn-out btn-sm" onclick="renderDoorLog()">篩選</button>
+        <button class="btn btn-out btn-sm" onclick="exportDoorLogCSV()">匯出 CSV</button>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">艙門操作記錄</div>
+          <div style="font-size:12px;color:var(--g3);" id="doorLogCount"></div>
+        </div>
+        <div class="door-log-wrap">
+          <table class="tbl">
+            <thead><tr>
+              <th>時間</th><th>冷凍庫</th><th>操作</th><th>操作人員</th><th>原因 / 備注</th>
+            </tr></thead>
+            <tbody id="doorLogBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Settings ─── -->
+    <div class="panel" id="page-settings">
+      <div class="card">
+        <div class="card-head"><div class="card-title">系統預設參數</div></div>
+        <div class="card-body">
+          <div class="settings-section">入庫作業</div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-lbl">預設鐵架重量（kg）</div>
+              <div class="setting-sub">每次入庫時自動填入，可手動調整</div>
+            </div>
+            <input class="setting-ctrl" type="number" id="cfgRackWeight" min="0" step="0.1"/>
+          </div>
+          <div class="settings-section" style="margin-top:4px;">各品種存放上限（天）</div>
+          <div id="varMaxDaysSettings"></div>
+          <div style="margin-top:18px;display:flex;justify-content:flex-end;">
+            <button class="btn btn-pri" onclick="saveAllSettings()">儲存設定</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">冷凍庫區域重量警示門檻</div>
+          <div style="font-size:12px;color:var(--g3);">庫存低於設定值時在儀表板顯示警示</div>
+        </div>
+        <div class="card-body" id="zoneAlertSettings"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─── Receipt (print) ─── -->
+<div id="printReceipt">
+  <div class="receipt" id="receiptContent"></div>
+</div>
+
+<!-- ─── Modal: Add / Edit Warehouse ─── -->
+<div class="modal-overlay" id="whModal" onclick="closeBg('whModal',event)">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="whModalTitle">新增冷凍庫</div>
+      <button class="modal-close" onclick="closeModal('whModal')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="whEditId"/>
+      <div style="margin-bottom:12px;">
+        <label class="f-lbl">冷凍庫名稱</label>
+        <input class="f-ctrl" type="text" id="whName" placeholder="例：冷凍庫 G"/>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-out" onclick="closeModal('whModal')">取消</button>
+      <button class="btn btn-pri" onclick="confirmWhEdit()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Modal: Zone Management ─── -->
+<div class="modal-overlay" id="zoneModal" onclick="closeBg('zoneModal',event)">
+  <div class="modal wide">
+    <div class="modal-head">
+      <div class="modal-title" id="zoneModalTitle">管理區域</div>
+      <button class="modal-close" onclick="closeModal('zoneModal')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="zoneWhId"/>
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <input class="f-ctrl" type="text" id="newZoneName" placeholder="新區域名稱，例：C區"/>
+        <button class="btn btn-grn" onclick="addZone()">&#43; 新增</button>
+      </div>
+      <table class="tbl">
+        <thead><tr><th>區域名稱</th><th>庫存批數</th><th>操作</th></tr></thead>
+        <tbody id="zoneListBody"></tbody>
+      </table>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-out" onclick="closeModal('zoneModal')">關閉</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Modal: Floor Plan ─── -->
+<div class="modal-overlay" id="fpModal" onclick="closeBg('fpModal',event)">
+  <div class="modal xl">
+    <div class="modal-head">
+      <div class="modal-title" id="fpModalTitle">動線圖</div>
+      <button class="modal-close" onclick="closeModal('fpModal')">&#x2715;</button>
+    </div>
+    <div class="modal-body" id="fpModalBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-out" onclick="closeModal('fpModal')">關閉</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Modal: Receipt Preview ─── -->
+<div class="modal-overlay" id="receiptModal" onclick="closeBg('receiptModal',event)">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">&#129534; 入庫收據</div>
+      <button class="modal-close" onclick="closeModal('receiptModal')">&#x2715;</button>
+    </div>
+    <div class="modal-body" id="receiptPreview" style="font-family:monospace;"></div>
+    <div class="modal-foot">
+      <button class="btn btn-out" onclick="closeModal('receiptModal')">關閉</button>
+      <button class="btn btn-pri" onclick="window.print()">&#128438; 列印貼紙</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Modal: Add Variety ─── -->
+<div class="modal-overlay" id="varModal" onclick="closeBg('varModal',event)">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="varModalTitle">新增品種</div>
+      <button class="modal-close" onclick="closeModal('varModal')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="varEditId"/>
+      <div style="margin-bottom:12px;">
+        <label class="f-lbl">品種名稱</label>
+        <input class="f-ctrl" type="text" id="varName" placeholder="例：台農57號"/>
+      </div>
+      <div>
+        <label class="f-lbl">預設最長存放天數（天）</label>
+        <input class="f-ctrl" type="number" id="varMaxDays" min="1" placeholder="例：120"/>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-out" onclick="closeModal('varModal')">取消</button>
+      <button class="btn btn-pri" onclick="confirmVarEdit()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Modal: Add Grade ─── -->
+<div class="modal-overlay" id="grdModal" onclick="closeBg('grdModal',event)">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="grdModalTitle">新增品相</div>
+      <button class="modal-close" onclick="closeModal('grdModal')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="grdEditId"/>
+      <div style="margin-bottom:12px;">
+        <label class="f-lbl">品相名稱</label>
+        <input class="f-ctrl" type="text" id="grdName" placeholder="例：特大"/>
+      </div>
+      <div>
+        <label class="f-lbl">排序（數字小排前面）</label>
+        <input class="f-ctrl" type="number" id="grdOrder" min="1" placeholder="1"/>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-out" onclick="closeModal('grdModal')">取消</button>
+      <button class="btn btn-pri" onclick="confirmGrdEdit()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Modal: Add Farmer ─── -->
+<div class="modal-overlay" id="farModal" onclick="closeBg('farModal',event)">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="farModalTitle">新增農民</div>
+      <button class="modal-close" onclick="closeModal('farModal')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="farEditId"/>
+      <div style="margin-bottom:12px;">
+        <label class="f-lbl">姓名</label>
+        <input class="f-ctrl" type="text" id="farName" placeholder="農民姓名"/>
+      </div>
+      <div>
+        <label class="f-lbl">電話（選填）</label>
+        <input class="f-ctrl" type="text" id="farPhone" placeholder="0912-345-678"/>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-out" onclick="closeModal('farModal')">取消</button>
+      <button class="btn btn-pri" onclick="confirmFarEdit()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Modal: Inbound Detail ─── -->
+<div class="modal-overlay" id="detailModal" onclick="closeBg('detailModal',event)">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">入庫單詳情</div>
+      <button class="modal-close" onclick="closeModal('detailModal')">&#x2715;</button>
+    </div>
+    <div class="modal-body" id="detailModalBody"></div>
+    <div class="modal-foot" id="detailModalFoot"></div>
+  </div>
+</div>
+
+<!-- ─── Modal: Door Confirm ─── -->
+<div class="modal-overlay" id="doorConfirmModal" onclick="closeBg('doorConfirmModal',event)">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="doorConfirmTitle">確認操作艙門</div>
+      <button class="modal-close" onclick="closeModal('doorConfirmModal')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <div class="door-confirm-box">
+        <div class="door-confirm-title" id="doorConfirmWarning"></div>
+        <div class="door-confirm-meta" id="doorConfirmMeta"></div>
+      </div>
+      <input type="hidden" id="doorConfirmWhId"/>
+      <input type="hidden" id="doorConfirmAction"/>
+      <div style="margin-bottom:12px;">
+        <label class="f-lbl">操作原因（必填）</label>
+        <input class="f-ctrl" type="text" id="doorConfirmReason" placeholder="例：入庫作業、出庫巡視..."/>
+      </div>
+      <div style="background:var(--g1);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--g3);">
+        &#128274; 此操作將由 <strong id="doorConfirmOperator"></strong> 執行，並記錄於稽核日誌
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-out" onclick="closeModal('doorConfirmModal')">取消</button>
+      <button class="btn btn-pri" id="doorConfirmBtn" onclick="executeDoorAction()">確認執行</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Modal: 加工產品 ─── -->
+<div class="modal-overlay" id="ppModal" onclick="if(event.target===this)closeModal('ppModal')">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="ppModalTitle">新增加工產品</div>
+      <button class="modal-close" onclick="closeModal('ppModal')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="ppEditId"/>
+      <div class="form-row">
+        <label class="f-lbl">產品名稱 ＊</label>
+        <input class="f-ctrl" type="text" id="ppName" placeholder="例：地瓜片"/>
+      </div>
+      <div class="form-row">
+        <label class="f-lbl">計量單位</label>
+        <input class="f-ctrl" type="text" id="ppUnit" placeholder="kg / 包 / 箱" value="kg"/>
+      </div>
+      <div class="form-row">
+        <label class="f-lbl">規格 / 品相（以逗號分隔）</label>
+        <input class="f-ctrl" type="text" id="ppSpecs" placeholder="例：A級、B級、C級"/>
+        <div style="font-size:11px;color:var(--g3);margin-top:4px;">多個規格請以逗號或頓號分隔</div>
+      </div>
+      <div class="form-row">
+        <label class="f-lbl">備注</label>
+        <input class="f-ctrl" type="text" id="ppNotes" placeholder="選填"/>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-out" onclick="closeModal('ppModal')">取消</button>
+      <button class="btn btn-pri" onclick="confirmProcProdEdit()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── Storage ──────────────────────────────────────────────────────────
+const getWH  = ()=>JSON.parse(localStorage.getItem('slg_wh_wh')||'[]');
+const saveWH = d=>localStorage.setItem('slg_wh_wh',JSON.stringify(d));
+const getVar = ()=>JSON.parse(localStorage.getItem('slg_wh_var')||'[]');
+const saveVar= d=>localStorage.setItem('slg_wh_var',JSON.stringify(d));
+const getGrd = ()=>JSON.parse(localStorage.getItem('slg_wh_grd')||'[]');
+const saveGrd= d=>localStorage.setItem('slg_wh_grd',JSON.stringify(d));
+const getFar = ()=>JSON.parse(localStorage.getItem('slg_wh_far')||'[]');
+const saveFar= d=>localStorage.setItem('slg_wh_far',JSON.stringify(d));
+const getIn      = ()=>JSON.parse(localStorage.getItem('slg_wh_in')||'[]');
+const saveIn     = d=>localStorage.setItem('slg_wh_in',JSON.stringify(d));
+const getProcProd  = ()=>JSON.parse(localStorage.getItem('slg_proc_products')||'[]');
+const saveProcProd = d=>localStorage.setItem('slg_proc_products',JSON.stringify(d));
+const getCfg = ()=>JSON.parse(localStorage.getItem('slg_wh_cfg')||'{"rackWeight":1200}');
+const saveCfg= d=>localStorage.setItem('slg_wh_cfg',JSON.stringify(d));
+
+// ─── Helpers ─────────────────────────────────────────────────────────
+const uid = ()=>'ID'+Date.now()+Math.random().toString(36).slice(2,6).toUpperCase();
+const todayStr = ()=>new Date().toISOString().slice(0,10);
+const nowHM = ()=>{const n=new Date();return String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');};
+const daysSince = dateStr=>{
+  const d = new Date(dateStr+'T00:00:00');
+  return Math.floor((Date.now()-d.getTime())/86400000);
+};
+const WEEKDAYS=['日','一','二','三','四','五','六'];
+
+// ─── Seed data ────────────────────────────────────────────────────────
+function seedData(){
+  if(localStorage.getItem('slg_wh_seeded')) return;
+  saveWH([
+    {id:'W001',name:'冷凍庫 A',zones:[{id:'ZA1',name:'A區'},{id:'ZA2',name:'B區'},{id:'ZA3',name:'C區'}],floorPlan:null,alerts:{}},
+    {id:'W002',name:'冷凍庫 B',zones:[{id:'ZB1',name:'A區'},{id:'ZB2',name:'B區'}],floorPlan:null,alerts:{}},
+    {id:'W003',name:'冷凍庫 C',zones:[{id:'ZC1',name:'A區'},{id:'ZC2',name:'B區'}],floorPlan:null,alerts:{}},
+    {id:'W004',name:'冷凍庫 D',zones:[{id:'ZD1',name:'A區'},{id:'ZD2',name:'B區'}],floorPlan:null,alerts:{}},
+    {id:'W005',name:'冷凍庫 E',zones:[{id:'ZE1',name:'A區'},{id:'ZE2',name:'B區'}],floorPlan:null,alerts:{}},
+    {id:'W006',name:'冷凍庫 F',zones:[{id:'ZF1',name:'A區'},{id:'ZF2',name:'B區'}],floorPlan:null,alerts:{}},
+  ]);
+  saveVar([
+    {id:'V001',name:'台農57號',maxDays:120},
+    {id:'V002',name:'台農66號',maxDays:100},
+    {id:'V003',name:'台農73號',maxDays:90},
+    {id:'V004',name:'台農78號',maxDays:120},
+  ]);
+  saveGrd([
+    {id:'G001',name:'特大',order:1},
+    {id:'G002',name:'大',order:2},
+    {id:'G003',name:'中',order:3},
+    {id:'G004',name:'小',order:4},
+    {id:'G005',name:'特小',order:5},
+    {id:'G006',name:'壞',order:6},
+  ]);
+  saveFar([
+    {id:'F001',name:'林大成',phone:'0912-345-678'},
+    {id:'F002',name:'陳富貴',phone:'0923-456-789'},
+    {id:'F003',name:'黃志明',phone:'0934-567-890'},
+  ]);
+  localStorage.setItem('slg_wh_seeded','1');
+  // 加工產品種子（可隨時新增）
+  if(!getProcProd().length) saveProcProd([
+    {id:'PP001',name:'地瓜片',unit:'kg',specs:['A級','B級','C級'],notes:''},
+    {id:'PP002',name:'地瓜條',unit:'kg',specs:['特級','一般'],notes:''},
+    {id:'PP003',name:'地瓜酥',unit:'包',specs:['大包裝','小包裝'],notes:''},
+    {id:'PP004',name:'地瓜粉',unit:'kg',specs:['精細粉','粗粒粉'],notes:''},
+  ]);
+}
+
+// ─── Login ────────────────────────────────────────────────────────────
+let currentUser = null;
+let selectedRole = 'supervisor';
+
+function doLogin(){
+  const account = document.getElementById('loginAccount').value.trim();
+  const password = document.getElementById('loginPassword').value.trim();
+  if(!account||!password){ showToast('請輸入帳號與密碼','err'); return; }
+  const users = JSON.parse(localStorage.getItem('slg_users')||'[]');
+  const user = users.find(u=>u.account===account && u.password===password && u.status==='active');
+  if(!user){ showToast('帳號或密碼錯誤','err'); return; }
+  const perms = JSON.parse(localStorage.getItem('slg_user_perms')||'{}');
+  const perm = (perms[user.id]||{})['warehouse']||'none';
+  if(perm==='none'){ showToast('您無此系統的存取權限，請聯絡管理員','err'); return; }
+  const role = perm==='supervisor' ? 'supervisor' : 'admin';
+  currentUser = {name: user.name, role, uid: user.id};
+  sessionStorage.setItem('slg_wh_user', JSON.stringify(currentUser));
+  applyLogin();
+}
+
+function applyLogin(){
+  if(!currentUser) return;
+  document.getElementById('loginOverlay').style.display='none';
+  document.getElementById('sidebar').style.display='flex';
+  document.getElementById('mainArea').style.display='flex';
+
+  // show/hide role-specific items
+  const isAdmin = currentUser.role==='admin';
+  const isSupervisor = currentUser.role==='supervisor';
+  document.querySelectorAll('.admin-only').forEach(el=>{
+    el.style.display = isAdmin ? '' : 'none';
+  });
+  document.querySelectorAll('.supervisor-only').forEach(el=>{
+    el.style.display = isSupervisor ? '' : 'none';
+  });
+
+  document.getElementById('sbUserName').textContent = currentUser.name;
+  document.getElementById('sbUserRole').textContent = currentUser.role==='admin'?'總後台':'建檔主管';
+  document.getElementById('topAvatar').textContent = currentUser.name[0];
+
+  const n=new Date();
+  document.getElementById('todayLabel').textContent =
+    n.toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
+
+  refreshAll();
+}
+
+// ─── Page navigation ─────────────────────────────────────────────────
+const pageTitles={dash:'儀表板',inbound:'入庫作業',inventory:'庫存總覽',
+  whmgmt:'冷凍庫管理',master:'基本資料',settings:'系統設定',
+  doors:'艙門遠端控制',doorlog:'艙門操作記錄'};
+let currentPage='dash';
+
+function switchPage(name, el){
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  if(el) el.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('pageTitle').textContent=pageTitles[name]||name;
+  currentPage=name;
+  if(name==='dash')      renderDash();
+  if(name==='inbound')   initInboundForm();
+  if(name==='inventory') { populateInvFilters(); renderInventory(); }
+  if(name==='whmgmt')    renderWhMgmt();
+  if(name==='master')    renderMaster();
+  if(name==='settings')  renderSettings();
+  if(name==='doors') renderDoors();
+  if(name==='doorlog'){
+    const today=todayStr();
+    if(!document.getElementById('doorLogFrom').value)
+      document.getElementById('doorLogFrom').value=today.slice(0,7)+'-01';
+    if(!document.getElementById('doorLogTo').value)
+      document.getElementById('doorLogTo').value=today;
+    renderDoorLog();
+  }
+}
+
+function refreshAll(){
+  renderDash();
+  if(currentPage==='inventory'){ populateInvFilters(); renderInventory(); }
+  if(currentPage==='inbound') renderRecentInbound();
+  if(currentPage==='doors') renderDoors();
+  // update door open badge regardless of page
+  const doors=getDoors();
+  const openCount=Object.values(doors).filter(d=>d.status==='open').length;
+  const badge=document.getElementById('doorOpenBadge');
+  if(badge){ badge.textContent=openCount; badge.style.display=openCount>0?'':'none'; }
+}
+
+// ─── Alerts ──────────────────────────────────────────────────────────
+function getAlerts(){
+  const alerts=[];
+  const warehouses=getWH();
+  const records=getIn().filter(r=>r.status==='active');
+  const today=new Date(todayStr()+'T00:00:00');
+
+  records.forEach(r=>{
+    const days=daysSince(r.date);
+    const maxD=r.maxDays||999;
+    const pct=maxD>0?days/maxD:0;
+    if(days>=maxD){
+      alerts.push({type:'danger',
+        msg:`【超期】${r.orderNo} · ${r.farmerName} · ${r.warehouseName} ${r.zoneName} · ${r.varietyName} ${r.gradeName} 已入庫 ${days} 天（上限 ${maxD} 天）`});
+    } else if(pct>=0.8){
+      alerts.push({type:'warn',
+        msg:`【接近上限】${r.orderNo} · ${r.warehouseName} ${r.zoneName} · ${r.varietyName} ${r.gradeName} 已入庫 ${days}/${maxD} 天`});
+    }
+  });
+
+  warehouses.forEach(wh=>{
+    if(!wh.alerts) return;
+    wh.zones.forEach(z=>{
+      const threshold=(wh.alerts[z.id]||{}).minWeight;
+      if(!threshold||threshold<=0) return;
+      const zWeight=records
+        .filter(r=>r.warehouseId===wh.id&&r.zoneId===z.id)
+        .reduce((s,r)=>s+(r.netWeight||0),0);
+      if(zWeight<threshold){
+        alerts.push({type:'warn',
+          msg:`【庫存偏低】${wh.name} ${z.name} 庫存 ${zWeight.toLocaleString()} kg，低於警示門檻 ${threshold.toLocaleString()} kg`});
+      }
+    });
+  });
+
+  return alerts;
+}
+
+// ─── Dashboard ───────────────────────────────────────────────────────
+function renderDash(){
+  const records=getIn();
+  const active=records.filter(r=>r.status==='active');
+  const todayRec=records.filter(r=>r.date===todayStr());
+  const alerts=getAlerts();
+  const overdue=alerts.filter(a=>a.type==='danger').length;
+
+  // update sidebar badge
+  const badge=document.getElementById('alertBadge');
+  badge.textContent=alerts.length;
+  badge.style.display=alerts.length>0?'':'none';
+
+  // stats
+  const totalNetKg=active.reduce((s,r)=>s+(r.netWeight||0),0);
+  document.getElementById('dashStats').innerHTML=`
+    <div class="stat c1">
+      <div class="stat-lbl">冷凍庫數</div>
+      <div class="stat-val">${getWH().length}</div>
+      <div class="stat-sub">啟用中</div>
+    </div>
+    <div class="stat c2">
+      <div class="stat-lbl">庫存批次</div>
+      <div class="stat-val">${active.length}</div>
+      <div class="stat-sub">活躍入庫單</div>
+    </div>
+    <div class="stat c3">
+      <div class="stat-lbl">庫存總重</div>
+      <div class="stat-val" style="font-size:18px;">${(totalNetKg/1000).toFixed(1)}<span style="font-size:13px;">噸</span></div>
+      <div class="stat-sub">淨重合計</div>
+    </div>
+    <div class="stat c4">
+      <div class="stat-lbl">今日入庫</div>
+      <div class="stat-val">${todayRec.length}</div>
+      <div class="stat-sub">筆</div>
+    </div>
+    <div class="stat c5">
+      <div class="stat-lbl">警示筆數</div>
+      <div class="stat-val" style="color:${overdue>0?'var(--red)':'var(--tx)'};">${alerts.length}</div>
+      <div class="stat-sub">${overdue} 筆超期</div>
+    </div>
+  `;
+
+  // alert banners
+  const wrap=document.getElementById('alertWrap');
+  if(!alerts.length){
+    wrap.innerHTML='';
+  } else {
+    const dangers=alerts.filter(a=>a.type==='danger');
+    const warns=alerts.filter(a=>a.type==='warn');
+    let html='';
+    if(dangers.length){
+      html+=`<div class="alert-banner danger">
+        <div class="alert-icon">&#128680;</div>
+        <div class="alert-body">
+          <div class="alert-title">超期警示（${dangers.length} 筆）— 請立即處理</div>
+          <div class="alert-list">${dangers.map(a=>'&#10148; '+a.msg).join('<br/>')}</div>
+        </div>
+      </div>`;
+    }
+    if(warns.length){
+      html+=`<div class="alert-banner warn">
+        <div class="alert-icon">&#9888;&#65039;</div>
+        <div class="alert-body">
+          <div class="alert-title">注意事項（${warns.length} 筆）</div>
+          <div class="alert-list">${warns.map(a=>'&#10148; '+a.msg).join('<br/>')}</div>
+        </div>
+      </div>`;
+    }
+    wrap.innerHTML=html;
+  }
+
+  // warehouse zone overview
+  const warehouses=getWH();
+  const grid=document.getElementById('dashWhGrid');
+  if(!warehouses.length){ grid.innerHTML='<div class="empty"><div class="empty-icon">&#127981;</div>尚未建立冷凍庫</div>'; return; }
+
+  grid.innerHTML=warehouses.map(wh=>{
+    const whRecs=active.filter(r=>r.warehouseId===wh.id);
+    const whTotal=whRecs.reduce((s,r)=>s+(r.netWeight||0),0);
+    const zonesHtml=wh.zones.map(z=>{
+      const zRecs=whRecs.filter(r=>r.zoneId===z.id);
+      const zWeight=zRecs.reduce((s,r)=>s+(r.netWeight||0),0);
+      const threshold=(wh.alerts&&wh.alerts[z.id])?wh.alerts[z.id].minWeight:0;
+      const isAlert=threshold>0&&zWeight<threshold&&zWeight>=0;
+      return `<div class="zone-row">
+        <div class="zone-name-lbl">${z.name}</div>
+        <div class="zone-stats">
+          ${isAlert?'<span class="zone-alert-dot" title="低於警示門檻"></span>':''}
+          <span class="zone-weight">${zWeight>=1000?(zWeight/1000).toFixed(1)+'t':zWeight+'kg'}</span>
+          <span style="font-size:12px;color:var(--g3);">${zRecs.length}批</span>
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div class="wh-card">
+      <div class="wh-card-head">
+        <div class="wh-name">${wh.name}</div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span style="font-size:12px;color:var(--g3);">${(whTotal/1000).toFixed(1)}t / ${whRecs.length}批</span>
+          ${wh.floorPlan?`<button class="btn btn-out btn-sm" onclick="openFloorPlan('${wh.id}')">動線圖</button>`:''}
+        </div>
+      </div>
+      <div class="wh-card-body">${zonesHtml||'<div style="color:var(--g3);font-size:12px;padding:8px 0;">尚無區域</div>'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ─── Inbound Form ─────────────────────────────────────────────────────
+function initInboundForm(){
+  const cfg=getCfg();
+  document.getElementById('ibDate').value=todayStr();
+  document.getElementById('ibTime').value=nowHM();
+  document.getElementById('ibRack').value=cfg.rackWeight||1200;
+  document.getElementById('ibOrderNo').value=genOrderNo();
+  document.getElementById('ibNote').value='';
+  document.getElementById('ibFarmerText').value='';
+  document.getElementById('ibGross').value='';
+  document.getElementById('netWeightVal').textContent='—';
+
+  // populate selects
+  populateSelect('ibFarmer', getFar(), 'id', 'name', '請選擇農民');
+  populateSelect('ibVariety', getVar(), 'id', 'name', '請選擇品種');
+  populateSelect('ibGrade', getGrd().sort((a,b)=>a.order-b.order), 'id', 'name', '請選擇品相');
+  populateSelect('ibWarehouse', getWH(), 'id', 'name', '請選擇冷凍庫');
+  document.getElementById('ibZone').innerHTML='<option value="">請先選擇冷凍庫</option>';
+  document.getElementById('ibVariety').onchange=ibVarietyChange;
+  document.getElementById('inboundOrderPreview').textContent='';
+
+  renderRecentInbound();
+}
+
+function populateSelect(id, arr, valKey, lblKey, placeholder){
+  const sel=document.getElementById(id);
+  const cur=sel.value;
+  sel.innerHTML=`<option value="">${placeholder}</option>`+
+    arr.map(item=>`<option value="${item[valKey]}">${item[lblKey]}</option>`).join('');
+  if(cur) sel.value=cur;
+}
+
+function ibFarmerChange(){
+  const id=document.getElementById('ibFarmer').value;
+  if(id){
+    const f=getFar().find(x=>x.id===id);
+    if(f) document.getElementById('ibFarmerText').value=f.name;
+  }
+}
+
+function ibWhChange(){
+  const whId=document.getElementById('ibWarehouse').value;
+  const zSel=document.getElementById('ibZone');
+  if(!whId){ zSel.innerHTML='<option value="">請先選擇冷凍庫</option>'; return; }
+  const wh=getWH().find(w=>w.id===whId);
+  zSel.innerHTML='<option value="">請選擇區域</option>'+
+    (wh?wh.zones.map(z=>`<option value="${z.id}">${z.name}</option>`).join(''):'');
+}
+
+function ibVarietyChange(){
+  const id=document.getElementById('ibVariety').value;
+  if(id){
+    const v=getVar().find(x=>x.id===id);
+    if(v&&v.maxDays) document.getElementById('ibMaxDays').value=v.maxDays;
+  }
+}
+
+function calcNetWeight(){
+  const gross=parseFloat(document.getElementById('ibGross').value)||0;
+  const rack=parseFloat(document.getElementById('ibRack').value)||0;
+  const net=Math.max(0,gross-rack);
+  document.getElementById('netWeightVal').textContent=net>0?net.toFixed(1):'—';
+}
+
+function genOrderNo(){
+  const d=todayStr().replace(/-/g,'');
+  const todayRecs=getIn().filter(r=>r.date===todayStr());
+  return `WH-${d}-${String(todayRecs.length+1).padStart(3,'0')}`;
+}
+
+function clearInboundForm(){
+  initInboundForm();
+}
+
+function submitInbound(){
+  const orderNo=document.getElementById('ibOrderNo').value.trim();
+  const farmerText=document.getElementById('ibFarmerText').value.trim();
+  const varietyId=document.getElementById('ibVariety').value;
+  const gradeId=document.getElementById('ibGrade').value;
+  const whId=document.getElementById('ibWarehouse').value;
+  const zoneId=document.getElementById('ibZone').value;
+  const gross=parseFloat(document.getElementById('ibGross').value);
+  const rack=parseFloat(document.getElementById('ibRack').value)||1200;
+  const date=document.getElementById('ibDate').value;
+  const time=document.getElementById('ibTime').value;
+  const note=document.getElementById('ibNote').value.trim();
+  const maxDays=parseInt(document.getElementById('ibMaxDays').value)||90;
+
+  if(!orderNo||!farmerText||!varietyId||!gradeId||!whId||!zoneId||!gross||!date){
+    showToast('請填寫所有必填欄位','err'); return;
+  }
+
+  const variety=getVar().find(v=>v.id===varietyId);
+  const grade=getGrd().find(g=>g.id===gradeId);
+  const wh=getWH().find(w=>w.id===whId);
+  const zone=wh?wh.zones.find(z=>z.id===zoneId):null;
+  const net=Math.max(0,gross-rack);
+
+  const rec={
+    id:uid(), orderNo, note, date, time,
+    farmerName:farmerText,
+    varietyId, varietyName:variety?variety.name:'',
+    gradeId, gradeName:grade?grade.name:'',
+    warehouseId:whId, warehouseName:wh?wh.name:'',
+    zoneId, zoneName:zone?zone.name:'',
+    grossWeight:gross, rackWeight:rack, netWeight:net,
+    maxDays, createdBy:currentUser.name,
+    createdAt:new Date().toISOString(), status:'active'
+  };
+
+  const records=getIn();
+  records.push(rec);
+  saveIn(records);
+
+  buildReceipt(rec);
+  document.getElementById('receiptModal').classList.add('open');
+
+  showToast(`入庫成功：${orderNo}（淨重 ${net} kg）`,'ok');
+  initInboundForm();
+}
+
+function renderRecentInbound(){
+  const today=todayStr();
+  const recs=getIn().filter(r=>r.date===today).sort((a,b)=>b.createdAt.localeCompare(a.createdAt));
+  document.getElementById('todayInCount').textContent=`共 ${recs.length} 筆`;
+  const el=document.getElementById('recentInbound');
+  if(!recs.length){
+    el.innerHTML='<div class="empty" style="padding:28px;"><div class="empty-icon">&#128230;</div>今日尚無入庫記錄</div>';
+    return;
+  }
+  el.innerHTML=recs.map(r=>`
+    <div style="padding:10px 14px;border-bottom:1px solid var(--g1);font-size:13px;">
+      <div style="font-weight:700;color:var(--brn);">${r.orderNo}</div>
+      <div style="color:var(--g3);font-size:12px;margin-top:1px;">${r.time} · ${r.farmerName}</div>
+      <div style="margin-top:3px;">${r.varietyName} ${r.gradeName}
+        <span style="float:right;font-weight:800;color:var(--grn);">${r.netWeight}kg</span>
+      </div>
+      <div style="font-size:12px;color:var(--g3);">${r.warehouseName} ${r.zoneName}</div>
+    </div>
+  `).join('');
+}
+
+// ─── Receipt ─────────────────────────────────────────────────────────
+function buildReceipt(r){
+  const wkd=WEEKDAYS[new Date(r.date+'T00:00:00').getDay()];
+  const html=`
+    <div class="receipt-hd">水林地瓜 倉儲系統</div>
+    <div class="receipt-hd2">入 庫 收 據</div>
+    <div class="r-row"><span>單號</span><span style="font-weight:bold;">${r.orderNo}</span></div>
+    ${r.note?`<div class="r-row"><span>備注</span><span>${r.note}</span></div>`:''}
+    <div class="r-div"></div>
+    <div class="r-row"><span>日期</span><span>${r.date}（週${wkd}）</span></div>
+    <div class="r-row"><span>時間</span><span>${r.time}</span></div>
+    <div class="r-row"><span>農民</span><span style="font-weight:bold;">${r.farmerName}</span></div>
+    <div class="r-div"></div>
+    <div class="r-section">品項資訊</div>
+    <div class="r-row"><span>品種</span><span>${r.varietyName}</span></div>
+    <div class="r-row"><span>品相</span><span>${r.gradeName}</span></div>
+    <div class="r-row"><span>入庫位置</span><span>${r.warehouseName} — ${r.zoneName}</span></div>
+    <div class="r-div"></div>
+    <div class="r-section">重量紀錄</div>
+    <div class="r-row"><span>毛重</span><span>${r.grossWeight} kg</span></div>
+    <div class="r-row"><span>鐵架重量</span><span>${r.rackWeight} kg</span></div>
+    <div class="r-big">淨重 ${r.netWeight} kg</div>
+    <div class="r-div"></div>
+    <div class="r-row"><span>存放上限</span><span>${r.maxDays} 天</span></div>
+    <div class="r-row"><span>建檔人員</span><span>${r.createdBy}</span></div>
+    <div class="r-div"></div>
+    <div class="r-center" style="font-size:11px;color:#666;">請妥善保管此收據</div>
+  `;
+  document.getElementById('receiptContent').innerHTML=html;
+  document.getElementById('receiptPreview').innerHTML=`<div class="receipt">${html}</div>`;
+}
+
+// ─── Inventory ────────────────────────────────────────────────────────
+function populateInvFilters(){
+  const whSel=document.getElementById('invWh');
+  const cur=whSel.value;
+  whSel.innerHTML='<option value="">全部冷凍庫</option>'+
+    getWH().map(w=>`<option value="${w.id}">${w.name}</option>`).join('');
+  whSel.value=cur;
+
+  const vSel=document.getElementById('invVar');
+  const vcur=vSel.value;
+  vSel.innerHTML='<option value="">全部品種</option>'+
+    getVar().map(v=>`<option value="${v.id}">${v.name}</option>`).join('');
+  vSel.value=vcur;
+
+  const gSel=document.getElementById('invGrd');
+  const gcur=gSel.value;
+  gSel.innerHTML='<option value="">全部品相</option>'+
+    getGrd().sort((a,b)=>a.order-b.order).map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
+  gSel.value=gcur;
+
+  invWhChange();
+}
+
+function invWhChange(){
+  const whId=document.getElementById('invWh').value;
+  const zSel=document.getElementById('invZone');
+  const cur=zSel.value;
+  if(!whId){
+    zSel.innerHTML='<option value="">全部區域</option>';
+  } else {
+    const wh=getWH().find(w=>w.id===whId);
+    zSel.innerHTML='<option value="">全部區域</option>'+
+      (wh?wh.zones.map(z=>`<option value="${z.id}">${z.name}</option>`).join(''):'');
+  }
+  zSel.value=cur;
+  renderInventory();
+}
+
+function renderInventory(){
+  const whId=document.getElementById('invWh').value;
+  const zId=document.getElementById('invZone').value;
+  const vId=document.getElementById('invVar').value;
+  const gId=document.getElementById('invGrd').value;
+  const status=document.getElementById('invStatus').value;
+  const kw=(document.getElementById('invSearch').value||'').trim();
+
+  let recs=getIn();
+  if(status==='active') recs=recs.filter(r=>r.status==='active');
+  else if(status==='shipped') recs=recs.filter(r=>r.status==='shipped');
+  if(whId) recs=recs.filter(r=>r.warehouseId===whId);
+  if(zId)  recs=recs.filter(r=>r.zoneId===zId);
+  if(vId)  recs=recs.filter(r=>r.varietyId===vId);
+  if(gId)  recs=recs.filter(r=>r.gradeId===gId);
+  if(kw)   recs=recs.filter(r=>r.farmerName.includes(kw)||r.orderNo.includes(kw));
+
+  recs.sort((a,b)=>b.createdAt.localeCompare(a.createdAt));
+  document.getElementById('invCountLabel').textContent=`共 ${recs.length} 筆`;
+
+  const body=document.getElementById('invBody');
+  if(!recs.length){
+    body.innerHTML=`<tr><td colspan="12" style="text-align:center;padding:28px;color:var(--g3);">無庫存記錄</td></tr>`;
+    return;
+  }
+  body.innerHTML=recs.map(r=>{
+    const days=daysSince(r.date);
+    const maxD=r.maxDays||999;
+    const pct=maxD<999?Math.min(1,days/maxD):0;
+    const cls=days>=maxD?'over':pct>=0.8?'warn':'fresh';
+    const dayColor=cls==='over'?'var(--red)':cls==='warn'?'var(--org)':'var(--grn)';
+    const isActive=r.status==='active';
+    return `<tr>
+      <td><strong style="color:var(--brn);">${r.orderNo}</strong>${r.note?`<br/><span style="font-size:11px;color:var(--g3);">${r.note}</span>`:''}</td>
+      <td>${r.farmerName}</td>
+      <td>${r.varietyName}</td>
+      <td><span class="chip chip-blu">${r.gradeName}</span></td>
+      <td>${r.warehouseName}</td>
+      <td>${r.zoneName}</td>
+      <td style="font-weight:700;color:var(--grn);">${r.netWeight.toLocaleString()}</td>
+      <td>${r.date}</td>
+      <td>
+        <div class="day-bar">
+          <div class="day-bg"><div class="day-fill ${cls}" style="width:${(pct*100).toFixed(0)}%;"></div></div>
+          <div class="day-num" style="color:${dayColor};">${days}天</div>
+        </div>
+      </td>
+      <td style="font-size:12px;color:var(--g3);">${maxD<999?maxD+'天':'—'}</td>
+      <td>${isActive?'<span class="chip chip-grn">庫存中</span>':'<span class="chip chip-g">已出庫</span>'}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-out btn-sm" onclick="openDetail('${r.id}')">詳情</button>
+        ${isActive?`<button class="btn btn-red btn-sm" onclick="shipOut('${r.id}')">出庫</button>`:''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function shipOut(id){
+  if(!confirm('確認出庫？此操作不可復原。')) return;
+  const recs=getIn();
+  const r=recs.find(x=>x.id===id);
+  if(r){ r.status='shipped'; r.shippedAt=new Date().toISOString(); }
+  saveIn(recs);
+  renderInventory();
+  renderDash();
+  showToast(`${r.orderNo} 已出庫`,'ok');
+}
+
+function openDetail(id){
+  const r=getIn().find(x=>x.id===id);
+  if(!r) return;
+  const days=daysSince(r.date);
+  document.getElementById('detailModalBody').innerHTML=`
+    <div class="info-row"><span class="info-lbl">單號</span><span class="info-val">${r.orderNo}</span></div>
+    <div class="info-row"><span class="info-lbl">備注</span><span class="info-val">${r.note||'—'}</span></div>
+    <div class="info-row"><span class="info-lbl">農民</span><span class="info-val">${r.farmerName}</span></div>
+    <div class="info-row"><span class="info-lbl">日期 / 時間</span><span class="info-val">${r.date} ${r.time}</span></div>
+    <div class="info-row"><span class="info-lbl">品種</span><span class="info-val">${r.varietyName}</span></div>
+    <div class="info-row"><span class="info-lbl">品相</span><span class="info-val">${r.gradeName}</span></div>
+    <div class="info-row"><span class="info-lbl">位置</span><span class="info-val">${r.warehouseName} — ${r.zoneName}</span></div>
+    <div class="info-row"><span class="info-lbl">毛重</span><span class="info-val">${r.grossWeight} kg</span></div>
+    <div class="info-row"><span class="info-lbl">鐵架重量</span><span class="info-val">${r.rackWeight} kg</span></div>
+    <div class="info-row"><span class="info-lbl">淨重</span><span class="info-val" style="color:var(--grn);font-size:17px;">${r.netWeight} kg</span></div>
+    <div class="info-row"><span class="info-lbl">已入庫天數</span><span class="info-val" style="color:${days>=r.maxDays?'var(--red)':'var(--tx)'};">${days} 天（上限 ${r.maxDays} 天）</span></div>
+    <div class="info-row"><span class="info-lbl">狀態</span><span class="info-val">${r.status==='active'?'庫存中':'已出庫'}</span></div>
+    <div class="info-row"><span class="info-lbl">建檔人員</span><span class="info-val">${r.createdBy}</span></div>
+  `;
+  document.getElementById('detailModalFoot').innerHTML=`
+    <button class="btn btn-out" onclick="closeModal('detailModal')">關閉</button>
+    <button class="btn btn-pri" onclick="closeModal('detailModal');buildReceipt(${JSON.stringify(r).replace(/"/g,'&quot;')});document.getElementById('receiptModal').classList.add('open');">重印收據</button>
+  `;
+  document.getElementById('detailModal').classList.add('open');
+}
+
+function exportInvCSV(){
+  const recs=getIn().filter(r=>r.status==='active');
+  const rows=[['單號','備注','農民','品種','品相','冷凍庫','區域','淨重(kg)','毛重(kg)','鐵架(kg)','入庫日期','存放天數','最長天數','建檔人員']];
+  recs.forEach(r=>rows.push([r.orderNo,r.note||'',r.farmerName,r.varietyName,r.gradeName,
+    r.warehouseName,r.zoneName,r.netWeight,r.grossWeight,r.rackWeight,
+    r.date,daysSince(r.date),r.maxDays,r.createdBy]));
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=`庫存報表_${todayStr()}.csv`; a.click();
+  URL.revokeObjectURL(url);
+  showToast('CSV 已匯出','ok');
+}
+
+// ─── Warehouse Management ─────────────────────────────────────────────
+function renderWhMgmt(){
+  const warehouses=getWH();
+  const grid=document.getElementById('whMgmtGrid');
+  if(!warehouses.length){
+    grid.innerHTML='<div class="empty"><div class="empty-icon">&#127981;</div>尚未建立冷凍庫，請點「新增冷凍庫」</div>';
+    return;
+  }
+  const recs=getIn().filter(r=>r.status==='active');
+  grid.innerHTML=warehouses.map(wh=>{
+    const whRecs=recs.filter(r=>r.warehouseId===wh.id);
+    const zonesHtml=wh.zones.map(z=>{
+      const zRecs=whRecs.filter(r=>r.zoneId===z.id);
+      const zKg=zRecs.reduce((s,r)=>s+(r.netWeight||0),0);
+      return `<div class="zone-row">
+        <div class="zone-name-lbl">${z.name}</div>
+        <div class="zone-stats">
+          <span style="font-size:12px;color:var(--g3);">${zRecs.length}批 · ${zKg}kg</span>
+          <button class="btn btn-red btn-sm" onclick="deleteZone('${wh.id}','${z.id}')"
+            ${zRecs.length>0?'disabled title="有庫存無法刪除"':''}>刪除</button>
+        </div>
+      </div>`;
+    }).join('');
+    return `<div class="wh-card">
+      <div class="wh-card-head">
+        <div class="wh-name">${wh.name}</div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-out btn-sm" onclick="openFloorPlan('${wh.id}')">&#128247; 動線圖</button>
+          <button class="btn btn-out btn-sm" onclick="openZoneModal('${wh.id}')">&#9881; 區域</button>
+          <button class="btn btn-out btn-sm" onclick="openEditWh('${wh.id}')">&#9998;</button>
+          <button class="btn btn-red btn-sm" onclick="deleteWh('${wh.id}')"
+            ${whRecs.length>0?'disabled title="有庫存無法刪除"':''}>&#128465;</button>
+        </div>
+      </div>
+      <div class="wh-card-body">
+        ${zonesHtml||'<div style="font-size:12px;color:var(--g3);padding:8px 0;">尚無區域，請點「區域」按鈕新增</div>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Add / Edit Warehouse
+function openAddWh(){
+  document.getElementById('whEditId').value='';
+  document.getElementById('whName').value='';
+  document.getElementById('whModalTitle').textContent='新增冷凍庫';
+  document.getElementById('whModal').classList.add('open');
+}
+function openEditWh(id){
+  const wh=getWH().find(w=>w.id===id);
+  if(!wh) return;
+  document.getElementById('whEditId').value=id;
+  document.getElementById('whName').value=wh.name;
+  document.getElementById('whModalTitle').textContent='編輯冷凍庫名稱';
+  document.getElementById('whModal').classList.add('open');
+}
+function confirmWhEdit(){
+  const id=document.getElementById('whEditId').value;
+  const name=document.getElementById('whName').value.trim();
+  if(!name){ showToast('請輸入名稱','err'); return; }
+  const whs=getWH();
+  if(id){
+    const w=whs.find(x=>x.id===id);
+    if(w) w.name=name;
+  } else {
+    whs.push({id:uid(),name,zones:[],floorPlan:null,alerts:{}});
+  }
+  saveWH(whs);
+  closeModal('whModal');
+  renderWhMgmt();
+  showToast(id?'已更新':'已新增冷凍庫','ok');
+}
+function deleteWh(id){
+  if(!confirm('確認刪除此冷凍庫？')) return;
+  saveWH(getWH().filter(w=>w.id!==id));
+  renderWhMgmt();
+  showToast('已刪除','ok');
+}
+
+// Zone Modal
+function openZoneModal(whId){
+  document.getElementById('zoneWhId').value=whId;
+  const wh=getWH().find(w=>w.id===whId);
+  document.getElementById('zoneModalTitle').textContent=`${wh?wh.name:''} — 區域管理`;
+  document.getElementById('newZoneName').value='';
+  renderZoneList(whId);
+  document.getElementById('zoneModal').classList.add('open');
+}
+function renderZoneList(whId){
+  const wh=getWH().find(w=>w.id===whId);
+  if(!wh) return;
+  const recs=getIn().filter(r=>r.status==='active'&&r.warehouseId===whId);
+  const body=document.getElementById('zoneListBody');
+  if(!wh.zones.length){
+    body.innerHTML=`<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--g3);">尚無區域</td></tr>`;
+    return;
+  }
+  body.innerHTML=wh.zones.map(z=>{
+    const cnt=recs.filter(r=>r.zoneId===z.id).length;
+    return `<tr>
+      <td><strong>${z.name}</strong></td>
+      <td>${cnt} 批</td>
+      <td>
+        <button class="btn btn-red btn-sm" onclick="deleteZoneFromModal('${whId}','${z.id}')"
+          ${cnt>0?'disabled title="有庫存無法刪除"':''}>刪除</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+function addZone(){
+  const whId=document.getElementById('zoneWhId').value;
+  const name=document.getElementById('newZoneName').value.trim();
+  if(!name){ showToast('請輸入區域名稱','err'); return; }
+  const whs=getWH();
+  const wh=whs.find(w=>w.id===whId);
+  if(!wh) return;
+  wh.zones.push({id:uid(),name});
+  saveWH(whs);
+  document.getElementById('newZoneName').value='';
+  renderZoneList(whId);
+  showToast(`已新增區域：${name}`,'ok');
+}
+function deleteZoneFromModal(whId,zId){
+  const cnt=getIn().filter(r=>r.status==='active'&&r.warehouseId===whId&&r.zoneId===zId).length;
+  if(cnt>0){ showToast('此區域有庫存，無法刪除','err'); return; }
+  const whs=getWH();
+  const wh=whs.find(w=>w.id===whId);
+  if(wh) wh.zones=wh.zones.filter(z=>z.id!==zId);
+  saveWH(whs);
+  renderZoneList(whId);
+  showToast('已刪除區域','ok');
+}
+function deleteZone(whId,zId){
+  deleteZoneFromModal(whId,zId);
+  renderWhMgmt();
+}
+
+// Floor Plan
+function openFloorPlan(whId){
+  const wh=getWH().find(w=>w.id===whId);
+  if(!wh) return;
+  document.getElementById('fpModalTitle').textContent=`${wh.name} — 動線圖`;
+  const body=document.getElementById('fpModalBody');
+  if(wh.floorPlan){
+    body.innerHTML=`
+      <img src="${wh.floorPlan}" class="fp-img" alt="動線圖"/>
+      <div style="margin-top:12px;display:flex;gap:8px;">
+        <label class="btn btn-out" style="cursor:pointer;">
+          &#128247; 更換圖片<input type="file" accept="image/*" style="display:none;" onchange="uploadFloorPlan('${whId}',this)"/>
+        </label>
+        <button class="btn btn-red btn-sm" onclick="removeFloorPlan('${whId}')">移除</button>
+      </div>`;
+  } else {
+    body.innerHTML=`
+      <div class="upload-area" onclick="this.querySelector('input').click()">
+        <div style="font-size:36px;margin-bottom:8px;">&#128247;</div>
+        <div style="font-weight:600;margin-bottom:4px;">點擊上傳動線圖</div>
+        <div style="font-size:12px;color:var(--g3);">支援 JPG / PNG / GIF</div>
+        <input type="file" accept="image/*" onchange="uploadFloorPlan('${whId}',this)"/>
+      </div>`;
+  }
+  document.getElementById('fpModal').classList.add('open');
+}
+function uploadFloorPlan(whId, input){
+  const file=input.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const whs=getWH();
+    const wh=whs.find(w=>w.id===whId);
+    if(wh){ wh.floorPlan=e.target.result; saveWH(whs); }
+    closeModal('fpModal');
+    setTimeout(()=>openFloorPlan(whId),100);
+    showToast('動線圖已上傳','ok');
+  };
+  reader.readAsDataURL(file);
+}
+function removeFloorPlan(whId){
+  const whs=getWH();
+  const wh=whs.find(w=>w.id===whId);
+  if(wh){ wh.floorPlan=null; saveWH(whs); }
+  closeModal('fpModal');
+  showToast('已移除動線圖','ok');
+}
+
+// ─── Master Data ─────────────────────────────────────────────────────
+function switchMasterTab(name, btn){
+  document.querySelectorAll('#page-master .tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.sub-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('sp-'+name).classList.add('active');
+}
+function renderMaster(){
+  renderVarieties();
+  renderGrades();
+  renderFarmers();
+  renderProcProds();
+}
+
+// Varieties
+function renderVarieties(){
+  const body=document.getElementById('varietyBody');
+  const vars=getVar();
+  if(!vars.length){ body.innerHTML=`<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--g3);">尚無品種</td></tr>`; return; }
+  body.innerHTML=vars.map(v=>`<tr>
+    <td><strong>${v.name}</strong></td>
+    <td>${v.maxDays||'—'} 天</td>
+    <td>
+      <button class="btn btn-out btn-sm" onclick="openEditVariety('${v.id}')">編輯</button>
+      <button class="btn btn-red btn-sm" onclick="deleteVariety('${v.id}')">刪除</button>
+    </td>
+  </tr>`).join('');
+}
+function openAddVariety(){
+  document.getElementById('varEditId').value='';
+  document.getElementById('varName').value='';
+  document.getElementById('varMaxDays').value='';
+  document.getElementById('varModalTitle').textContent='新增品種';
+  document.getElementById('varModal').classList.add('open');
+}
+function openEditVariety(id){
+  const v=getVar().find(x=>x.id===id);
+  if(!v) return;
+  document.getElementById('varEditId').value=id;
+  document.getElementById('varName').value=v.name;
+  document.getElementById('varMaxDays').value=v.maxDays||'';
+  document.getElementById('varModalTitle').textContent='編輯品種';
+  document.getElementById('varModal').classList.add('open');
+}
+function confirmVarEdit(){
+  const id=document.getElementById('varEditId').value;
+  const name=document.getElementById('varName').value.trim();
+  const maxDays=parseInt(document.getElementById('varMaxDays').value)||90;
+  if(!name){ showToast('請輸入品種名稱','err'); return; }
+  const vars=getVar();
+  if(id){ const v=vars.find(x=>x.id===id); if(v){v.name=name;v.maxDays=maxDays;} }
+  else vars.push({id:uid(),name,maxDays});
+  saveVar(vars);
+  closeModal('varModal');
+  renderVarieties();
+  renderSettings();
+  showToast(id?'已更新品種':'已新增品種','ok');
+}
+function deleteVariety(id){
+  if(!confirm('確認刪除？')) return;
+  saveVar(getVar().filter(v=>v.id!==id));
+  renderVarieties();
+  renderSettings();
+  showToast('已刪除','ok');
+}
+
+// Grades
+function renderGrades(){
+  const body=document.getElementById('gradeBody');
+  const grds=getGrd().sort((a,b)=>a.order-b.order);
+  if(!grds.length){ body.innerHTML=`<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--g3);">尚無品相</td></tr>`; return; }
+  body.innerHTML=grds.map(g=>`<tr>
+    <td><span class="chip chip-blu">${g.name}</span></td>
+    <td>${g.order}</td>
+    <td>
+      <button class="btn btn-out btn-sm" onclick="openEditGrade('${g.id}')">編輯</button>
+      <button class="btn btn-red btn-sm" onclick="deleteGrade('${g.id}')">刪除</button>
+    </td>
+  </tr>`).join('');
+}
+function openAddGrade(){
+  document.getElementById('grdEditId').value='';
+  document.getElementById('grdName').value='';
+  document.getElementById('grdOrder').value=getGrd().length+1;
+  document.getElementById('grdModalTitle').textContent='新增品相';
+  document.getElementById('grdModal').classList.add('open');
+}
+function openEditGrade(id){
+  const g=getGrd().find(x=>x.id===id);
+  if(!g) return;
+  document.getElementById('grdEditId').value=id;
+  document.getElementById('grdName').value=g.name;
+  document.getElementById('grdOrder').value=g.order;
+  document.getElementById('grdModalTitle').textContent='編輯品相';
+  document.getElementById('grdModal').classList.add('open');
+}
+function confirmGrdEdit(){
+  const id=document.getElementById('grdEditId').value;
+  const name=document.getElementById('grdName').value.trim();
+  const order=parseInt(document.getElementById('grdOrder').value)||1;
+  if(!name){ showToast('請輸入品相名稱','err'); return; }
+  const grds=getGrd();
+  if(id){ const g=grds.find(x=>x.id===id); if(g){g.name=name;g.order=order;} }
+  else grds.push({id:uid(),name,order});
+  saveGrd(grds);
+  closeModal('grdModal');
+  renderGrades();
+  showToast(id?'已更新品相':'已新增品相','ok');
+}
+function deleteGrade(id){
+  if(!confirm('確認刪除？')) return;
+  saveGrd(getGrd().filter(g=>g.id!==id));
+  renderGrades();
+  showToast('已刪除','ok');
+}
+
+// Farmers
+function renderFarmers(){
+  const body=document.getElementById('farmerBody');
+  const fars=getFar();
+  if(!fars.length){ body.innerHTML=`<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--g3);">尚無農民資料</td></tr>`; return; }
+  body.innerHTML=fars.map(f=>`<tr>
+    <td><strong>${f.name}</strong></td>
+    <td style="color:var(--g3);">${f.phone||'—'}</td>
+    <td>
+      <button class="btn btn-out btn-sm" onclick="openEditFarmer('${f.id}')">編輯</button>
+      <button class="btn btn-red btn-sm" onclick="deleteFarmer('${f.id}')">刪除</button>
+    </td>
+  </tr>`).join('');
+}
+function openAddFarmer(){
+  document.getElementById('farEditId').value='';
+  document.getElementById('farName').value='';
+  document.getElementById('farPhone').value='';
+  document.getElementById('farModalTitle').textContent='新增農民';
+  document.getElementById('farModal').classList.add('open');
+}
+function openEditFarmer(id){
+  const f=getFar().find(x=>x.id===id);
+  if(!f) return;
+  document.getElementById('farEditId').value=id;
+  document.getElementById('farName').value=f.name;
+  document.getElementById('farPhone').value=f.phone||'';
+  document.getElementById('farModalTitle').textContent='編輯農民';
+  document.getElementById('farModal').classList.add('open');
+}
+function confirmFarEdit(){
+  const id=document.getElementById('farEditId').value;
+  const name=document.getElementById('farName').value.trim();
+  const phone=document.getElementById('farPhone').value.trim();
+  if(!name){ showToast('請輸入姓名','err'); return; }
+  const fars=getFar();
+  if(id){ const f=fars.find(x=>x.id===id); if(f){f.name=name;f.phone=phone;} }
+  else fars.push({id:uid(),name,phone});
+  saveFar(fars);
+  closeModal('farModal');
+  renderFarmers();
+  showToast(id?'已更新農民資料':'已新增農民','ok');
+}
+function deleteFarmer(id){
+  if(!confirm('確認刪除？')) return;
+  saveFar(getFar().filter(f=>f.id!==id));
+  renderFarmers();
+  showToast('已刪除','ok');
+}
+
+// ─── Proc Products ────────────────────────────────────────────────────
+function renderProcProds(){
+  const body=document.getElementById('procProdBody');
+  const prods=getProcProd();
+  if(!prods.length){
+    body.innerHTML='<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--g3);">尚無加工產品</td></tr>';
+    return;
+  }
+  body.innerHTML=prods.map(p=>`<tr>
+    <td><strong>${p.name}</strong></td>
+    <td>${p.unit||'kg'}</td>
+    <td style="font-size:12px;">${(p.specs||[]).map(s=>`<span class="chip chip-org" style="margin:2px;">${s}</span>`).join('')||'—'}</td>
+    <td style="font-size:12px;color:var(--g3);">${p.notes||'—'}</td>
+    <td style="white-space:nowrap;">
+      <button class="btn btn-out btn-sm" onclick="openEditProcProd('${p.id}')">編輯</button>
+      <button class="btn btn-red btn-sm" onclick="deleteProcProd('${p.id}')">刪除</button>
+    </td>
+  </tr>`).join('');
+}
+function openAddProcProd(){
+  document.getElementById('ppEditId').value='';
+  document.getElementById('ppName').value='';
+  document.getElementById('ppUnit').value='kg';
+  document.getElementById('ppSpecs').value='';
+  document.getElementById('ppNotes').value='';
+  document.getElementById('ppModalTitle').textContent='新增加工產品';
+  document.getElementById('ppModal').classList.add('open');
+}
+function openEditProcProd(id){
+  const p=getProcProd().find(x=>x.id===id);
+  if(!p) return;
+  document.getElementById('ppEditId').value=id;
+  document.getElementById('ppName').value=p.name;
+  document.getElementById('ppUnit').value=p.unit||'kg';
+  document.getElementById('ppSpecs').value=(p.specs||[]).join('、');
+  document.getElementById('ppNotes').value=p.notes||'';
+  document.getElementById('ppModalTitle').textContent='編輯加工產品';
+  document.getElementById('ppModal').classList.add('open');
+}
+function confirmProcProdEdit(){
+  const id=document.getElementById('ppEditId').value;
+  const name=document.getElementById('ppName').value.trim();
+  const unit=document.getElementById('ppUnit').value.trim()||'kg';
+  const specsRaw=document.getElementById('ppSpecs').value.trim();
+  const specs=specsRaw?specsRaw.split(/[,，、]+/).map(s=>s.trim()).filter(Boolean):[];
+  const notes=document.getElementById('ppNotes').value.trim();
+  if(!name){ showToast('請輸入產品名稱','err'); return; }
+  const prods=getProcProd();
+  if(id){ const p=prods.find(x=>x.id===id); if(p){p.name=name;p.unit=unit;p.specs=specs;p.notes=notes;} }
+  else prods.push({id:'PP'+Date.now(),name,unit,specs,notes});
+  saveProcProd(prods);
+  closeModal('ppModal');
+  renderProcProds();
+  showToast(id?'產品已更新':'產品已新增','ok');
+}
+function deleteProcProd(id){
+  if(!confirm('確認刪除此加工產品？')) return;
+  saveProcProd(getProcProd().filter(p=>p.id!==id));
+  renderProcProds();
+  showToast('已刪除','ok');
+}
+
+// ─── Settings ────────────────────────────────────────────────────────
+function renderSettings(){
+  const cfg=getCfg();
+  document.getElementById('cfgRackWeight').value=cfg.rackWeight||1200;
+
+  // Per-variety max days
+  const vars=getVar();
+  const settingsEl=document.getElementById('varMaxDaysSettings');
+  if(!vars.length){
+    settingsEl.innerHTML='<div style="color:var(--g3);font-size:13px;padding:8px 0;">請先在「基本資料」建立品種</div>';
+  } else {
+    settingsEl.innerHTML=vars.map(v=>`
+      <div class="setting-row">
+        <div>
+          <div class="setting-lbl">${v.name}</div>
+          <div class="setting-sub">此品種預設最長存放天數</div>
+        </div>
+        <input class="setting-ctrl" type="number" id="varDays_${v.id}" min="1" value="${v.maxDays||90}"/>
+      </div>
+    `).join('');
+  }
+
+  // Zone alert thresholds
+  const whs=getWH();
+  const alertEl=document.getElementById('zoneAlertSettings');
+  if(!whs.length){
+    alertEl.innerHTML='<div style="color:var(--g3);font-size:13px;">請先建立冷凍庫</div>';
+    return;
+  }
+  alertEl.innerHTML=whs.map(wh=>`
+    <div style="margin-bottom:18px;">
+      <div style="font-weight:700;color:var(--brn);margin-bottom:8px;font-size:14px;">${wh.name}</div>
+      ${wh.zones.map(z=>{
+        const threshold=(wh.alerts&&wh.alerts[z.id])?wh.alerts[z.id].minWeight:'';
+        return `<div class="setting-row">
+          <div>
+            <div class="setting-lbl">${z.name}</div>
+            <div class="setting-sub">低於此重量（kg）時顯示警示，留空 = 不警示</div>
+          </div>
+          <input class="setting-ctrl" type="number" id="zAlert_${wh.id}_${z.id}"
+            min="0" value="${threshold}" placeholder="—"/>
+        </div>`;
+      }).join('')}
+    </div>
+  `).join('');
+}
+
+function saveAllSettings(){
+  // rack weight
+  const cfg=getCfg();
+  cfg.rackWeight=parseFloat(document.getElementById('cfgRackWeight').value)||1200;
+  saveCfg(cfg);
+
+  // variety max days
+  const vars=getVar();
+  vars.forEach(v=>{
+    const el=document.getElementById('varDays_'+v.id);
+    if(el) v.maxDays=parseInt(el.value)||90;
+  });
+  saveVar(vars);
+
+  // zone alert thresholds
+  const whs=getWH();
+  whs.forEach(wh=>{
+    if(!wh.alerts) wh.alerts={};
+    wh.zones.forEach(z=>{
+      const el=document.getElementById(`zAlert_${wh.id}_${z.id}`);
+      const val=el?parseFloat(el.value)||0:0;
+      wh.alerts[z.id]={minWeight:val};
+    });
+  });
+  saveWH(whs);
+
+  showToast('設定已儲存','ok');
+  renderDash();
+}
+
+// ─── Modal helpers ────────────────────────────────────────────────────
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function closeBg(id,e){ if(e.target===document.getElementById(id)) closeModal(id); }
+
+// ─── Toast ────────────────────────────────────────────────────────────
+let toastT;
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast show'+(type?' '+type:'');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>t.className='toast',3200);
+}
+
+// ─── Door Control ─────────────────────────────────────────────────────
+const getDoors    = ()=>JSON.parse(localStorage.getItem('slg_wh_doors')||'{}');
+const saveDoors   = d=>localStorage.setItem('slg_wh_doors',JSON.stringify(d));
+const getDoorLog  = ()=>JSON.parse(localStorage.getItem('slg_wh_door_log')||'[]');
+const saveDoorLog = d=>localStorage.setItem('slg_wh_door_log',JSON.stringify(d));
+
+function renderDoors(){
+  const whs=getWH();
+  const doors=getDoors();
+  const grid=document.getElementById('doorGrid');
+  if(!whs.length){
+    grid.innerHTML='<div class="empty"><div class="empty-icon">&#127981;</div>尚未建立冷凍庫</div>';
+    return;
+  }
+  const openCount=Object.values(doors).filter(d=>d.status==='open').length;
+  const countEl=document.getElementById('doorOpenCount');
+  if(countEl) countEl.textContent=`目前有 ${openCount} 個艙門開啟中`;
+  const badge=document.getElementById('doorOpenBadge');
+  if(badge){ badge.textContent=openCount; badge.style.display=openCount>0?'':'none'; }
+
+  grid.innerHTML=whs.map(wh=>{
+    const d=doors[wh.id]||{status:'closed'};
+    const isOpen=d.status==='open';
+    const isOpening=d.status==='opening';
+    const ledClass=isOpen?'led-grn':isOpening?'led-yel':'led-red';
+    const statusText=isOpen?'&#9989; 已開啟':isOpening?'&#128260; 開啟中…':'&#128274; 已關閉';
+    const statusClass=isOpen?'open':isOpening?'opening':'closed';
+
+    let metaHtml='';
+    if(isOpen&&d.openedBy){
+      const mins=Math.floor((Date.now()-new Date(d.openedAt).getTime())/60000);
+      metaHtml=`<div class="door-meta">
+        由 <strong>${d.openedBy}</strong> 開啟<br/>
+        ${new Date(d.openedAt).toLocaleString('zh-TW')}<br/>
+        <span class="door-timer">已開啟 ${mins} 分鐘${mins>=30?'　&#9888; 請注意是否需要關閉':''}</span>
+      </div>`;
+    }
+    if(d.status==='closed'&&d.closedBy){
+      metaHtml=`<div class="door-meta">
+        上次由 <strong>${d.closedBy}</strong> 關閉<br/>
+        ${new Date(d.closedAt).toLocaleString('zh-TW')}
+      </div>`;
+    }
+
+    const btn=isOpen
+      ?`<button class="btn btn-red" style="width:100%;" onclick="promptDoor('${wh.id}','close')">
+          &#128274; 關閉艙門
+        </button>`
+      :`<button class="btn btn-grn" style="width:100%;"
+          onclick="promptDoor('${wh.id}','open')" ${isOpening?'disabled':''}>
+          &#128275; 開啟艙門
+        </button>`;
+
+    return `<div class="door-card ${isOpen?'open':isOpening?'opening':''}">
+      <div><span class="led ${ledClass}"></span></div>
+      <div class="door-wh-name">${wh.name}</div>
+      <div class="door-status ${statusClass}">${statusText}</div>
+      ${metaHtml}
+      ${btn}
+    </div>`;
+  }).join('');
+}
+
+function promptDoor(whId, action){
+  const wh=getWH().find(w=>w.id===whId);
+  if(!wh) return;
+  const isOpen=action==='open';
+  document.getElementById('doorConfirmWhId').value=whId;
+  document.getElementById('doorConfirmAction').value=action;
+  document.getElementById('doorConfirmReason').value='';
+  document.getElementById('doorConfirmOperator').textContent=currentUser.name;
+  document.getElementById('doorConfirmTitle').textContent=isOpen?`開啟艙門：${wh.name}`:`關閉艙門：${wh.name}`;
+  document.getElementById('doorConfirmWarning').textContent=
+    isOpen?`&#9888; 即將遠端開啟 ${wh.name} 艙門`:`&#128274; 即將遠端關閉 ${wh.name} 艙門`;
+  document.getElementById('doorConfirmMeta').innerHTML=
+    isOpen?'開啟後請確認現場人員已知悉，並在作業完成後及時關閉。'
+          :'關閉前請確認人員已離開庫房，避免意外封閉。';
+  const btn=document.getElementById('doorConfirmBtn');
+  btn.className=isOpen?'btn btn-grn':'btn btn-red';
+  btn.textContent=isOpen?'確認開啟':'確認關閉';
+  document.getElementById('doorConfirmModal').classList.add('open');
+}
+
+function executeDoorAction(){
+  const whId=document.getElementById('doorConfirmWhId').value;
+  const action=document.getElementById('doorConfirmAction').value;
+  const reason=document.getElementById('doorConfirmReason').value.trim();
+  if(!reason){ showToast('請填寫操作原因','err'); return; }
+
+  const wh=getWH().find(w=>w.id===whId);
+  if(!wh) return;
+  closeModal('doorConfirmModal');
+
+  const doors=getDoors();
+  if(!doors[whId]) doors[whId]={status:'closed'};
+
+  if(action==='open'){
+    // Simulate hardware: mark as 'opening' → then 'open' after 2.5s
+    doors[whId].status='opening';
+    saveDoors(doors);
+    renderDoors();
+    showToast(`正在開啟 ${wh.name} 艙門…`,'');
+
+    // === Hardware API call placeholder ===
+    // fetch('/api/hardware/door/open', {
+    //   method:'POST',
+    //   headers:{'Content-Type':'application/json'},
+    //   body:JSON.stringify({warehouseId:whId, operator:currentUser.name, reason})
+    // }).then(r=>r.json()).then(res=>{ ... });
+
+    setTimeout(()=>{
+      const d2=getDoors();
+      d2[whId]={status:'open',openedBy:currentUser.name,
+        openedAt:new Date().toISOString(),reason};
+      saveDoors(d2);
+      logDoorAction(whId,wh.name,'open',reason);
+      renderDoors();
+      showToast(`${wh.name} 艙門已開啟`,'ok');
+    },2500);
+
+  } else {
+    // Close door
+    doors[whId].status='closed';
+    doors[whId].closedBy=currentUser.name;
+    doors[whId].closedAt=new Date().toISOString();
+    doors[whId].closeReason=reason;
+    saveDoors(doors);
+
+    // === Hardware API call placeholder ===
+    // fetch('/api/hardware/door/close', {
+    //   method:'POST',
+    //   headers:{'Content-Type':'application/json'},
+    //   body:JSON.stringify({warehouseId:whId, operator:currentUser.name, reason})
+    // });
+
+    logDoorAction(whId,wh.name,'close',reason);
+    renderDoors();
+    showToast(`${wh.name} 艙門已關閉`,'ok');
+  }
+}
+
+function logDoorAction(whId,whName,action,reason){
+  const log=getDoorLog();
+  log.unshift({
+    id:uid(), whId, whName,
+    action, operator:currentUser.name,
+    at:new Date().toISOString(), reason
+  });
+  saveDoorLog(log);
+}
+
+// ─── Door Log ─────────────────────────────────────────────────────────
+function renderDoorLog(){
+  const from=document.getElementById('doorLogFrom').value;
+  const to=document.getElementById('doorLogTo').value;
+  const whF=document.getElementById('doorLogWhFilter').value;
+
+  // populate wh filter
+  const wSel=document.getElementById('doorLogWhFilter');
+  const prev=wSel.value;
+  wSel.innerHTML='<option value="">全部冷凍庫</option>'+
+    getWH().map(w=>`<option value="${w.id}">${w.name}</option>`).join('');
+  wSel.value=prev;
+
+  let logs=getDoorLog();
+  if(from) logs=logs.filter(l=>l.at.slice(0,10)>=from);
+  if(to)   logs=logs.filter(l=>l.at.slice(0,10)<=to);
+  if(whF)  logs=logs.filter(l=>l.whId===whF);
+
+  document.getElementById('doorLogCount').textContent=`共 ${logs.length} 筆`;
+  const body=document.getElementById('doorLogBody');
+  if(!logs.length){
+    body.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:28px;color:var(--g3);">尚無艙門操作記錄</td></tr>`;
+    return;
+  }
+  body.innerHTML=logs.map(l=>`<tr>
+    <td style="white-space:nowrap;">${new Date(l.at).toLocaleString('zh-TW')}</td>
+    <td><strong>${l.whName}</strong></td>
+    <td>${l.action==='open'
+      ?'<span class="chip chip-grn">&#128275; 開啟</span>'
+      :'<span class="chip chip-red">&#128274; 關閉</span>'}</td>
+    <td>${l.operator}</td>
+    <td style="font-size:13px;color:var(--g3);">${l.reason||'—'}</td>
+  </tr>`).join('');
+}
+
+function exportDoorLogCSV(){
+  const logs=getDoorLog();
+  const rows=[['時間','冷凍庫','操作','操作人員','原因']];
+  logs.forEach(l=>rows.push([
+    new Date(l.at).toLocaleString('zh-TW'),l.whName,
+    l.action==='open'?'開啟':'關閉',l.operator,l.reason||''
+  ]));
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=`艙門記錄_${todayStr()}.csv`; a.click();
+  URL.revokeObjectURL(url);
+  showToast('CSV 已匯出','ok');
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────
+function init(){
+  seedData();
+  // restore session
+  const saved=sessionStorage.getItem('slg_wh_user');
+  if(saved){
+    currentUser=JSON.parse(saved);
+    selectRole(currentUser.role);
+    applyLogin();
+  } else {
+    selectRole('supervisor');
+  }
+}
+
+init();
+setInterval(()=>{
+  if(currentUser && currentPage==='dash') renderDash();
+}, 60000);
+</script>
+</body>
+</html>

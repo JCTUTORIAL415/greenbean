@@ -1,0 +1,1898 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>水林地瓜 — 主管後台</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --org:#E8731A;--org-l:#FDF0E6;--org-m:#F5A84B;
+      --brn:#7B4F2E;--bg:#F7F4F0;--wh:#fff;
+      --g1:#F0EDE8;--g2:#D5CEC6;--g3:#8C8078;--tx:#2D2018;
+      --grn:#3AAB6D;--red:#D94F3D;--blu:#3A7BB5;
+      --r:12px;--sh:0 2px 16px rgba(0,0,0,.09);
+    }
+    body{font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;
+      background:var(--bg);color:var(--tx);font-size:16px;display:flex;min-height:100vh;}
+
+    /* ─── Sidebar ─── */
+    .sidebar{width:210px;background:var(--brn);min-height:100vh;
+      display:flex;flex-direction:column;flex-shrink:0;
+      position:fixed;top:0;left:0;bottom:0;}
+    .sb-logo{padding:24px 18px 18px;border-bottom:1px solid rgba(255,255,255,.15);}
+    .sb-logo .brand{font-size:18px;font-weight:800;color:#fff;letter-spacing:1px;}
+    .sb-logo .sub{font-size:12px;color:rgba(255,255,255,.55);margin-top:3px;}
+    .sb-menu{flex:1;padding:12px 0;}
+    .sb-section{font-size:11px;font-weight:600;letter-spacing:1px;
+      color:rgba(255,255,255,.4);padding:14px 18px 5px;text-transform:uppercase;}
+    .sb-item{display:flex;align-items:center;gap:9px;padding:11px 18px;
+      color:rgba(255,255,255,.7);cursor:pointer;font-size:14px;
+      border-left:3px solid transparent;transition:all .15s;}
+    .sb-item:hover{background:rgba(255,255,255,.08);color:#fff;}
+    .sb-item.active{background:rgba(232,115,26,.25);color:#fff;
+      border-left-color:var(--org-m);font-weight:600;}
+    .sb-icon{font-size:16px;width:22px;text-align:center;}
+    .sb-foot{padding:14px 18px;border-top:1px solid rgba(255,255,255,.15);
+      color:rgba(255,255,255,.4);font-size:12px;}
+
+    /* ─── Main ─── */
+    .main{margin-left:210px;flex:1;display:flex;flex-direction:column;}
+    .topbar{background:var(--wh);border-bottom:1px solid var(--g2);
+      padding:0 28px;height:60px;display:flex;align-items:center;
+      justify-content:space-between;position:sticky;top:0;z-index:10;}
+    .topbar-title{font-size:19px;font-weight:700;color:var(--brn);}
+    .topbar-r{display:flex;align-items:center;gap:12px;}
+    .avatar{width:36px;height:36px;border-radius:50%;background:var(--org);
+      color:#fff;display:flex;align-items:center;justify-content:center;
+      font-weight:800;font-size:14px;}
+    .btn{padding:8px 18px;border-radius:8px;border:none;font-size:14px;
+      font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s;}
+    .btn:hover{opacity:.85;}
+    .btn-pri{background:var(--org);color:#fff;}
+    .btn-out{background:transparent;border:1.5px solid var(--g2);color:var(--g3);}
+    .btn-grn{background:var(--grn);color:#fff;}
+    .btn-red{background:var(--red);color:#fff;}
+
+    /* ─── Content ─── */
+    .content{padding:24px 28px 48px;}
+
+    /* ─── Stats ─── */
+    .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:24px;}
+    @media(max-width:1000px){.stats{grid-template-columns:repeat(3,1fr);}}
+    .stat{background:var(--wh);border-radius:var(--r);padding:18px 20px;
+      box-shadow:var(--sh);border-top:4px solid transparent;}
+    .stat.c1{border-top-color:var(--org);}
+    .stat.c2{border-top-color:var(--grn);}
+    .stat.c3{border-top-color:var(--blu);}
+    .stat.c4{border-top-color:#9B59B6;}
+    .stat.c5{border-top-color:var(--red);}
+    .stat-lbl{font-size:13px;color:var(--g3);margin-bottom:6px;}
+    .stat-val{font-size:28px;font-weight:800;color:var(--tx);line-height:1;}
+    .stat-sub{font-size:12px;color:var(--g3);margin-top:4px;}
+
+    /* ─── Tabs ─── */
+    .tabs{display:flex;gap:4px;background:var(--g1);border-radius:10px;
+      padding:4px;margin-bottom:20px;}
+    .tab{flex:0 0 auto;padding:9px 20px;border-radius:8px;border:none;
+      background:none;font-size:15px;font-weight:600;color:var(--g3);
+      cursor:pointer;font-family:inherit;transition:all .15s;}
+    .tab.active{background:var(--wh);color:var(--org);box-shadow:0 1px 4px rgba(0,0,0,.1);}
+    .panel{display:none;}
+    .panel.active{display:block;}
+
+    /* ─── Card ─── */
+    .card{background:var(--wh);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;margin-bottom:20px;}
+    .card-head{padding:16px 22px;border-bottom:1px solid var(--g1);
+      display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+    .card-title{font-size:16px;font-weight:700;}
+    .card-body{padding:22px;}
+
+    /* ─── Table ─── */
+    .tbl{width:100%;border-collapse:collapse;}
+    .tbl th{background:var(--g1);padding:11px 14px;text-align:left;
+      font-size:13px;font-weight:600;color:var(--g3);white-space:nowrap;}
+    .tbl td{padding:13px 14px;font-size:14px;border-bottom:1px solid var(--g1);}
+    .tbl tr:last-child td{border-bottom:none;}
+    .tbl tbody tr:hover td{background:var(--org-l);}
+
+    /* ─── Chips ─── */
+    .chip{display:inline-block;padding:3px 10px;border-radius:20px;
+      font-size:12px;font-weight:600;white-space:nowrap;}
+    .chip-grn{background:#E8F7EE;color:var(--grn);}
+    .chip-org{background:var(--org-l);color:var(--org);}
+    .chip-red{background:#FDECEA;color:var(--red);}
+    .chip-blu{background:#E8F0FB;color:var(--blu);}
+    .chip-g{background:var(--g1);color:var(--g3);}
+
+    /* ─── Hour bars ─── */
+    .bar-wrap{display:flex;align-items:center;gap:8px;min-width:120px;}
+    .bar-bg{flex:1;height:7px;background:var(--g1);border-radius:4px;overflow:hidden;}
+    .bar-fill{height:100%;border-radius:4px;}
+    .bar-num{font-size:13px;font-weight:700;min-width:32px;text-align:right;}
+
+    /* ─── Leave card ─── */
+    .leave-item{
+      border:1.5px solid var(--g2);border-radius:10px;padding:18px 20px;
+      margin-bottom:12px;background:var(--wh);
+    }
+    .leave-item.pend{border-color:var(--org-m);background:var(--org-l);}
+    .li-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+    .li-name{font-size:16px;font-weight:700;}
+    .li-meta{font-size:13px;color:var(--g3);margin-top:3px;}
+    .li-reason{font-size:14px;margin-top:8px;}
+    .li-notes{font-size:13px;color:var(--g3);margin-top:4px;}
+    .li-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+    .li-approved{font-size:13px;color:var(--g3);margin-top:8px;}
+
+    /* ─── Reject input ─── */
+    .reject-area{
+      margin-top:10px;display:none;
+      flex-direction:column;gap:6px;
+    }
+    .reject-area textarea{
+      border:1.5px solid var(--g2);border-radius:8px;
+      padding:8px 12px;font-size:14px;font-family:inherit;
+      resize:vertical;min-height:60px;outline:none;
+    }
+    .reject-area textarea:focus{border-color:var(--red);}
+
+    /* ─── Filter bar ─── */
+    .filter-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+    .f-input,.f-select{
+      border:1.5px solid var(--g2);border-radius:8px;
+      padding:7px 12px;font-size:14px;color:var(--tx);
+      background:var(--wh);outline:none;font-family:inherit;
+    }
+    .f-input:focus,.f-select:focus{border-color:var(--org);}
+
+    /* ─── Report ─── */
+    .report-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+    @media(max-width:800px){.report-grid{grid-template-columns:1fr;}}
+    .report-card{background:var(--wh);border-radius:var(--r);
+      padding:20px;box-shadow:var(--sh);}
+    .rc-title{font-size:14px;font-weight:700;color:var(--g3);margin-bottom:14px;
+      text-transform:uppercase;letter-spacing:.5px;}
+    .rc-row{display:flex;justify-content:space-between;align-items:center;
+      padding:9px 0;border-bottom:1px solid var(--g1);font-size:14px;}
+    .rc-row:last-child{border-bottom:none;}
+    .rc-name{font-weight:600;}
+    .rc-val{font-weight:800;}
+
+    /* ─── Log table ─── */
+    .log-dot{
+      width:8px;height:8px;border-radius:50%;
+      display:inline-block;margin-right:6px;vertical-align:middle;
+    }
+
+    /* ─── Empty ─── */
+    .empty{text-align:center;padding:40px;color:var(--g3);font-size:15px;}
+    .empty-icon{font-size:40px;margin-bottom:8px;}
+
+    /* ─── Toast ─── */
+    .toast{position:fixed;bottom:24px;right:24px;background:var(--tx);color:#fff;
+      padding:14px 22px;border-radius:10px;font-size:15px;font-weight:600;
+      z-index:9999;opacity:0;transform:translateY(10px);
+      transition:all .25s;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.2);}
+    .toast.show{opacity:1;transform:translateY(0);}
+    .toast.ok{background:var(--grn);}
+    .toast.err{background:var(--red);}
+
+    /* ─── Modal ─── */
+    .modal-overlay{display:none;position:fixed;inset:0;
+      background:rgba(0,0,0,.45);z-index:100;
+      align-items:flex-start;justify-content:center;
+      padding:24px 12px;overflow-y:auto;}
+    .modal-overlay.open{display:flex;}
+    .modal{background:var(--wh);border-radius:var(--r);
+      width:480px;max-width:95vw;box-shadow:0 8px 40px rgba(0,0,0,.2);
+      margin:auto;}
+    .modal-head{padding:18px 22px;border-bottom:1px solid var(--g1);
+      display:flex;align-items:center;justify-content:space-between;}
+    .modal-title{font-size:17px;font-weight:700;}
+    .modal-close{background:none;border:none;font-size:22px;
+      cursor:pointer;color:var(--g3);line-height:1;}
+    .modal-body{padding:22px;}
+    .modal-foot{padding:14px 22px;border-top:1px solid var(--g1);
+      display:flex;justify-content:flex-end;gap:10px;}
+    .form-row{margin-bottom:14px;}
+    .f-lbl{display:block;font-size:13px;font-weight:600;color:var(--g3);margin-bottom:5px;}
+    .f-ctrl{width:100%;border:1.5px solid var(--g2);border-radius:8px;
+      padding:9px 13px;font-size:15px;color:var(--tx);outline:none;font-family:inherit;}
+    .f-ctrl:focus{border-color:var(--org);}
+    .info-box{background:var(--g1);border-radius:8px;padding:12px 16px;font-size:14px;margin-bottom:14px;}
+    .info-box strong{display:block;margin-bottom:4px;font-size:15px;}
+    .info-row{display:flex;justify-content:space-between;font-size:13px;color:var(--g3);padding:3px 0;}
+
+    /* ─── 修正 Modal ─── */
+    .corr-modal{width:520px;max-width:95vw;}
+    .corr-warn{
+      background:#FFF8E6;border:1.5px solid var(--org-m);border-radius:10px;
+      padding:12px 16px;margin-bottom:16px;
+      display:flex;align-items:flex-start;gap:10px;
+    }
+    .corr-warn-icon{font-size:20px;flex-shrink:0;margin-top:1px;}
+    .corr-warn-text{font-size:14px;color:#7A4F00;line-height:1.5;}
+    .corr-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    .corr-orig{
+      background:var(--g1);border-radius:8px;padding:12px 16px;
+      margin-bottom:16px;
+    }
+    .corr-orig-title{font-size:12px;font-weight:600;color:var(--g3);
+      text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+    .corr-orig-row{display:flex;justify-content:space-between;
+      font-size:14px;padding:4px 0;border-bottom:1px solid var(--g2);}
+    .corr-orig-row:last-child{border-bottom:none;}
+    .corr-orig-lbl{color:var(--g3);}
+    .corr-orig-val{font-weight:700;}
+    .corr-orig-val.strike{text-decoration:line-through;color:var(--red);font-weight:400;}
+
+    /* ─── 預覽時數 ─── */
+    .hour-preview{
+      background:linear-gradient(135deg,#EAF4FF,#F0F8FF);
+      border:1.5px solid var(--blu);border-radius:10px;
+      padding:14px 18px;margin-top:14px;
+    }
+    .hp-title{font-size:12px;font-weight:700;color:var(--blu);
+      text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+    .hp-row{display:flex;justify-content:space-between;
+      font-size:15px;padding:4px 0;}
+    .hp-lbl{color:var(--g3);}
+    .hp-val{font-weight:800;}
+    .hp-val.reg{color:var(--blu);}
+    .hp-val.ot{color:var(--org);}
+    .hp-val.tot{color:var(--tx);font-size:18px;}
+
+    /* ─── 已修正 badge ─── */
+    .chip-corr{background:#FFF3CD;color:#7A4F00;}
+    .corr-note{font-size:11px;color:var(--g3);margin-top:2px;}
+
+    /* ─── 薪資管理 ─── */
+    .salary-tabs{display:flex;gap:4px;background:var(--g1);border-radius:10px;
+      padding:4px;margin-bottom:20px;}
+    .salary-tab{flex:0 0 auto;padding:9px 22px;border-radius:8px;border:none;
+      background:none;font-size:15px;font-weight:600;color:var(--g3);
+      cursor:pointer;font-family:inherit;transition:all .15s;}
+    .salary-tab.active{background:var(--wh);color:var(--org);
+      box-shadow:0 1px 4px rgba(0,0,0,.1);}
+    .salary-panel{display:none;}
+    .salary-panel.active{display:block;}
+
+    /* emp settings table */
+    .emp-rate-tag{
+      display:inline-block;background:var(--org-l);color:var(--org);
+      border-radius:6px;padding:2px 8px;font-size:13px;font-weight:700;
+    }
+    .bank-tag{
+      font-size:13px;color:var(--g3);
+    }
+    .bank-tag strong{color:var(--tx);}
+
+    /* payroll report */
+    .pay-summary{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:14px;
+      margin-bottom:20px;
+    }
+    @media(max-width:900px){.pay-summary{grid-template-columns:repeat(2,1fr);}}
+    .pay-card{background:var(--wh);border-radius:var(--r);
+      padding:18px 20px;box-shadow:var(--sh);text-align:center;}
+    .pay-card-lbl{font-size:13px;color:var(--g3);margin-bottom:6px;}
+    .pay-card-val{font-size:26px;font-weight:800;color:var(--tx);}
+    .pay-card-val.money{color:var(--grn);}
+    .pay-card-val.ot{color:var(--org);}
+    .pay-num{font-weight:800;color:var(--grn);}
+    .pay-num.ot{color:var(--org);}
+
+    /* emp edit modal */
+    .emp-modal{width:560px;max-width:95vw;}
+    .emp-modal .section-lbl{
+      font-size:12px;font-weight:700;color:var(--g3);
+      text-transform:uppercase;letter-spacing:.5px;
+      margin:18px 0 10px;padding-bottom:6px;
+      border-bottom:1px solid var(--g1);
+    }
+    .emp-modal .form-2col{
+      display:grid;grid-template-columns:1fr 1fr;gap:12px;
+    }
+    .rate-preview{
+      background:var(--g1);border-radius:8px;padding:12px 16px;
+      display:flex;gap:24px;margin-top:8px;flex-wrap:wrap;
+    }
+    .rp-item{font-size:14px;}
+    .rp-item span{font-weight:800;color:var(--org);}
+
+    /* ─── 日期區間快選 ─── */
+    .date-range-wrap{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+    .quick-btn{padding:5px 13px;border-radius:20px;border:1.5px solid var(--g2);
+      background:var(--wh);font-size:13px;font-weight:600;color:var(--g3);
+      cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap;}
+    .quick-btn:hover{border-color:var(--org);color:var(--org);}
+    .quick-btn.act{background:var(--org);color:#fff;border-color:var(--org);}
+    .range-sep{font-size:14px;color:var(--g3);white-space:nowrap;font-weight:600;}
+    .range-card{background:var(--wh);border-radius:var(--r);
+      box-shadow:var(--sh);padding:14px 20px;margin-bottom:16px;}
+
+    /* ─── Login overlay ─── */
+    .login-overlay{position:fixed;inset:0;z-index:9000;
+      background:var(--brn);display:flex;align-items:center;justify-content:center;
+      padding:24px;}
+    .login-overlay.hidden{display:none;}
+    .login-box{background:var(--wh);border-radius:20px;
+      width:480px;max-width:100%;padding:40px 36px;
+      box-shadow:0 12px 60px rgba(0,0,0,.35);}
+    .login-logo{text-align:center;margin-bottom:30px;}
+    .login-logo .l-brand{font-size:22px;font-weight:800;color:var(--brn);}
+    .login-logo .l-sub{font-size:13px;color:var(--g3);margin-top:5px;}
+    .login-roles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px;}
+    .role-card{border:2px solid var(--g2);border-radius:12px;padding:20px 14px;
+      text-align:center;cursor:pointer;transition:all .15s;background:var(--wh);}
+    .role-card:hover{border-color:var(--org);background:var(--org-l);}
+    .role-card.selected{border-color:var(--org);background:var(--org-l);}
+    .role-icon{font-size:30px;margin-bottom:7px;}
+    .role-name{font-size:14px;font-weight:700;color:var(--tx);}
+    .role-desc{font-size:11px;color:var(--g3);margin-top:3px;}
+    .login-field{margin-bottom:16px;}
+    .login-btn{width:100%;padding:14px;border-radius:10px;border:none;
+      background:var(--org);color:#fff;font-size:16px;font-weight:700;
+      cursor:pointer;font-family:inherit;transition:opacity .15s;margin-top:4px;}
+    .login-btn:hover{opacity:.88;}
+    .logout-btn{width:100%;padding:7px;border-radius:8px;border:1.5px solid rgba(255,255,255,.25);
+      background:transparent;color:rgba(255,255,255,.6);font-size:12px;font-weight:600;
+      cursor:pointer;font-family:inherit;margin-top:8px;transition:all .15s;}
+    .logout-btn:hover{background:rgba(255,255,255,.1);color:#fff;}
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="brand">水林地瓜 ERP</div>
+    <div class="sub">主管後台</div>
+  </div>
+  <nav class="sb-menu">
+    <div class="sb-section">出勤管理</div>
+    <div class="sb-item active" onclick="switchPage('att',this)">
+      <span class="sb-icon">&#128197;</span>今日出勤
+    </div>
+    <div class="sb-item" onclick="switchPage('leave',this)">
+      <span class="sb-icon">&#128203;</span>請假審核
+      <span id="pendBadge" style="margin-left:auto;background:var(--red);color:#fff;
+        border-radius:20px;padding:1px 7px;font-size:11px;font-weight:700;display:none;">0</span>
+    </div>
+    <div class="sb-item" onclick="switchPage('report',this)">
+      <span class="sb-icon">&#128200;</span>出勤報表
+    </div>
+    <div class="sb-item" onclick="switchPage('log',this)">
+      <span class="sb-icon">&#128196;</span>審核記錄
+    </div>
+    <div class="sb-item" onclick="switchPage('salary',this)">
+      <span class="sb-icon">&#128176;</span>薪資管理
+    </div>
+    <div class="sb-section">系統</div>
+    <div class="sb-item" onclick="goEmp()">
+      <span class="sb-icon">&#128101;</span>員工打卡端
+    </div>
+    <div class="sb-item" onclick="window.location.href='考核系統.html'">
+      <span class="sb-icon">&#9989;</span>考核系統
+    </div>
+    <div class="sb-item" onclick="window.location.href='獎金系統.html'">
+      <span class="sb-icon">&#127942;</span>獎金系統
+    </div>
+    <div class="sb-item" onclick="window.location.href='總後台.html'"
+      style="margin-top:8px;border-top:1px solid rgba(255,255,255,.12);padding-top:14px;">
+      <span class="sb-icon">&#9729;</span>總後台
+    </div>
+  </nav>
+  <div class="sb-foot">
+    <div id="sbFoot" style="margin-bottom:6px;"></div>
+    <button class="logout-btn" onclick="doLogout()">&#x21BA; 登出</button>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="pageTitle">今日出勤總覽</div>
+    <div class="topbar-r">
+      <div style="font-size:13px;color:var(--g3);" id="todayStr"></div>
+      <div style="font-size:13px;color:var(--g3);" id="topRoleLabel"></div>
+      <button class="btn btn-pri" onclick="refreshAll()">重新整理</button>
+      <div class="avatar" id="topAvatar">-</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- Stats bar -->
+    <div class="stats" id="statsBar">
+      <div class="stat c1">
+        <div class="stat-lbl">應到人數</div>
+        <div class="stat-val" id="st-total">—</div>
+        <div class="stat-sub">今日排班</div>
+      </div>
+      <div class="stat c2">
+        <div class="stat-lbl">已打卡</div>
+        <div class="stat-val" id="st-in">—</div>
+        <div class="stat-sub">上班中</div>
+      </div>
+      <div class="stat c3">
+        <div class="stat-lbl">已退勤</div>
+        <div class="stat-val" id="st-done">—</div>
+        <div class="stat-sub">完成出勤</div>
+      </div>
+      <div class="stat c4">
+        <div class="stat-lbl">請假中</div>
+        <div class="stat-val" id="st-leave">—</div>
+        <div class="stat-sub">核准請假</div>
+      </div>
+      <div class="stat c5">
+        <div class="stat-lbl">待審假單</div>
+        <div class="stat-val" id="st-pend">—</div>
+        <div class="stat-sub">需要處理</div>
+      </div>
+    </div>
+
+    <!-- ─── Page: 今日出勤 ─── -->
+    <div class="panel active" id="page-att">
+      <div class="range-card">
+        <div class="date-range-wrap">
+          <button class="quick-btn act" id="aq-today" onclick="setAttRange('today')">今日</button>
+          <button class="quick-btn" id="aq-thisWeek" onclick="setAttRange('thisWeek')">本週</button>
+          <button class="quick-btn" id="aq-lastWeek" onclick="setAttRange('lastWeek')">上週</button>
+          <button class="quick-btn" id="aq-thisMonth" onclick="setAttRange('thisMonth')">本月</button>
+          <button class="quick-btn" id="aq-lastMonth" onclick="setAttRange('lastMonth')">上月</button>
+          <span class="range-sep">自</span>
+          <input class="f-input" type="date" id="attFrom" onchange="renderAtt()" style="width:145px;"/>
+          <span class="range-sep">至</span>
+          <input class="f-input" type="date" id="attTo" onchange="renderAtt()" style="width:145px;"/>
+          <input class="f-input" type="text" placeholder="搜尋姓名..."
+            oninput="filterAtt(this.value)" style="width:130px;"/>
+          <select class="f-select" onchange="filterAttDept(this.value)">
+            <option value="">全部部門</option>
+            <option>農場生產</option><option>加工包裝</option>
+            <option>門市銷售</option><option>倉儲物流</option><option>行政管理</option>
+          </select>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title" id="attCardTitle">今日出勤明細</div>
+          <div style="font-size:13px;color:var(--g3);" id="attRangeLabel"></div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="tbl" id="attTable">
+            <thead>
+              <tr>
+                <th>員工</th><th>部門</th>
+                <th>上班打卡</th><th>下班打卡</th>
+                <th>正常時數</th><th>加班時數</th>
+                <th>合計</th><th>狀態</th><th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="attBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Page: 請假審核 ─── -->
+    <div class="panel" id="page-leave">
+      <div class="range-card">
+        <div class="date-range-wrap">
+          <button class="quick-btn" id="lq-today" onclick="setLeaveRange('today')">今日</button>
+          <button class="quick-btn" id="lq-thisWeek" onclick="setLeaveRange('thisWeek')">本週</button>
+          <button class="quick-btn" id="lq-lastWeek" onclick="setLeaveRange('lastWeek')">上週</button>
+          <button class="quick-btn act" id="lq-thisMonth" onclick="setLeaveRange('thisMonth')">本月</button>
+          <button class="quick-btn" id="lq-lastMonth" onclick="setLeaveRange('lastMonth')">上月</button>
+          <button class="quick-btn" id="lq-all" onclick="setLeaveRange('all')">全部</button>
+          <span class="range-sep">假期自</span>
+          <input class="f-input" type="date" id="leaveFrom" onchange="renderLeave()" style="width:145px;"/>
+          <span class="range-sep">至</span>
+          <input class="f-input" type="date" id="leaveTo" onchange="renderLeave()" style="width:145px;"/>
+          <input class="f-input" type="text" id="leaveSearch" placeholder="搜尋員工姓名..."
+            oninput="renderLeave()" style="width:140px;"/>
+        </div>
+      </div>
+      <div class="tabs" style="margin-bottom:16px;">
+        <button class="tab active" onclick="switchLeaveTab('pending',this)">待審核</button>
+        <button class="tab" onclick="switchLeaveTab('all',this)">全部假單</button>
+      </div>
+      <div id="leaveContent"></div>
+    </div>
+
+    <!-- ─── Page: 出勤報表 ─── -->
+    <div class="panel" id="page-report">
+      <div class="range-card">
+        <div class="date-range-wrap">
+          <button class="quick-btn" id="rq-today" onclick="setReportRange('today')">今日</button>
+          <button class="quick-btn" id="rq-thisWeek" onclick="setReportRange('thisWeek')">本週</button>
+          <button class="quick-btn" id="rq-lastWeek" onclick="setReportRange('lastWeek')">上週</button>
+          <button class="quick-btn act" id="rq-thisMonth" onclick="setReportRange('thisMonth')">本月</button>
+          <button class="quick-btn" id="rq-lastMonth" onclick="setReportRange('lastMonth')">上月</button>
+          <span class="range-sep">自</span>
+          <input class="f-input" type="date" id="reportFrom" onchange="renderReport()" style="width:145px;"/>
+          <span class="range-sep">至</span>
+          <input class="f-input" type="date" id="reportTo" onchange="renderReport()" style="width:145px;"/>
+          <select class="f-select" id="reportDept" onchange="renderReport()">
+            <option value="">全部部門</option>
+            <option>農場生產</option><option>加工包裝</option>
+            <option>門市銷售</option><option>倉儲物流</option><option>行政管理</option>
+          </select>
+          <button class="btn btn-out" onclick="exportCSV()">匯出 CSV</button>
+        </div>
+      </div>
+      <div class="report-grid" id="reportGrid"></div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title" id="reportCardTitle">本期出勤明細報表</div>
+          <div style="font-size:13px;color:var(--g3);" id="reportRangeLabel"></div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="tbl" id="reportTable">
+            <thead>
+              <tr>
+                <th>員工</th><th>部門</th><th>出勤天數</th>
+                <th>正常時數</th><th>加班時數</th><th>合計時數</th>
+                <th>平均每日</th><th>加班率</th>
+              </tr>
+            </thead>
+            <tbody id="reportBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Page: 薪資管理 ─── -->
+    <div class="panel" id="page-salary">
+      <div class="salary-tabs">
+        <button class="salary-tab active" onclick="switchSalaryTab('empSettings',this)">員工薪資設定</button>
+        <button class="salary-tab" onclick="switchSalaryTab('payroll',this)">薪資報表</button>
+      </div>
+
+      <!-- Tab: 員工薪資設定 -->
+      <div class="salary-panel active" id="sp-empSettings">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">員工薪資設定</div>
+            <div style="font-size:13px;color:var(--g3);">設定時薪、加班時薪與銀行帳戶</div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="tbl" id="empSettingsTable">
+              <thead>
+                <tr>
+                  <th>員工</th><th>部門</th>
+                  <th>時薪（元）</th><th>加班時薪（元）</th>
+                  <th>銀行</th><th>帳號</th><th>戶名</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="empSettingsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: 薪資報表 -->
+      <div class="salary-panel" id="sp-payroll">
+        <div class="range-card">
+          <div class="date-range-wrap">
+            <button class="quick-btn" id="pq-today" onclick="setPayRange('today')">今日</button>
+            <button class="quick-btn" id="pq-thisWeek" onclick="setPayRange('thisWeek')">本週</button>
+            <button class="quick-btn" id="pq-lastWeek" onclick="setPayRange('lastWeek')">上週</button>
+            <button class="quick-btn act" id="pq-thisMonth" onclick="setPayRange('thisMonth')">本月</button>
+            <button class="quick-btn" id="pq-lastMonth" onclick="setPayRange('lastMonth')">上月</button>
+            <span class="range-sep">自</span>
+            <input class="f-input" type="date" id="payFrom" onchange="" style="width:145px;"/>
+            <span class="range-sep">至</span>
+            <input class="f-input" type="date" id="payTo" onchange="" style="width:145px;"/>
+            <select class="f-select" id="payDept">
+              <option value="">全部部門</option>
+              <option>農場生產</option><option>加工包裝</option>
+              <option>門市銷售</option><option>倉儲物流</option><option>行政管理</option>
+            </select>
+            <button class="btn btn-pri" onclick="renderPayroll()">&#128176; 產生薪資報表</button>
+            <button class="btn btn-out" onclick="exportPayrollCSV()">匯出完整 CSV</button>
+          </div>
+        </div>
+        <div class="pay-summary" id="paySummary"></div>
+
+        <!-- 薪資匯總表 -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title" id="payReportTitle">薪資匯總</div>
+            <div style="font-size:13px;color:var(--g3);">含銀行帳號供對帳匯款</div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>員工</th><th>部門</th>
+                  <th>出勤天</th><th>正常時數</th><th>加班時數</th>
+                  <th>時薪</th><th>加班時薪</th>
+                  <th>正常薪資</th><th>加班薪資</th>
+                  <th style="background:#E8F7EE;color:var(--grn);">應付總額</th>
+                  <th>銀行</th><th>帳號</th><th>戶名</th>
+                </tr>
+              </thead>
+              <tbody id="payrollBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 當月每日明細 -->
+        <div class="card" style="margin-top:20px;">
+          <div class="card-head">
+            <div class="card-title">每日出勤明細</div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <select class="f-select" id="detailEmpFilter" onchange="filterPayDetail()" style="min-width:120px;">
+                <option value="">全部員工</option>
+              </select>
+              <div style="font-size:13px;color:var(--g3);" id="detailSubtitle"></div>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="tbl" id="payDetailTable">
+              <thead>
+                <tr>
+                  <th>員工</th><th>部門</th><th>日期</th><th>星期</th>
+                  <th>上班</th><th>下班</th>
+                  <th>正常時數</th>
+                  <th title="17:00–18:30">加班①<br/><span style="font-size:11px;font-weight:400;">17-18:30</span></th>
+                  <th title="19:00–21:00">加班②<br/><span style="font-size:11px;font-weight:400;">19-21:00</span></th>
+                  <th>加班合計</th>
+                  <th>正常薪資</th><th>加班薪資</th>
+                  <th style="background:#E8F7EE;color:var(--grn);">當日小計</th>
+                  <th>備注</th>
+                </tr>
+              </thead>
+              <tbody id="payDetailBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Page: 審核記錄 ─── -->
+    <div class="panel" id="page-log">
+      <div class="range-card">
+        <div class="date-range-wrap">
+          <button class="quick-btn" id="gq-today" onclick="setLogRange('today')">今日</button>
+          <button class="quick-btn" id="gq-thisWeek" onclick="setLogRange('thisWeek')">本週</button>
+          <button class="quick-btn" id="gq-lastWeek" onclick="setLogRange('lastWeek')">上週</button>
+          <button class="quick-btn act" id="gq-thisMonth" onclick="setLogRange('thisMonth')">本月</button>
+          <button class="quick-btn" id="gq-lastMonth" onclick="setLogRange('lastMonth')">上月</button>
+          <button class="quick-btn" id="gq-all" onclick="setLogRange('all')">全部</button>
+          <span class="range-sep">處理時間自</span>
+          <input class="f-input" type="date" id="logFrom" onchange="renderLog()" style="width:145px;"/>
+          <span class="range-sep">至</span>
+          <input class="f-input" type="date" id="logTo" onchange="renderLog()" style="width:145px;"/>
+          <input class="f-input" type="text" id="logSearch" placeholder="搜尋員工姓名..."
+            oninput="renderLog()" style="width:140px;"/>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">審核記錄</div>
+          <div style="font-size:13px;color:var(--g3);" id="logCountLabel">所有批准・駁回・修正記錄</div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>員工</th><th>類型</th><th>日期</th><th>內容</th>
+                <th>執行人</th><th>時間</th><th>備注／原因</th>
+              </tr>
+            </thead>
+            <tbody id="logBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─── 員工薪資設定 Modal ─── -->
+<div class="modal-overlay" id="empEditModal" onclick="closeEmpEditBg(event)">
+  <div class="modal emp-modal">
+    <div class="modal-head">
+      <div class="modal-title" id="empEditTitle">員工薪資設定</div>
+      <button class="modal-close" onclick="closeEmpEditModal()">&#x2715;</button>
+    </div>
+    <div class="modal-body" style="max-height:75vh;overflow-y:auto;">
+      <input type="hidden" id="empEditId"/>
+      <div class="emp-modal section-lbl">薪資設定</div>
+      <div class="emp-modal form-2col">
+        <div class="form-row">
+          <label class="f-lbl">時薪（元 / 時）</label>
+          <input class="f-ctrl" type="number" id="empHourly" min="0" step="1" placeholder="183" oninput="updateRatePreview()"/>
+        </div>
+        <div class="form-row">
+          <label class="f-lbl">加班時薪（元 / 時）</label>
+          <input class="f-ctrl" type="number" id="empOtRate" min="0" step="1" placeholder="275" oninput="updateRatePreview()"/>
+        </div>
+      </div>
+      <div class="rate-preview" id="ratePreview">
+        <div class="rp-item">8 時正常薪：<span id="pvDay">—</span> 元</div>
+        <div class="rp-item">每時加班費：<span id="pvOtH">—</span> 元</div>
+        <div class="rp-item">加班溢率：<span id="pvMult">—</span></div>
+      </div>
+      <div class="emp-modal section-lbl">銀行帳戶資訊</div>
+      <div class="emp-modal form-2col">
+        <div class="form-row">
+          <label class="f-lbl">銀行名稱</label>
+          <input class="f-ctrl" type="text" id="empBankName" placeholder="例：台灣銀行"/>
+        </div>
+        <div class="form-row">
+          <label class="f-lbl">分行</label>
+          <input class="f-ctrl" type="text" id="empBranchName" placeholder="例：水林分行"/>
+        </div>
+        <div class="form-row" style="grid-column:1/-1;">
+          <label class="f-lbl">帳號</label>
+          <input class="f-ctrl" type="text" id="empAccountNo" placeholder="請輸入完整帳號"/>
+        </div>
+        <div class="form-row" style="grid-column:1/-1;">
+          <label class="f-lbl">戶名</label>
+          <input class="f-ctrl" type="text" id="empAccountName" placeholder="與存摺相同之戶名"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-out" onclick="closeEmpEditModal()">取消</button>
+      <button class="btn btn-pri" onclick="confirmEmpEdit()">儲存設定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── 出勤修正 Modal ─── -->
+<div class="modal-overlay" id="correctModal" onclick="closeCorrectBg(event)">
+  <div class="modal corr-modal">
+    <div class="modal-head">
+      <div class="modal-title">&#9888;&#65039; 出勤紀錄修正</div>
+      <button class="modal-close" onclick="closeCorrectModal()">&#x2715;</button>
+    </div>
+    <div class="modal-body" style="max-height:72vh;overflow-y:auto;">
+      <div class="corr-warn">
+        <div class="corr-warn-icon">&#128274;</div>
+        <div class="corr-warn-text">
+          此操作由主管執行，將覆蓋原始打卡時間並重新計算時數。<br/>
+          所有修正記錄皆會留存於系統稽核 Log，請確認後再送出。
+        </div>
+      </div>
+      <div class="corr-orig" id="corrOrigInfo"></div>
+      <div class="corr-grid">
+        <div class="form-row">
+          <label class="f-lbl">修正日期</label>
+          <input class="f-ctrl" type="date" id="corrDate" onchange="previewCorr()"/>
+        </div>
+        <div></div>
+        <div class="form-row">
+          <label class="f-lbl">新上班時間（必填）</label>
+          <input class="f-ctrl" type="time" id="corrIn" oninput="previewCorr()"/>
+        </div>
+        <div class="form-row">
+          <label class="f-lbl">新下班時間<span style="color:var(--g3);font-weight:400;">（選填）</span></label>
+          <input class="f-ctrl" type="time" id="corrOut" oninput="previewCorr()"/>
+          <div style="font-size:12px;color:var(--g3);margin-top:4px;">留空 = 員工仍需打下班卡</div>
+        </div>
+      </div>
+      <div class="hour-preview" id="corrPreview" style="display:none;">
+        <div class="hp-title">&#128200; 修正後時數預覽</div>
+        <div class="hp-row"><span class="hp-lbl">正常時數</span><span class="hp-val reg" id="pvReg">—</span></div>
+        <div class="hp-row"><span class="hp-lbl">加班時數</span><span class="hp-val ot" id="pvOt">—</span></div>
+        <div class="hp-row" style="border-top:1px solid rgba(58,123,181,.2);margin-top:6px;padding-top:8px;">
+          <span class="hp-lbl"><strong>合計時數</strong></span>
+          <span class="hp-val tot" id="pvTot">—</span>
+        </div>
+      </div>
+      <div class="form-row" style="margin-top:14px;">
+        <label class="f-lbl">修正原因（必填）</label>
+        <textarea class="f-ctrl" id="corrReason" rows="2" placeholder="例：員工誤觸下班打卡，實際下班 20:30 ..."></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-out" onclick="closeCorrectModal()">取消</button>
+      <button class="btn btn-pri" onclick="confirmCorrect()">確認修正並重算時數</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reject modal -->
+<div class="modal-overlay" id="rejectModal" onclick="closeReject(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">駁回假單</div>
+      <button class="modal-close" onclick="document.getElementById('rejectModal').classList.remove('open')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <div class="info-box" id="rejectInfo"></div>
+      <div class="form-row">
+        <label class="f-lbl">駁回原因（必填）</label>
+        <textarea class="f-ctrl" id="rejectReason" rows="3" placeholder="請填寫駁回原因，將通知員工..."></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-out" onclick="document.getElementById('rejectModal').classList.remove('open')">取消</button>
+      <button class="btn btn-red" onclick="confirmReject()">確認駁回</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Login Overlay ─── -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div class="login-logo">
+      <div style="font-size:42px;margin-bottom:10px;">&#127820;</div>
+      <div class="l-brand">水林地瓜 ERP</div>
+      <div class="l-sub">主管後台 &mdash; 請輸入帳號密碼</div>
+    </div>
+    <div class="login-field">
+      <label class="f-lbl">帳號</label>
+      <input class="f-ctrl" type="text" id="loginAccount" placeholder="請輸入帳號"
+        onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()"/>
+    </div>
+    <div class="login-field">
+      <label class="f-lbl">密碼</label>
+      <input class="f-ctrl" type="password" id="loginPassword" placeholder="請輸入密碼"
+        onkeydown="if(event.key==='Enter') doLogin()"/>
+    </div>
+    <button class="login-btn" onclick="doLogin()">登入後台</button>
+    <div style="font-size:12px;color:#94A3B8;text-align:center;margin-top:12px;">預設帳號：員工ID，密碼：1234</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Login ──────────────────────────────────────────────────────────
+function doLogin(){
+  const account=document.getElementById('loginAccount').value.trim();
+  const password=document.getElementById('loginPassword').value.trim();
+  if(!account||!password){ showToast('請輸入帳號與密碼','err'); return; }
+  const users=JSON.parse(localStorage.getItem('slg_users')||'[]');
+  const user=users.find(u=>u.account===account&&u.password===password&&u.status==='active');
+  if(!user){ showToast('帳號或密碼錯誤','err'); return; }
+  const perms=JSON.parse(localStorage.getItem('slg_user_perms')||'{}');
+  const perm=(perms[user.id]||{})['hr']||'none';
+  if(perm==='none'){ showToast('您無此系統的存取權限，請聯絡管理員','err'); return; }
+  const role=perm==='supervisor'?'人資主管':'出勤主管';
+  sessionStorage.setItem('mgr_role',role);
+  sessionStorage.setItem('mgr_name',user.name);
+  applyLogin();
+}
+
+function applyLogin(){
+  const role=sessionStorage.getItem('mgr_role');
+  const name=sessionStorage.getItem('mgr_name');
+  if(!role||!name){
+    document.getElementById('loginOverlay').classList.remove('hidden');
+    return;
+  }
+  document.getElementById('loginOverlay').classList.add('hidden');
+  document.getElementById('sbFoot').textContent=`${role}：${name}`;
+  document.getElementById('topAvatar').textContent=name.slice(0,1);
+  document.getElementById('topRoleLabel').textContent=role;
+  init();
+}
+
+function doLogout(){
+  if(!confirm('確認登出？')) return;
+  sessionStorage.removeItem('mgr_role');
+  sessionStorage.removeItem('mgr_name');
+  document.getElementById('loginAccount').value='';
+  document.getElementById('loginPassword').value='';
+  document.getElementById('loginOverlay').classList.remove('hidden');
+}
+
+// ── Time helpers ───────────────────────────────────────────────────
+const RULES={LUNCH_S:720,LUNCH_E:780,REG_END:1020,DIN_S:1110,DIN_E:1140,OT2_E:1260};
+const toMin=s=>{const[h,m]=s.split(':').map(Number);return h*60+m;};
+const todayStr=()=>new Date().toISOString().slice(0,10);
+
+function calcHours(inS,outS){
+  if(!inS||!outS)return{regular:0,ot1:0,ot2:0,overtime:0,total:0};
+  const inM=toMin(inS),outM=toMin(outS);
+  if(outM<=inM)return{regular:0,ot1:0,ot2:0,overtime:0,total:0};
+  const w=(s,e,ws,we)=>Math.max(0,Math.min(e,we)-Math.max(s,ws));
+  const reg=w(inM,outM,0,RULES.LUNCH_S)+w(inM,outM,RULES.LUNCH_E,RULES.REG_END);
+  const ot1=w(inM,outM,RULES.REG_END,RULES.DIN_S);
+  const ot2=w(inM,outM,RULES.DIN_E,RULES.OT2_E);
+  return{
+    regular:+(reg/60).toFixed(1),
+    ot1:+(ot1/60).toFixed(1),
+    ot2:+(ot2/60).toFixed(1),
+    overtime:+((ot1+ot2)/60).toFixed(1),
+    total:+((reg+ot1+ot2)/60).toFixed(1)
+  };
+}
+
+// ── Storage ────────────────────────────────────────────────────────
+const getAtt  = ()=>JSON.parse(localStorage.getItem('slg_att')||'[]');
+const saveAtt = d=>localStorage.setItem('slg_att',JSON.stringify(d));
+const getLvs  = ()=>JSON.parse(localStorage.getItem('slg_lvs')||'[]');
+const saveLvs = d=>localStorage.setItem('slg_lvs',JSON.stringify(d));
+const getCorr = ()=>JSON.parse(localStorage.getItem('slg_corr')||'[]');
+const saveCorr= d=>localStorage.setItem('slg_corr',JSON.stringify(d));
+
+const SUPERVISOR='王主管';
+
+// ── State ──────────────────────────────────────────────────────────
+let attFilter='';
+let attDeptFilter='';
+let leaveTab='pending';
+let rejectTargetId=null;
+let correctTargetId=null;
+
+// ── Date range helpers ─────────────────────────────────────────────
+function getMonthRange(offset){
+  const d=new Date(); d.setDate(1); d.setMonth(d.getMonth()+offset);
+  const y=d.getFullYear(), m=d.getMonth();
+  const from=`${y}-${String(m+1).padStart(2,'0')}-01`;
+  const last=new Date(y,m+1,0);
+  const to=`${y}-${String(m+1).padStart(2,'0')}-${String(last.getDate()).padStart(2,'0')}`;
+  return{from,to};
+}
+function getWeekRange(offset){
+  const d=new Date(); const day=d.getDay();
+  const mon=new Date(d); mon.setDate(d.getDate()-(day===0?6:day-1)+offset*7);
+  const sun=new Date(mon); sun.setDate(mon.getDate()+6);
+  return{from:mon.toISOString().slice(0,10),to:sun.toISOString().slice(0,10)};
+}
+function rangePreset(preset){
+  switch(preset){
+    case 'today':{const t=todayStr();return{from:t,to:t};}
+    case 'thisWeek':return getWeekRange(0);
+    case 'lastWeek':return getWeekRange(-1);
+    case 'thisMonth':return getMonthRange(0);
+    case 'lastMonth':return getMonthRange(-1);
+    default:return getMonthRange(0);
+  }
+}
+function setQuickActive(prefix,preset){
+  ['today','thisWeek','lastWeek','thisMonth','lastMonth'].forEach(p=>{
+    const el=document.getElementById(prefix+'-'+p);
+    if(el) el.classList.toggle('act',p===preset);
+  });
+}
+function setAttRange(preset){
+  const{from,to}=rangePreset(preset);
+  document.getElementById('attFrom').value=from;
+  document.getElementById('attTo').value=to;
+  setQuickActive('aq',preset);
+  renderAtt();
+}
+function setReportRange(preset){
+  const{from,to}=rangePreset(preset);
+  document.getElementById('reportFrom').value=from;
+  document.getElementById('reportTo').value=to;
+  setQuickActive('rq',preset);
+  renderReport();
+}
+function setPayRange(preset){
+  const{from,to}=rangePreset(preset);
+  document.getElementById('payFrom').value=from;
+  document.getElementById('payTo').value=to;
+  setQuickActive('pq',preset);
+  renderPayroll();
+}
+function setLeaveRange(preset){
+  if(preset==='all'){
+    document.getElementById('leaveFrom').value='';
+    document.getElementById('leaveTo').value='';
+    setQuickActive('lq',preset);
+  } else {
+    const{from,to}=rangePreset(preset);
+    document.getElementById('leaveFrom').value=from;
+    document.getElementById('leaveTo').value=to;
+    setQuickActive('lq',preset);
+  }
+  renderLeave();
+}
+function setLogRange(preset){
+  if(preset==='all'){
+    document.getElementById('logFrom').value='';
+    document.getElementById('logTo').value='';
+    setQuickActive('gq',preset);
+  } else {
+    const{from,to}=rangePreset(preset);
+    document.getElementById('logFrom').value=from;
+    document.getElementById('logTo').value=to;
+    setQuickActive('gq',preset);
+  }
+  renderLog();
+}
+
+// ── Init ───────────────────────────────────────────────────────────
+function init(){
+  const n=new Date();
+  document.getElementById('todayStr').textContent=
+    n.toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
+  // 預設 att = 今日；report/pay/leave/log = 本月
+  const today=todayStr();
+  document.getElementById('attFrom').value=today;
+  document.getElementById('attTo').value=today;
+  const{from:mFrom,to:mTo}=getMonthRange(0);
+  document.getElementById('reportFrom').value=mFrom;
+  document.getElementById('reportTo').value=mTo;
+  document.getElementById('payFrom').value=mFrom;
+  document.getElementById('payTo').value=mTo;
+  document.getElementById('leaveFrom').value=mFrom;
+  document.getElementById('leaveTo').value=mTo;
+  document.getElementById('logFrom').value=mFrom;
+  document.getElementById('logTo').value=mTo;
+  refreshAll();
+}
+
+function refreshAll(){
+  updateStats();
+  renderAtt();
+  renderLeave();
+  renderReport();
+  renderLog();
+  updatePendBadge();
+}
+
+// ── Stats ──────────────────────────────────────────────────────────
+function updateStats(){
+  const att=getAtt();
+  const lvs=getLvs();
+  const today=todayStr();
+  const todayAtt=att.filter(r=>r.date===today);
+  const allEmps=8; // total employees
+  const inCount=todayAtt.filter(r=>r.status==='active').length;
+  const doneCount=todayAtt.filter(r=>r.status==='completed').length;
+  const leaveCount=lvs.filter(r=>r.status==='approved'&&r.startDate<=today&&r.endDate>=today).length;
+  const pendCount=lvs.filter(r=>r.status==='pending').length;
+  document.getElementById('st-total').textContent=allEmps;
+  document.getElementById('st-in').textContent=inCount;
+  document.getElementById('st-done').textContent=doneCount;
+  document.getElementById('st-leave').textContent=leaveCount;
+  document.getElementById('st-pend').textContent=pendCount;
+}
+
+function updatePendBadge(){
+  const n=getLvs().filter(r=>r.status==='pending').length;
+  const b=document.getElementById('pendBadge');
+  b.textContent=n;
+  b.style.display=n>0?'block':'none';
+}
+
+// ── Attendance ─────────────────────────────────────────────────────
+function filterAtt(v){ attFilter=v; renderAtt(); }
+function filterAttDept(v){ attDeptFilter=v; renderAtt(); }
+
+function renderAtt(){
+  const from = document.getElementById('attFrom').value || todayStr();
+  const to   = document.getElementById('attTo').value   || todayStr();
+  const rangeLabel = from===to ? from : `${from} ～ ${to}`;
+  document.getElementById('attCardTitle').textContent = from===to ? `${from} 出勤明細` : '出勤明細';
+  document.getElementById('attRangeLabel').textContent = rangeLabel;
+  const att=getAtt().filter(r=>r.date>=from&&r.date<=to);
+  let data=att;
+  if(attFilter) data=data.filter(r=>r.empName.includes(attFilter));
+  if(attDeptFilter) data=data.filter(r=>r.dept===attDeptFilter);
+  const body=document.getElementById('attBody');
+  if(!data.length){
+    body.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--g3);">此區間尚無出勤資料</td></tr>`;
+    return;
+  }
+  body.innerHTML=data.map(r=>{
+    const h=r.clockOut?calcHours(r.clockIn,r.clockOut):calcHours(r.clockIn,nowHM());
+    const regBar=`<div class="bar-wrap">
+      <div class="bar-bg"><div class="bar-fill" style="width:${Math.min(100,h.regular/9*100)}%;background:var(--blu);"></div></div>
+      <div class="bar-num" style="color:var(--blu);">${h.regular}h</div>
+    </div>`;
+    const otBar=h.overtime>0?`<div class="bar-wrap">
+      <div class="bar-bg"><div class="bar-fill" style="width:${Math.min(100,h.overtime/3*100)}%;background:var(--org);"></div></div>
+      <div class="bar-num" style="color:var(--org);">${h.overtime}h</div>
+    </div>`:'-';
+    const isActive = r.status==='active';
+    const isCorrected = !!r.correctedBy;
+    const statusCell = `
+      <span class="chip ${isActive?'chip-org':'chip-grn'}">${isActive?'上班中':'已退勤'}</span>
+      ${isCorrected?`<br/><span class="chip chip-corr" style="margin-top:4px;">已修正</span>
+        <div class="corr-note">by ${r.correctedBy}</div>`:''}
+    `;
+    const inCell  = isCorrected
+      ? `<span style="color:var(--red);text-decoration:line-through;font-size:12px;">${r.origClockIn||''}</span><br/><strong>${r.clockIn}</strong>`
+      : r.clockIn;
+    const outCell = r.clockOut
+      ? (isCorrected && r.origClockOut
+          ? `<span style="color:var(--red);text-decoration:line-through;font-size:12px;">${r.origClockOut}</span><br/><strong>${r.clockOut}</strong>`
+          : r.clockOut)
+      : `<span style="color:var(--g2);">尚未</span>`;
+    return `<tr>
+      <td><strong>${r.empName}</strong></td>
+      <td><span style="font-size:12px;color:var(--g3);">${r.dept}</span></td>
+      <td>${inCell}</td>
+      <td>${outCell}</td>
+      <td>${regBar}</td>
+      <td>${otBar}</td>
+      <td><strong style="font-size:15px;">${r.clockOut?r.total:'~'+h.total}h</strong></td>
+      <td>${statusCell}</td>
+      <td>
+        <button class="btn btn-out" style="font-size:13px;padding:6px 12px;"
+          onclick="openCorrect('${r.id}')">&#9998; 修正</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function nowHM(){
+  const n=new Date();
+  return `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
+}
+
+// ── Leave ──────────────────────────────────────────────────────────
+function switchLeaveTab(tab, btn){
+  document.querySelectorAll('#page-leave .tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  leaveTab=tab;
+  renderLeave();
+}
+
+function renderLeave(){
+  const from = document.getElementById('leaveFrom').value;
+  const to   = document.getElementById('leaveTo').value;
+  const kw   = (document.getElementById('leaveSearch').value||'').trim();
+  let lvs=getLvs().sort((a,b)=>b.submittedAt.localeCompare(a.submittedAt));
+  if(leaveTab==='pending') lvs=lvs.filter(r=>r.status==='pending');
+  // date filter: leave startDate falls within range (skip if range is empty = 全部)
+  if(from) lvs=lvs.filter(r=>r.startDate>=from);
+  if(to)   lvs=lvs.filter(r=>r.startDate<=to);
+  if(kw)   lvs=lvs.filter(r=>r.empName.includes(kw));
+  const el=document.getElementById('leaveContent');
+  if(!lvs.length){
+    el.innerHTML=`<div class="empty"><div class="empty-icon">${leaveTab==='pending'?'&#10003;':'&#128196;'}</div>${leaveTab==='pending'?'此區間無待審假單。':'此區間尚無假單記錄。'}</div>`;
+    return;
+  }
+  const chipCls={pending:'chip-org',approved:'chip-grn',rejected:'chip-red'};
+  const chipLbl={pending:'待審核',approved:'已核准',rejected:'已駁回'};
+  el.innerHTML=lvs.map(l=>`
+    <div class="leave-item ${l.status==='pending'?'pend':''}">
+      <div class="li-top">
+        <div>
+          <div class="li-name">${l.empName} <span style="font-size:13px;color:var(--g3);font-weight:400;">· ${l.dept}</span></div>
+          <div class="li-meta">
+            ${l.type} &nbsp;|&nbsp; ${l.startDate} ～ ${l.endDate}
+            &nbsp;|&nbsp; ${l.days} ${l.unit}
+            ${l.proxy?`&nbsp;|&nbsp; 代理：${l.proxy}`:''}
+          </div>
+          <div class="li-reason">${l.reason}</div>
+          ${l.notes?`<div class="li-notes">${l.notes}</div>`:''}
+          ${l.rejectReason?`<div style="color:var(--red);font-size:13px;margin-top:6px;">駁回原因：${l.rejectReason}</div>`:''}
+        </div>
+        <div style="flex-shrink:0;text-align:right;">
+          <span class="chip ${chipCls[l.status]}">${chipLbl[l.status]}</span>
+          <div style="font-size:12px;color:var(--g3);margin-top:4px;">送出：${l.submittedAt.slice(0,10)}</div>
+          ${l.approvedAt?`<div style="font-size:12px;color:var(--g3);">處理：${l.approvedAt.slice(0,10)}</div>`:''}
+        </div>
+      </div>
+      ${l.status==='pending'?`
+        <div class="li-actions">
+          <button class="btn btn-grn" onclick="approveLeave('${l.id}')">&#10003; 核准</button>
+          <button class="btn btn-red" onclick="openReject('${l.id}')">&#10005; 駁回</button>
+        </div>
+      `:l.status!=='pending'?`
+        <div class="li-approved">
+          由 <strong>${l.approvedBy||'—'}</strong> 處理 &nbsp;&nbsp;
+          ${l.approvedAt?new Date(l.approvedAt).toLocaleString('zh-TW'):''}
+        </div>
+      `:''}
+    </div>
+  `).join('');
+}
+
+function approveLeave(id){
+  const lvs=getLvs();
+  const l=lvs.find(r=>r.id===id);
+  if(!l)return;
+  l.status='approved';
+  l.approvedBy=SUPERVISOR;
+  l.approvedAt=new Date().toISOString();
+  saveLvs(lvs);
+  showToast(`已核准 ${l.empName} 的 ${l.type} 申請`,'ok');
+  refreshAll();
+}
+
+function openReject(id){
+  rejectTargetId=id;
+  const lvs=getLvs();
+  const l=lvs.find(r=>r.id===id);
+  if(!l)return;
+  document.getElementById('rejectInfo').innerHTML=`
+    <strong>${l.empName} 的 ${l.type}（${l.days}${l.unit}）</strong>
+    <div class="info-row"><span>日期</span><span>${l.startDate} ～ ${l.endDate}</span></div>
+    <div class="info-row"><span>原因</span><span>${l.reason}</span></div>
+  `;
+  document.getElementById('rejectReason').value='';
+  document.getElementById('rejectModal').classList.add('open');
+}
+
+function closeReject(e){
+  if(e.target===document.getElementById('rejectModal'))
+    document.getElementById('rejectModal').classList.remove('open');
+}
+
+function confirmReject(){
+  const reason=document.getElementById('rejectReason').value.trim();
+  if(!reason){showToast('請填寫駁回原因','err');return;}
+  const lvs=getLvs();
+  const l=lvs.find(r=>r.id===rejectTargetId);
+  if(!l)return;
+  l.status='rejected';
+  l.approvedBy=SUPERVISOR;
+  l.approvedAt=new Date().toISOString();
+  l.rejectReason=reason;
+  saveLvs(lvs);
+  document.getElementById('rejectModal').classList.remove('open');
+  showToast(`已駁回 ${l.empName} 的申請`,'err');
+  refreshAll();
+}
+
+// ── 出勤修正 ──────────────────────────────────────────────────────
+function openCorrect(id){
+  const att=getAtt();
+  const r=att.find(x=>x.id===id);
+  if(!r){ showToast('找不到此筆紀錄','err'); return; }
+  correctTargetId=id;
+
+  // 填入原始資訊
+  document.getElementById('corrDate').value=r.date;
+  document.getElementById('corrIn').value=r.clockIn;
+  document.getElementById('corrOut').value=r.clockOut||'';
+  document.getElementById('corrReason').value='';
+
+  // 顯示原始紀錄
+  const wasCorr=r.correctedBy?`<div style="color:var(--org);font-size:12px;margin-top:6px;">※ 此筆已有修正記錄（by ${r.correctedBy}）</div>`:'';
+  document.getElementById('corrOrigInfo').innerHTML=`
+    <div class="corr-orig-title">原始打卡紀錄</div>
+    <div class="corr-orig-row">
+      <span class="corr-orig-lbl">員工</span>
+      <span class="corr-orig-val">${r.empName}（${r.dept}）</span>
+    </div>
+    <div class="corr-orig-row">
+      <span class="corr-orig-lbl">日期</span>
+      <span class="corr-orig-val">${r.date}</span>
+    </div>
+    <div class="corr-orig-row">
+      <span class="corr-orig-lbl">原上班時間</span>
+      <span class="corr-orig-val ${r.correctedBy?'strike':''}">${r.origClockIn||r.clockIn}</span>
+    </div>
+    <div class="corr-orig-row">
+      <span class="corr-orig-lbl">原下班時間</span>
+      <span class="corr-orig-val ${r.correctedBy?'strike':''}">${r.origClockOut||r.clockOut||'尚未打卡'}</span>
+    </div>
+    ${wasCorr}
+  `;
+  previewCorr();
+  document.getElementById('correctModal').classList.add('open');
+}
+
+function closeCorrectModal(){
+  document.getElementById('correctModal').classList.remove('open');
+  document.getElementById('corrPreview').style.display='none';
+}
+
+function closeCorrectBg(e){
+  if(e.target===document.getElementById('correctModal')) closeCorrectModal();
+}
+
+function previewCorr(){
+  const inVal  = document.getElementById('corrIn').value;
+  const outVal = document.getElementById('corrOut').value;
+  const prev   = document.getElementById('corrPreview');
+  if(!inVal||!outVal){ prev.style.display='none'; return; }
+  const h=calcHours(inVal,outVal);
+  document.getElementById('pvReg').textContent=h.regular+' 時';
+  document.getElementById('pvOt').textContent=h.overtime>0?h.overtime+' 時（含加班）':'0 時';
+  document.getElementById('pvTot').textContent=h.total+' 時';
+  prev.style.display='block';
+}
+
+function confirmCorrect(){
+  const newIn  = document.getElementById('corrIn').value;
+  const newOut = document.getElementById('corrOut').value;
+  const reason = document.getElementById('corrReason').value.trim();
+  const newDate= document.getElementById('corrDate').value;
+
+  if(!newIn){ showToast('請填寫新的上班時間','err'); return; }
+  if(!reason){ showToast('請填寫修正原因','err'); return; }
+
+  const att=getAtt();
+  const r=att.find(x=>x.id===correctTargetId);
+  if(!r){ showToast('找不到紀錄','err'); return; }
+
+  // 保存原始值（只保存最一開始的原始值）
+  if(!r.origClockIn)  r.origClockIn  = r.clockIn;
+  if(!r.origClockOut) r.origClockOut = r.clockOut||null;
+
+  // 套用修正
+  r.date     = newDate;
+  r.clockIn  = newIn;
+  r.clockOut = newOut||null;
+  r.status   = newOut?'completed':'active';
+
+  if(newOut){
+    const h=calcHours(newIn,newOut);
+    r.regular  = h.regular;
+    r.overtime = h.overtime;
+    r.total    = h.total;
+  } else {
+    r.regular=0; r.overtime=0; r.total=0;
+  }
+
+  r.correctedBy  = SUPERVISOR;
+  r.correctedAt  = new Date().toISOString();
+  r.correctReason= reason;
+  saveAtt(att);
+
+  // 寫入稽核 Log
+  const corr=getCorr();
+  corr.unshift({
+    id:'C'+Date.now(),
+    empId:r.empId, empName:r.empName, dept:r.dept,
+    date:newDate,
+    origIn:r.origClockIn, origOut:r.origClockOut,
+    newIn, newOut:newOut||null,
+    reason,
+    by:SUPERVISOR,
+    at:new Date().toISOString()
+  });
+  saveCorr(corr);
+
+  closeCorrectModal();
+  showToast(`已修正 ${r.empName} 的打卡紀錄並重算時數`,'ok');
+  refreshAll();
+}
+
+// ── Report ────────────────────────────────────────────────────────
+function renderReport(){
+  const from = document.getElementById('reportFrom').value;
+  const to   = document.getElementById('reportTo').value;
+  if(!from||!to) return;
+  const dept=document.getElementById('reportDept').value;
+  const rangeLabel = from===to ? from : `${from} ～ ${to}`;
+  document.getElementById('reportCardTitle').textContent=`出勤明細報表`;
+  document.getElementById('reportRangeLabel').textContent=rangeLabel;
+  const att=getAtt().filter(r=>{
+    const ok=r.date>=from&&r.date<=to&&r.status==='completed';
+    return dept?ok&&r.dept===dept:ok;
+  });
+
+  // aggregate by employee
+  const empMap={};
+  att.forEach(r=>{
+    if(!empMap[r.empId]) empMap[r.empId]={name:r.empName,dept:r.dept,days:0,regular:0,overtime:0};
+    const e=empMap[r.empId];
+    e.days++;
+    e.regular+=r.regular||0;
+    e.overtime+=r.overtime||0;
+  });
+  const emps=Object.values(empMap).sort((a,b)=>(b.regular+b.overtime)-(a.regular+a.overtime));
+
+  // Summary cards
+  const totalReg=emps.reduce((s,e)=>s+e.regular,0);
+  const totalOt=emps.reduce((s,e)=>s+e.overtime,0);
+  const totalDays=emps.reduce((s,e)=>s+e.days,0);
+  document.getElementById('reportGrid').innerHTML=`
+    <div class="report-card">
+      <div class="rc-title">加班時數 Top 5</div>
+      ${emps.slice(0,5).map(e=>`
+        <div class="rc-row">
+          <span class="rc-name">${e.name}</span>
+          <span class="rc-val" style="color:var(--org);">${e.overtime.toFixed(1)} 時</span>
+        </div>
+      `).join('')||'<div style="color:var(--g2);text-align:center;padding:16px;">無資料</div>'}
+    </div>
+    <div class="report-card">
+      <div class="rc-title">本期總計</div>
+      <div class="rc-row"><span>出勤人次</span><span class="rc-val">${totalDays} 天次</span></div>
+      <div class="rc-row"><span>正常工時</span><span class="rc-val" style="color:var(--blu);">${totalReg.toFixed(1)} 時</span></div>
+      <div class="rc-row"><span>加班工時</span><span class="rc-val" style="color:var(--org);">${totalOt.toFixed(1)} 時</span></div>
+      <div class="rc-row"><span>總工時</span><span class="rc-val" style="font-size:18px;">${(totalReg+totalOt).toFixed(1)} 時</span></div>
+    </div>
+  `;
+
+  const body=document.getElementById('reportBody');
+  if(!emps.length){
+    body.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--g3);">此區間尚無出勤資料</td></tr>`;
+    return;
+  }
+  body.innerHTML=emps.map(e=>{
+    const tot=(e.regular+e.overtime);
+    const avg=e.days>0?(tot/e.days).toFixed(1):'—';
+    const otRate=tot>0?((e.overtime/tot)*100).toFixed(0):0;
+    return `<tr>
+      <td><strong>${e.name}</strong></td>
+      <td style="font-size:12px;color:var(--g3);">${e.dept}</td>
+      <td style="font-weight:700;">${e.days} 天</td>
+      <td style="color:var(--blu);font-weight:700;">${e.regular.toFixed(1)} 時</td>
+      <td style="color:var(--org);font-weight:700;">${e.overtime.toFixed(1)} 時</td>
+      <td style="font-weight:800;font-size:15px;">${tot.toFixed(1)} 時</td>
+      <td>${avg} 時</td>
+      <td>
+        <div class="bar-wrap">
+          <div class="bar-bg"><div class="bar-fill" style="width:${otRate}%;background:${otRate>20?'var(--org)':'var(--grn)'};"></div></div>
+          <div class="bar-num">${otRate}%</div>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Log ────────────────────────────────────────────────────────────
+function renderLog(){
+  const from = document.getElementById('logFrom').value;
+  const to   = document.getElementById('logTo').value;
+  const kw   = (document.getElementById('logSearch').value||'').trim();
+  const body=document.getElementById('logBody');
+
+  // 假單審核 rows — filter by approvedAt date
+  const lvsRows=getLvs()
+    .filter(r=>{
+      if(r.status==='pending') return false;
+      const d=r.approvedAt?r.approvedAt.slice(0,10):'';
+      if(from&&d<from) return false;
+      if(to&&d>to) return false;
+      if(kw&&!r.empName.includes(kw)) return false;
+      return true;
+    })
+    .sort((a,b)=>b.approvedAt.localeCompare(a.approvedAt))
+    .map(l=>{
+      const chip=l.status==='approved'
+        ?`<span class="chip chip-grn">假單核准</span>`
+        :`<span class="chip chip-red">假單駁回</span>`;
+      return `<tr>
+        <td><strong>${l.empName}</strong><br/><span style="font-size:12px;color:var(--g3);">${l.dept}</span></td>
+        <td>${chip}</td>
+        <td>${l.startDate}～${l.endDate}</td>
+        <td>${l.type} ${l.days}${l.unit}</td>
+        <td><strong>${l.approvedBy||'—'}</strong></td>
+        <td style="font-size:13px;">${l.approvedAt?new Date(l.approvedAt).toLocaleString('zh-TW'):'—'}</td>
+        <td style="font-size:13px;color:var(--g3);">${l.rejectReason||'—'}</td>
+      </tr>`;
+    });
+
+  // 打卡修正 rows — filter by at date
+  const corrRows=getCorr()
+    .filter(c=>{
+      const d=c.at?c.at.slice(0,10):'';
+      if(from&&d<from) return false;
+      if(to&&d>to) return false;
+      if(kw&&!c.empName.includes(kw)) return false;
+      return true;
+    })
+    .sort((a,b)=>b.at.localeCompare(a.at))
+    .map(c=>`<tr style="background:#FFFDF0;">
+      <td><strong>${c.empName}</strong><br/><span style="font-size:12px;color:var(--g3);">${c.dept}</span></td>
+      <td><span class="chip chip-corr">打卡修正</span></td>
+      <td>${c.date}</td>
+      <td>
+        <span style="color:var(--red);text-decoration:line-through;font-size:12px;">
+          ${c.origIn}～${c.origOut||'未退勤'}
+        </span><br/>
+        <strong>${c.newIn}～${c.newOut||'待退勤'}</strong>
+      </td>
+      <td><strong>${c.by}</strong></td>
+      <td style="font-size:13px;">${new Date(c.at).toLocaleString('zh-TW')}</td>
+      <td style="font-size:13px;color:var(--g3);">${c.reason}</td>
+    </tr>`);
+
+  const allRows=[...lvsRows,...corrRows];
+  const total=allRows.length;
+  const countEl=document.getElementById('logCountLabel');
+  if(countEl) countEl.textContent=`共 ${total} 筆`;
+  if(!total){
+    body.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--g3);">此區間尚無審核記錄</td></tr>`;
+    return;
+  }
+  body.innerHTML=allRows.join('');
+}
+
+// ── Export CSV ─────────────────────────────────────────────────────
+function exportCSV(){
+  const from=document.getElementById('reportFrom').value;
+  const to=document.getElementById('reportTo').value;
+  if(!from||!to){showToast('請先選擇日期區間','err');return;}
+  const att=getAtt().filter(r=>r.date>=from&&r.date<=to&&r.status==='completed');
+  const rows=[['員工','部門','日期','上班','下班','正常時數','加班①(17-18:30)','加班②(19-21)','加班合計','合計']];
+  att.forEach(r=>{
+    const h=calcHours(r.clockIn,r.clockOut||'');
+    rows.push([r.empName,r.dept,r.date,r.clockIn,r.clockOut||'',
+      r.regular,h.ot1,h.ot2,r.overtime,r.total]);
+  });
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=`出勤報表_${from}_${to}.csv`; a.click();
+  URL.revokeObjectURL(url);
+  showToast('CSV 已匯出','ok');
+}
+
+// ── 薪資管理 Storage ───────────────────────────────────────────────
+const getEmpCfg  = ()=>JSON.parse(localStorage.getItem('slg_emp_cfg')||'{}');
+const saveEmpCfg = d=>localStorage.setItem('slg_emp_cfg',JSON.stringify(d));
+
+const ALL_EMPS=[
+  {id:'E001',name:'林美惠',dept:'農場生產'},
+  {id:'E002',name:'陳建宏',dept:'加工包裝'},
+  {id:'E003',name:'黃淑芬',dept:'門市銷售'},
+  {id:'E004',name:'王志明',dept:'倉儲物流'},
+  {id:'E005',name:'張雅婷',dept:'行政管理'},
+  {id:'E006',name:'李俊賢',dept:'農場生產'},
+  {id:'E007',name:'吳佳穎',dept:'門市銷售'},
+  {id:'E008',name:'蔡文彬',dept:'加工包裝'},
+];
+
+function getEmpDef(id){
+  const cfg=getEmpCfg();
+  return cfg[id]||{hourlyRate:183,otRate:275,bankName:'',branchName:'',accountNo:'',accountName:''};
+}
+
+// ── Employee Settings Table ────────────────────────────────────────
+function renderEmpSettings(){
+  const cfg=getEmpCfg();
+  const body=document.getElementById('empSettingsBody');
+  body.innerHTML=ALL_EMPS.map(e=>{
+    const s=cfg[e.id]||{hourlyRate:183,otRate:275,bankName:'',branchName:'',accountNo:'',accountName:''};
+    const acctDisplay=s.accountNo
+      ? (s.accountNo.length>8
+          ? s.accountNo.slice(0,4)+'••••'+s.accountNo.slice(-4)
+          : '••••')
+      : '<span style="color:var(--g2);">未設定</span>';
+    return `<tr>
+      <td><strong>${e.name}</strong></td>
+      <td><span style="font-size:12px;color:var(--g3);">${e.dept}</span></td>
+      <td><span class="emp-rate-tag">${s.hourlyRate||'—'} 元</span></td>
+      <td><span class="emp-rate-tag" style="background:#E8F0FB;color:var(--blu);">${s.otRate||'—'} 元</span></td>
+      <td class="bank-tag">${s.bankName||'<span style="color:var(--g2);">—</span>'}${s.branchName?' '+s.branchName:''}</td>
+      <td class="bank-tag">${acctDisplay}</td>
+      <td class="bank-tag">${s.accountName||'<span style="color:var(--g2);">—</span>'}</td>
+      <td>
+        <button class="btn btn-out" style="font-size:13px;padding:5px 12px;"
+          onclick="openEmpEdit('${e.id}')">&#9998; 設定</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Emp Edit Modal ─────────────────────────────────────────────────
+function openEmpEdit(id){
+  const e=ALL_EMPS.find(x=>x.id===id);
+  if(!e) return;
+  const s=getEmpDef(id);
+  document.getElementById('empEditId').value=id;
+  document.getElementById('empEditTitle').textContent=`${e.name} — 薪資設定`;
+  document.getElementById('empHourly').value=s.hourlyRate||183;
+  document.getElementById('empOtRate').value=s.otRate||275;
+  document.getElementById('empBankName').value=s.bankName||'';
+  document.getElementById('empBranchName').value=s.branchName||'';
+  document.getElementById('empAccountNo').value=s.accountNo||'';
+  document.getElementById('empAccountName').value=s.accountName||'';
+  updateRatePreview();
+  document.getElementById('empEditModal').classList.add('open');
+}
+function closeEmpEditModal(){
+  document.getElementById('empEditModal').classList.remove('open');
+}
+function closeEmpEditBg(e){
+  if(e.target===document.getElementById('empEditModal')) closeEmpEditModal();
+}
+function updateRatePreview(){
+  const h=parseFloat(document.getElementById('empHourly').value)||0;
+  const ot=parseFloat(document.getElementById('empOtRate').value)||0;
+  document.getElementById('pvDay').textContent=(h*8).toLocaleString();
+  document.getElementById('pvOtH').textContent=ot.toLocaleString();
+  document.getElementById('pvMult').textContent=h>0?(ot/h).toFixed(2)+'x':'—';
+}
+function confirmEmpEdit(){
+  const id=document.getElementById('empEditId').value;
+  const hourlyRate=parseFloat(document.getElementById('empHourly').value)||0;
+  const otRate=parseFloat(document.getElementById('empOtRate').value)||0;
+  const bankName=document.getElementById('empBankName').value.trim();
+  const branchName=document.getElementById('empBranchName').value.trim();
+  const accountNo=document.getElementById('empAccountNo').value.trim();
+  const accountName=document.getElementById('empAccountName').value.trim();
+  if(!hourlyRate){showToast('請填寫時薪','err');return;}
+  const cfg=getEmpCfg();
+  cfg[id]={hourlyRate,otRate,bankName,branchName,accountNo,accountName};
+  saveEmpCfg(cfg);
+  closeEmpEditModal();
+  renderEmpSettings();
+  showToast('薪資設定已儲存','ok');
+}
+
+// ── Salary Tab Switch ──────────────────────────────────────────────
+function switchSalaryTab(name,btn){
+  document.querySelectorAll('.salary-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.salary-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('sp-'+name).classList.add('active');
+  if(name==='empSettings') renderEmpSettings();
+  if(name==='payroll') renderPayroll();
+}
+
+// ── Payroll Report ─────────────────────────────────────────────────
+let lastPayrollData=[];
+let lastDetailData=[];
+const WEEKDAYS=['日','一','二','三','四','五','六'];
+
+function renderPayroll(){
+  const from=document.getElementById('payFrom').value;
+  const to=document.getElementById('payTo').value;
+  if(!from||!to) return;
+  const dept=document.getElementById('payDept').value;
+  const cfg=getEmpCfg();
+  const rangeLabel=from===to?from:`${from} ～ ${to}`;
+
+  const att=getAtt().filter(r=>{
+    const ok=r.date>=from&&r.date<=to&&r.status==='completed';
+    return dept?ok&&r.dept===dept:ok;
+  }).sort((a,b)=>a.empId.localeCompare(b.empId)||a.date.localeCompare(b.date));
+
+  // ── 匯總 ──
+  const empMap={};
+  att.forEach(r=>{
+    if(!empMap[r.empId]) empMap[r.empId]={empId:r.empId,name:r.empName,dept:r.dept,days:0,regular:0,overtime:0};
+    empMap[r.empId].days++;
+    empMap[r.empId].regular+=r.regular||0;
+    empMap[r.empId].overtime+=r.overtime||0;
+  });
+  const rows=Object.values(empMap).map(e=>{
+    const s=cfg[e.empId]||{hourlyRate:183,otRate:275,bankName:'',branchName:'',accountNo:'',accountName:''};
+    const regPay=Math.round(e.regular*s.hourlyRate);
+    const otPay=Math.round(e.overtime*s.otRate);
+    return {...e,hourlyRate:s.hourlyRate,otRate:s.otRate,
+      bankName:s.bankName,branchName:s.branchName,
+      accountNo:s.accountNo,accountName:s.accountName,
+      regPay,otPay,total:regPay+otPay};
+  }).sort((a,b)=>b.total-a.total);
+  lastPayrollData=rows;
+
+  // ── 統計卡 ──
+  const totalRegPay=rows.reduce((s,r)=>s+r.regPay,0);
+  const totalOtPay=rows.reduce((s,r)=>s+r.otPay,0);
+  const totalAll=rows.reduce((s,r)=>s+r.total,0);
+  document.getElementById('payReportTitle').textContent=`薪資匯總 — ${rangeLabel}`;
+  document.getElementById('paySummary').innerHTML=`
+    <div class="pay-card"><div class="pay-card-lbl">應付人數</div>
+      <div class="pay-card-val">${rows.length} 人</div></div>
+    <div class="pay-card"><div class="pay-card-lbl">正常薪資合計</div>
+      <div class="pay-card-val">NT$&nbsp;${totalRegPay.toLocaleString()}</div></div>
+    <div class="pay-card"><div class="pay-card-lbl">加班薪資合計</div>
+      <div class="pay-card-val ot">NT$&nbsp;${totalOtPay.toLocaleString()}</div></div>
+    <div class="pay-card" style="border-top:4px solid var(--grn);">
+      <div class="pay-card-lbl">應付總薪資</div>
+      <div class="pay-card-val money">NT$&nbsp;${totalAll.toLocaleString()}</div></div>
+  `;
+
+  // ── 匯總表 ──
+  const body=document.getElementById('payrollBody');
+  if(!rows.length){
+    body.innerHTML=`<tr><td colspan="13" style="text-align:center;padding:32px;color:var(--g3);">此區間尚無出勤紀錄</td></tr>`;
+    document.getElementById('payDetailBody').innerHTML=
+      `<tr><td colspan="14" style="text-align:center;padding:32px;color:var(--g3);">無資料</td></tr>`;
+    return;
+  }
+  const acctMask=no=>no&&no.length>8?no.slice(0,4)+'••••'+no.slice(-4):'••••';
+  body.innerHTML=rows.map(r=>`<tr>
+    <td><strong>${r.name}</strong></td>
+    <td style="font-size:12px;color:var(--g3);">${r.dept}</td>
+    <td style="text-align:center;">${r.days}</td>
+    <td style="color:var(--blu);font-weight:700;">${r.regular.toFixed(1)}</td>
+    <td style="color:var(--org);font-weight:700;">${r.overtime.toFixed(1)}</td>
+    <td>${r.hourlyRate}</td><td>${r.otRate}</td>
+    <td>NT$&nbsp;${r.regPay.toLocaleString()}</td>
+    <td style="color:var(--org);">NT$&nbsp;${r.otPay.toLocaleString()}</td>
+    <td style="background:#E8F7EE;font-weight:800;font-size:15px;color:var(--grn);">NT$&nbsp;${r.total.toLocaleString()}</td>
+    <td style="font-size:13px;">${r.bankName||'—'}${r.branchName?' '+r.branchName:''}</td>
+    <td style="font-size:13px;">${r.accountNo?acctMask(r.accountNo):'—'}</td>
+    <td style="font-size:13px;">${r.accountName||'—'}</td>
+  </tr>`).join('');
+
+  // ── 每日明細 ──
+  renderPayDetail(att, cfg);
+}
+
+// store full att+cfg for re-filter without re-running payroll
+let _lastDetailAtt=[], _lastDetailCfg={};
+
+function filterPayDetail(){
+  const sel=document.getElementById('detailEmpFilter').value;
+  const filtered=sel?_lastDetailAtt.filter(r=>r.empId===sel):_lastDetailAtt;
+  _renderPayDetailRows(filtered, _lastDetailCfg);
+}
+
+function renderPayDetail(att, cfg){
+  _lastDetailAtt=att; _lastDetailCfg=cfg;
+
+  // populate employee dropdown
+  const sel=document.getElementById('detailEmpFilter');
+  const prev=sel.value;
+  // collect unique employees in order
+  const seen={}, opts=['<option value="">全部員工</option>'];
+  att.forEach(r=>{ if(!seen[r.empId]){ seen[r.empId]=1; opts.push(`<option value="${r.empId}">${r.empName}</option>`); } });
+  sel.innerHTML=opts.join('');
+  sel.value=seen[prev]?prev:''; // restore selection if still valid
+
+  const filtered=sel.value?att.filter(r=>r.empId===sel.value):att;
+  _renderPayDetailRows(filtered, cfg);
+}
+
+function _renderPayDetailRows(att, cfg){
+  const detailBody=document.getElementById('payDetailBody');
+  const from=document.getElementById('payFrom').value;
+  const to=document.getElementById('payTo').value;
+  const rangeLabel=from===to?from:`${from} ～ ${to}`;
+  const selName=document.getElementById('detailEmpFilter');
+  const nameLabel=selName&&selName.options[selName.selectedIndex]&&selName.value
+    ? selName.options[selName.selectedIndex].text : '全部員工';
+  document.getElementById('detailSubtitle').textContent=`${rangeLabel}・${nameLabel}・共 ${att.length} 筆`;
+  if(!att.length){
+    detailBody.innerHTML=`<tr><td colspan="14" style="text-align:center;padding:32px;color:var(--g3);">無資料</td></tr>`;
+    return;
+  }
+  lastDetailData=[];
+  let html='';
+  let grandRegPay=0, grandOtPay=0, grandTotal=0;
+
+  // group by employee
+  const groups={};
+  att.forEach(r=>{
+    if(!groups[r.empId]) groups[r.empId]=[];
+    groups[r.empId].push(r);
+  });
+
+  Object.values(groups).forEach(recs=>{
+    const first=recs[0];
+    const s=cfg[first.empId]||{hourlyRate:183,otRate:275};
+    let subRegPay=0, subOtPay=0, subTotal=0;
+
+    // employee header row (14 cols)
+    html+=`<tr style="background:#F0EDE8;">
+      <td colspan="14" style="padding:10px 14px;font-weight:700;font-size:15px;color:var(--brn);">
+        ${first.empName}&ensp;<span style="font-weight:400;font-size:13px;color:var(--g3);">${first.dept}</span>
+        &ensp;<span style="font-size:12px;color:var(--g3);">時薪 ${s.hourlyRate} / 加班 ${s.otRate}</span>
+      </td>
+    </tr>`;
+
+    // day rows
+    recs.forEach(r=>{
+      const d=new Date(r.date);
+      const wk=WEEKDAYS[d.getDay()];
+      const isWeekend=d.getDay()===0||d.getDay()===6;
+      const reg=r.regular||0, ot=r.overtime||0;
+      // recalculate OT breakdown from clock times
+      const h=calcHours(r.clockIn, r.clockOut||'');
+      const ot1=h.ot1, ot2=h.ot2;
+      const dayRegPay=Math.round(reg*s.hourlyRate);
+      const dayOtPay=Math.round(ot*s.otRate);
+      const dayTotal=dayRegPay+dayOtPay;
+      subRegPay+=dayRegPay; subOtPay+=dayOtPay; subTotal+=dayTotal;
+      grandRegPay+=dayRegPay; grandOtPay+=dayOtPay; grandTotal+=dayTotal;
+
+      const note=r.correctedBy?`<span class="chip chip-corr" style="font-size:11px;">修正</span>`:
+                 (ot>0?`<span class="chip chip-org" style="font-size:11px;">加班</span>`:
+                 '<span style="color:var(--g2);">—</span>');
+
+      lastDetailData.push({
+        name:first.empName,dept:first.dept,
+        date:r.date,weekday:`週${wk}`,
+        clockIn:r.clockIn,clockOut:r.clockOut||'',
+        regular:reg,ot1,ot2,overtime:ot,
+        dayRegPay,dayOtPay,dayTotal,
+        note:r.correctedBy?'已修正':ot>0?'加班':''
+      });
+
+      html+=`<tr style="${isWeekend?'background:#FDF5F5;':''}">
+        <td><span style="color:var(--g3);font-size:12px;">${first.empName}</span></td>
+        <td style="font-size:12px;color:var(--g3);">${first.dept}</td>
+        <td style="font-weight:600;">${r.date}</td>
+        <td style="text-align:center;${isWeekend?'color:var(--red);font-weight:700;':''}">週${wk}</td>
+        <td>${r.clockIn}</td>
+        <td>${r.clockOut||'<span style="color:var(--g2);">—</span>'}</td>
+        <td style="color:var(--blu);font-weight:700;">${reg.toFixed(1)}</td>
+        <td style="color:var(--org);font-size:13px;">${ot1>0?ot1.toFixed(1):'—'}</td>
+        <td style="color:#C0392B;font-size:13px;">${ot2>0?ot2.toFixed(1):'—'}</td>
+        <td style="color:var(--org);font-weight:700;">${ot>0?ot.toFixed(1):'—'}</td>
+        <td>NT$&nbsp;${dayRegPay.toLocaleString()}</td>
+        <td style="color:var(--org);">${dayOtPay>0?'NT$&nbsp;'+dayOtPay.toLocaleString():'—'}</td>
+        <td style="background:#E8F7EE;font-weight:800;color:var(--grn);">NT$&nbsp;${dayTotal.toLocaleString()}</td>
+        <td>${note}</td>
+      </tr>`;
+    });
+
+    // employee subtotal row (14 cols)
+    html+=`<tr style="background:#EAF4FF;font-weight:700;">
+      <td colspan="10" style="padding:9px 14px;color:var(--blu);">
+        ${first.empName} 小計（${recs.length} 天）
+      </td>
+      <td style="color:var(--blu);">NT$&nbsp;${subRegPay.toLocaleString()}</td>
+      <td style="color:var(--org);">NT$&nbsp;${subOtPay.toLocaleString()}</td>
+      <td style="background:#D4EDDA;color:var(--grn);font-size:15px;">NT$&nbsp;${subTotal.toLocaleString()}</td>
+      <td></td>
+    </tr>`;
+  });
+
+  // grand total row (14 cols)
+  html+=`<tr style="background:#2D2018;color:#fff;font-weight:800;font-size:15px;">
+    <td colspan="10" style="padding:12px 14px;">合計</td>
+    <td>NT$&nbsp;${grandRegPay.toLocaleString()}</td>
+    <td>NT$&nbsp;${grandOtPay.toLocaleString()}</td>
+    <td style="font-size:17px;color:#7CFC00;">NT$&nbsp;${grandTotal.toLocaleString()}</td>
+    <td></td>
+  </tr>`;
+
+  detailBody.innerHTML=html;
+}
+
+function exportPayrollCSV(){
+  if(!lastPayrollData.length){showToast('請先產生薪資報表','err');return;}
+  const from=document.getElementById('payFrom').value;
+  const to=document.getElementById('payTo').value;
+  const rangeLabel=from===to?from:`${from}_${to}`;
+  const rows=[];
+
+  // Section 1: Summary
+  rows.push([`=== 薪資匯總 ${from} ～ ${to} ===`]);
+  rows.push(['員工','部門','出勤天數','正常時數','加班時數',
+    '時薪','加班時薪','正常薪資','加班薪資','應付總額','銀行','分行','帳號','戶名']);
+  lastPayrollData.forEach(r=>rows.push([
+    r.name,r.dept,r.days,r.regular.toFixed(1),r.overtime.toFixed(1),
+    r.hourlyRate,r.otRate,r.regPay,r.otPay,r.total,
+    r.bankName||'',r.branchName||'',r.accountNo||'',r.accountName||''
+  ]));
+
+  // Section 2: Detail
+  rows.push([]);
+  rows.push([`=== 每日出勤明細 ${from} ～ ${to} ===`]);
+  rows.push(['員工','部門','日期','星期','上班','下班',
+    '正常時數','加班①(17-18:30)','加班②(19-21:00)','加班合計','正常薪資','加班薪資','當日小計','備注']);
+  lastDetailData.forEach(r=>rows.push([
+    r.name,r.dept,r.date,r.weekday,r.clockIn,r.clockOut,
+    r.regular.toFixed(1),
+    (r.ot1||0).toFixed(1),(r.ot2||0).toFixed(1),r.overtime.toFixed(1),
+    r.dayRegPay,r.dayOtPay,r.dayTotal,r.note
+  ]));
+
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=`薪資報表_${rangeLabel}.csv`; a.click();
+  URL.revokeObjectURL(url);
+  showToast('薪資 CSV（匯總＋明細）已匯出','ok');
+}
+
+// ── Page switch ────────────────────────────────────────────────────
+const pageTitles={att:'今日出勤總覽',leave:'請假審核管理',report:'出勤報表',log:'審核記錄',salary:'薪資管理'};
+function switchPage(name,el){
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('pageTitle').textContent=pageTitles[name]||'';
+  if(name==='salary') renderEmpSettings();
+}
+
+function goEmp(){ window.location.href='員工打卡系統.html'; }
+
+// ── Toast ──────────────────────────────────────────────────────────
+let toastT;
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast show'+(type?' '+type:'');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>t.className='toast',3000);
+}
+
+// ── Start ──────────────────────────────────────────────────────────
+applyLogin();
+setInterval(()=>{ if(!document.getElementById('loginOverlay').classList.contains('hidden')) return; refreshAll(); }, 60000);
+</script>
+</body>
+</html>

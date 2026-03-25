@@ -1,0 +1,1856 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>水林地瓜 — 加工管理系統</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --org:#E8731A;--org-l:#FDF0E6;--org-m:#F5A84B;
+      --brn:#7B4F2E;--bg:#F7F4F0;--wh:#fff;
+      --g1:#F0EDE8;--g2:#D5CEC6;--g3:#8C8078;--tx:#2D2018;
+      --grn:#3AAB6D;--red:#D94F3D;--blu:#3A7BB5;--pur:#9B59B6;
+      --prc:#1D5C72;--prc-l:#E6F4F8;--prc-m:#4A95B0;
+      --r:12px;--sh:0 2px 16px rgba(0,0,0,.09);
+    }
+    body{font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;
+      background:var(--bg);color:var(--tx);font-size:15px;display:flex;min-height:100vh;}
+
+    /* ─── Login ─── */
+    .login-overlay{position:fixed;inset:0;
+      background:linear-gradient(135deg,#0A2633,var(--prc));
+      z-index:999;display:flex;align-items:center;justify-content:center;}
+    .login-overlay.hidden{display:none;}
+    .login-box{background:var(--wh);border-radius:16px;padding:38px;
+      width:400px;max-width:92vw;box-shadow:0 20px 60px rgba(0,0,0,.4);text-align:center;}
+    .login-logo{font-size:24px;font-weight:900;color:var(--prc);letter-spacing:1px;}
+    .login-sub{font-size:13px;color:var(--g3);margin:4px 0 24px;}
+    .role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
+    .role-card{border:2px solid var(--g2);border-radius:10px;padding:16px 10px;
+      cursor:pointer;transition:all .15s;text-align:center;}
+    .role-card:hover{border-color:var(--prc-m);}
+    .role-card.sel{border-color:var(--prc);background:var(--prc-l);}
+    .role-icon{font-size:26px;margin-bottom:5px;}
+    .role-name{font-size:13px;font-weight:700;}
+    .role-desc{font-size:11px;color:var(--g3);margin-top:2px;}
+    .login-field{text-align:left;margin-bottom:14px;}
+    .login-btn{width:100%;padding:13px;border-radius:10px;border:none;
+      background:var(--prc);color:#fff;font-size:15px;font-weight:700;
+      cursor:pointer;font-family:inherit;transition:opacity .15s;}
+    .login-btn:hover{opacity:.88;}
+
+    /* ─── Sidebar ─── */
+    .sidebar{width:215px;background:var(--prc);min-height:100vh;
+      display:flex;flex-direction:column;flex-shrink:0;
+      position:fixed;top:0;left:0;bottom:0;z-index:20;}
+    .sb-logo{padding:20px 16px 14px;border-bottom:1px solid rgba(255,255,255,.13);}
+    .sb-logo .brand{font-size:16px;font-weight:800;color:#fff;letter-spacing:1px;}
+    .sb-logo .sub{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px;}
+    .sb-menu{flex:1;padding:8px 0;overflow-y:auto;}
+    .sb-section{font-size:10px;font-weight:700;letter-spacing:1.2px;
+      color:rgba(255,255,255,.35);padding:12px 16px 3px;text-transform:uppercase;}
+    .sb-item{display:flex;align-items:center;gap:8px;padding:10px 16px;
+      color:rgba(255,255,255,.7);cursor:pointer;font-size:13px;
+      border-left:3px solid transparent;transition:all .15s;white-space:nowrap;}
+    .sb-item:hover{background:rgba(255,255,255,.08);color:#fff;}
+    .sb-item.active{background:rgba(74,149,176,.35);color:#fff;
+      border-left-color:var(--prc-m);font-weight:600;}
+    .sb-icon{font-size:15px;width:19px;text-align:center;flex-shrink:0;}
+    .sb-foot{padding:12px 16px;border-top:1px solid rgba(255,255,255,.13);}
+    .sb-user{color:#fff;font-weight:700;font-size:13px;}
+    .sb-role{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px;}
+    .logout-btn{width:100%;padding:6px;border-radius:7px;
+      border:1.5px solid rgba(255,255,255,.2);background:transparent;
+      color:rgba(255,255,255,.55);font-size:12px;font-weight:600;
+      cursor:pointer;font-family:inherit;margin-top:8px;transition:all .15s;}
+    .logout-btn:hover{background:rgba(255,255,255,.1);color:#fff;}
+
+    /* ─── Main ─── */
+    .main{margin-left:215px;flex:1;display:flex;flex-direction:column;}
+    .topbar{background:var(--wh);border-bottom:1px solid var(--g2);
+      padding:0 26px;height:56px;display:flex;align-items:center;
+      justify-content:space-between;position:sticky;top:0;z-index:10;}
+    .topbar-title{font-size:17px;font-weight:700;color:var(--prc);}
+    .topbar-r{display:flex;align-items:center;gap:10px;}
+    .avatar{width:32px;height:32px;border-radius:50%;background:var(--prc);
+      color:#fff;display:flex;align-items:center;justify-content:center;
+      font-weight:800;font-size:12px;}
+    .btn{padding:7px 15px;border-radius:8px;border:none;font-size:13px;
+      font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s;white-space:nowrap;}
+    .btn:hover{opacity:.85;}
+    .btn-pri{background:var(--prc);color:#fff;}
+    .btn-org{background:var(--org);color:#fff;}
+    .btn-out{background:transparent;border:1.5px solid var(--g2);color:var(--g3);}
+    .btn-red{background:var(--red);color:#fff;}
+    .btn-grn{background:var(--grn);color:#fff;}
+    .btn-sm{padding:4px 10px;font-size:12px;}
+
+    .content{padding:20px 24px 48px;}
+    .panel{display:none;}
+    .panel.active{display:block;}
+
+    /* ─── Stats ─── */
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+    @media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr);}}
+    .stat{background:var(--wh);border-radius:var(--r);padding:15px 17px;
+      box-shadow:var(--sh);border-top:4px solid transparent;}
+    .stat.c1{border-top-color:var(--prc);}
+    .stat.c2{border-top-color:var(--grn);}
+    .stat.c3{border-top-color:var(--org);}
+    .stat.c4{border-top-color:var(--pur);}
+    .stat-lbl{font-size:12px;color:var(--g3);margin-bottom:4px;}
+    .stat-val{font-size:24px;font-weight:800;line-height:1;}
+    .stat-sub{font-size:11px;color:var(--g3);margin-top:3px;}
+
+    /* ─── Card ─── */
+    .card{background:var(--wh);border-radius:var(--r);box-shadow:var(--sh);
+      overflow:hidden;margin-bottom:16px;}
+    .card-head{padding:13px 18px;border-bottom:1px solid var(--g1);
+      display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+    .card-title{font-size:14px;font-weight:700;}
+    .card-body{padding:18px;}
+
+    /* ─── Table ─── */
+    .tbl{width:100%;border-collapse:collapse;}
+    .tbl th{background:var(--g1);padding:9px 12px;text-align:left;
+      font-size:12px;font-weight:600;color:var(--g3);white-space:nowrap;}
+    .tbl td{padding:11px 12px;font-size:13px;border-bottom:1px solid var(--g1);vertical-align:top;}
+    .tbl tr:last-child td{border-bottom:none;}
+    .tbl tbody tr:hover td{background:var(--prc-l);}
+
+    /* ─── Chips ─── */
+    .chip{display:inline-block;padding:2px 8px;border-radius:20px;
+      font-size:11px;font-weight:700;white-space:nowrap;}
+    .chip-prc{background:var(--prc-l);color:var(--prc);}
+    .chip-org{background:var(--org-l);color:var(--org);}
+    .chip-grn{background:#E8F7EE;color:var(--grn);}
+    .chip-red{background:#FDECEA;color:var(--red);}
+    .chip-g{background:var(--g1);color:var(--g3);}
+
+    /* ─── Filter ─── */
+    .filter-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;}
+    .f-input,.f-select{border:1.5px solid var(--g2);border-radius:8px;
+      padding:7px 11px;font-size:13px;color:var(--tx);
+      background:var(--wh);outline:none;font-family:inherit;}
+    .f-input:focus,.f-select:focus{border-color:var(--prc);}
+
+    /* ─── Form ─── */
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    .form-grid.g3{grid-template-columns:1fr 1fr 1fr;}
+    @media(max-width:600px){.form-grid,.form-grid.g3{grid-template-columns:1fr;}}
+    .f-full{grid-column:1/-1;}
+    .f-lbl{display:block;font-size:12px;font-weight:600;color:var(--g3);margin-bottom:4px;}
+    .f-ctrl{width:100%;border:1.5px solid var(--g2);border-radius:8px;
+      padding:9px 12px;font-size:14px;color:var(--tx);outline:none;
+      font-family:inherit;background:var(--wh);}
+    .f-ctrl:focus{border-color:var(--prc);}
+    .section-divider{grid-column:1/-1;font-size:11px;font-weight:700;color:var(--g3);
+      text-transform:uppercase;letter-spacing:.8px;
+      padding:10px 0 5px;border-bottom:1px solid var(--g1);margin-top:6px;}
+
+    /* ─── 加工作業 input zone ─── */
+    .op-zone{background:var(--wh);border-radius:var(--r);box-shadow:var(--sh);
+      padding:24px;margin-bottom:16px;}
+    .op-zone-title{font-size:15px;font-weight:700;color:var(--prc);margin-bottom:18px;
+      display:flex;align-items:center;gap:8px;}
+    .weight-preview{background:var(--prc-l);border:1.5px solid var(--prc-m);
+      border-radius:10px;padding:14px 18px;margin-top:8px;}
+    .wp-row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;}
+    .wp-lbl{color:var(--g3);}
+    .wp-val{font-weight:700;}
+    .wp-net{font-size:18px;color:var(--prc);font-weight:800;}
+
+    /* ─── Modal ─── */
+    .modal-overlay{display:none;position:fixed;inset:0;
+      background:rgba(0,0,0,.45);z-index:200;
+      align-items:flex-start;justify-content:center;
+      padding:20px 12px;overflow-y:auto;}
+    .modal-overlay.open{display:flex;}
+    .modal{background:var(--wh);border-radius:var(--r);
+      width:560px;max-width:95vw;box-shadow:0 8px 40px rgba(0,0,0,.22);margin:auto;}
+    .modal-head{padding:14px 20px;border-bottom:1px solid var(--g1);
+      display:flex;align-items:center;justify-content:space-between;}
+    .modal-title{font-size:15px;font-weight:700;}
+    .modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--g3);line-height:1;}
+    .modal-body{padding:20px;max-height:75vh;overflow-y:auto;}
+    .modal-foot{padding:12px 20px;border-top:1px solid var(--g1);
+      display:flex;justify-content:flex-end;gap:8px;}
+    .form-row{margin-bottom:12px;}
+
+    /* ─── Inventory grid ─── */
+    .inv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+    @media(max-width:900px){.inv-grid{grid-template-columns:repeat(2,1fr);}}
+    @media(max-width:600px){.inv-grid{grid-template-columns:1fr;}}
+    .inv-card{background:var(--wh);border-radius:var(--r);box-shadow:var(--sh);
+      padding:18px;border-top:4px solid var(--prc);}
+    .inv-name{font-size:15px;font-weight:800;margin-bottom:4px;}
+    .inv-unit{font-size:11px;color:var(--g3);}
+    .inv-specs{margin-top:10px;}
+    .inv-spec-row{display:flex;justify-content:space-between;
+      font-size:13px;padding:5px 0;border-bottom:1px solid var(--g1);}
+    .inv-spec-row:last-child{border-bottom:none;}
+    .inv-spec-name{color:var(--g3);}
+    .inv-spec-val{font-weight:700;color:var(--prc);}
+    .inv-total{font-size:13px;font-weight:800;color:var(--tx);
+      margin-top:10px;padding-top:8px;border-top:2px solid var(--prc-l);
+      display:flex;justify-content:space-between;}
+
+    /* ─── Empty ─── */
+    .empty{text-align:center;padding:48px;color:var(--g3);}
+    .empty-icon{font-size:40px;margin-bottom:8px;}
+
+    /* ─── 選果系統 ─── */
+    .machine-status{display:flex;align-items:center;gap:8px;padding:10px 14px;
+      border-radius:10px;font-size:13px;font-weight:600;margin-bottom:14px;border:1.5px solid;}
+    .machine-status.simulated{background:var(--prc-l);border-color:var(--prc-m);color:var(--prc);}
+    .machine-status.online{background:#E8F7EE;border-color:var(--grn);color:#1A6B3C;}
+    .machine-status.offline{background:var(--g1);border-color:var(--g2);color:var(--g3);}
+    .ms-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+    .ms-dot.simulated{background:var(--prc);animation:mspulse 1.8s infinite;}
+    .ms-dot.online{background:var(--grn);box-shadow:0 0 6px rgba(58,171,109,.7);}
+    .ms-dot.offline{background:var(--g3);}
+    @keyframes mspulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+    .grade-tbl{width:100%;border-collapse:collapse;}
+    .grade-tbl th{background:var(--g1);padding:8px 10px;font-size:11px;
+      font-weight:700;color:var(--g3);text-align:left;}
+    .grade-tbl td{padding:7px 8px;border-bottom:1px solid var(--g1);vertical-align:middle;}
+    .grade-tbl tr:last-child td{border-bottom:none;}
+    .grade-dot{width:11px;height:11px;border-radius:50%;display:inline-block;}
+    .dist-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:12px;}
+    .dist-lbl{min-width:48px;font-weight:600;}
+    .dist-track{flex:1;height:16px;background:var(--g1);border-radius:8px;overflow:hidden;}
+    .dist-fill{height:100%;border-radius:8px;transition:width .35s;}
+    .dist-pct{min-width:42px;text-align:right;font-weight:700;color:var(--g3);}
+    .dist-qty{min-width:64px;text-align:right;color:var(--g3);font-size:11px;}
+    .sort-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+    .ss-card{background:var(--prc-l);border-radius:10px;padding:12px 14px;text-align:center;
+      border:1.5px solid var(--prc-m);}
+    .ss-lbl{font-size:11px;color:var(--prc);margin-bottom:3px;}
+    .ss-val{font-size:20px;font-weight:800;color:var(--prc);}
+    .cfg-tag{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;
+      border-radius:20px;font-size:12px;font-weight:600;margin:2px;cursor:default;}
+    .cfg-tag-x{cursor:pointer;opacity:.6;font-size:13px;line-height:1;}
+    .cfg-tag-x:hover{opacity:1;}
+
+    /* ─── Toast ─── */
+    .toast{position:fixed;bottom:22px;right:22px;background:var(--tx);color:#fff;
+      padding:11px 18px;border-radius:10px;font-size:14px;font-weight:600;
+      z-index:9999;opacity:0;transform:translateY(8px);
+      transition:all .25s;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.2);}
+    .toast.show{opacity:1;transform:translateY(0);}
+    .toast.ok{background:var(--grn);}
+    .toast.err{background:var(--red);}
+  </style>
+</head>
+<body>
+
+<!-- ─── Login ─── -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div style="font-size:40px;margin-bottom:10px;">&#127981;</div>
+    <div class="login-logo">水林地瓜 ERP</div>
+    <div class="login-sub">加工管理系統 &mdash; 請輸入帳號密碼</div>
+    <div class="login-field">
+      <label class="f-lbl">帳號</label>
+      <input class="f-ctrl" type="text" id="loginAccount" placeholder="請輸入帳號"
+        onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()"/>
+    </div>
+    <div class="login-field">
+      <label class="f-lbl">密碼</label>
+      <input class="f-ctrl" type="password" id="loginPassword" placeholder="請輸入密碼"
+        onkeydown="if(event.key==='Enter') doLogin()"/>
+    </div>
+    <button class="login-btn" onclick="doLogin()">登入系統</button>
+    <div style="font-size:12px;color:#94A3B8;text-align:center;margin-top:10px;">預設帳號：員工ID，密碼：1234</div>
+  </div>
+</div>
+
+<!-- ─── Sidebar ─── -->
+<aside class="sidebar" id="sidebar" style="display:none;">
+  <div class="sb-logo">
+    <div class="brand">水林地瓜 ERP</div>
+    <div class="sub">加工管理系統</div>
+  </div>
+  <nav class="sb-menu">
+    <div class="sb-section">加工作業</div>
+    <div class="sb-item active" onclick="switchPage('operation',this)">
+      <span class="sb-icon">&#9881;</span>加工作業
+    </div>
+    <div class="sb-item" onclick="switchPage('records',this)">
+      <span class="sb-icon">&#128196;</span>生產記錄
+    </div>
+    <div class="sb-item" onclick="switchPage('inventory',this)">
+      <span class="sb-icon">&#128202;</span>庫存概覽
+    </div>
+    <div class="sb-section">選果系統</div>
+    <div class="sb-item" onclick="switchPage('sorting',this)">
+      <span class="sb-icon">&#9881;</span>選果作業
+    </div>
+    <div class="sb-item" onclick="switchPage('sortrecords',this)">
+      <span class="sb-icon">&#128196;</span>選果記錄
+    </div>
+    <div class="sb-item admin-only" onclick="switchPage('sortconfig',this)">
+      <span class="sb-icon">&#127759;</span>選果設定
+    </div>
+    <div class="sb-section">管理設定</div>
+    <div class="sb-item admin-only" onclick="switchPage('products',this)">
+      <span class="sb-icon">&#128230;</span>產品管理
+    </div>
+    <div class="sb-section">系統連結</div>
+    <div class="sb-item" onclick="window.location.href='倉儲系統.html'">
+      <span class="sb-icon">&#128179;</span>倉儲系統
+    </div>
+    <div class="sb-item" onclick="window.location.href='銷售系統.html'">
+      <span class="sb-icon">&#128722;</span>銷售系統
+    </div>
+    <div class="sb-item" onclick="window.location.href='田間系統.html'">
+      <span class="sb-icon">&#127807;</span>田間系統
+    </div>
+    <div class="sb-item" onclick="window.location.href='主管後台.html'">
+      <span class="sb-icon">&#128197;</span>出勤後台
+    </div>
+    <div class="sb-item" onclick="window.location.href='總後台.html'"
+      style="margin-top:8px;border-top:1px solid rgba(255,255,255,.12);padding-top:14px;">
+      <span class="sb-icon">&#9729;</span>總後台
+    </div>
+  </nav>
+  <div class="sb-foot">
+    <div class="sb-user" id="sbUser">—</div>
+    <div class="sb-role" id="sbRole">—</div>
+    <button class="logout-btn" onclick="doLogout()">&#x21BA; 登出</button>
+  </div>
+</aside>
+
+<!-- ─── Main ─── -->
+<div class="main" id="mainArea" style="display:none;">
+  <div class="topbar">
+    <div class="topbar-title" id="pageTitle">加工作業</div>
+    <div class="topbar-r">
+      <div style="font-size:12px;color:var(--g3);" id="todayLabel"></div>
+      <button class="btn btn-out btn-sm" onclick="refreshAll()">重新整理</button>
+      <div class="avatar" id="topAvatar">—</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ─── 加工作業 ─── -->
+    <div class="panel active" id="page-operation">
+      <div class="stats" id="opStats"></div>
+      <div class="op-zone">
+        <div class="op-zone-title">&#9881; 登錄加工批次</div>
+        <div class="form-grid">
+          <div class="section-divider">批次資訊</div>
+          <div>
+            <label class="f-lbl">批次號</label>
+            <input class="f-ctrl" type="text" id="opBatchNo" placeholder="自動產生"/>
+          </div>
+          <div>
+            <label class="f-lbl">加工日期 ＊</label>
+            <input class="f-ctrl" type="date" id="opDate"/>
+          </div>
+          <div>
+            <label class="f-lbl">加工時間</label>
+            <input class="f-ctrl" type="time" id="opTime"/>
+          </div>
+          <div>
+            <label class="f-lbl">加工人員 ＊</label>
+            <input class="f-ctrl" type="text" id="opOperator" placeholder="操作員姓名"/>
+          </div>
+
+          <div class="section-divider">產品資訊</div>
+          <div>
+            <label class="f-lbl">產品 ＊</label>
+            <select class="f-ctrl" id="opProduct" onchange="onProductChange()">
+              <option value="">— 選擇產品 —</option>
+            </select>
+          </div>
+          <div>
+            <label class="f-lbl">規格 / 品相 ＊</label>
+            <select class="f-ctrl" id="opSpec">
+              <option value="">— 先選產品 —</option>
+            </select>
+          </div>
+
+          <div class="section-divider">重量資訊</div>
+          <div>
+            <label class="f-lbl">毛重（kg）＊</label>
+            <input class="f-ctrl" type="number" id="opGross" min="0" step="0.1"
+              placeholder="0.0" oninput="calcNet()"/>
+          </div>
+          <div>
+            <label class="f-lbl">損耗 / 廢料（kg）</label>
+            <input class="f-ctrl" type="number" id="opWaste" min="0" step="0.1"
+              placeholder="0.0" oninput="calcNet()"/>
+          </div>
+          <div class="f-full">
+            <div class="weight-preview" id="weightPreview">
+              <div class="wp-row"><span class="wp-lbl">毛重</span><span class="wp-val" id="wpGross">—</span></div>
+              <div class="wp-row"><span class="wp-lbl">損耗</span><span class="wp-val" id="wpWaste">—</span></div>
+              <div class="wp-row"><span class="wp-lbl">淨重</span><span class="wp-net" id="wpNet">—</span></div>
+            </div>
+          </div>
+
+          <div class="section-divider">其他</div>
+          <div class="f-full">
+            <label class="f-lbl">備注</label>
+            <textarea class="f-ctrl" id="opNotes" rows="2" placeholder="原料來源、異常狀況..."></textarea>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap;">
+          <button class="btn btn-out" onclick="resetOpForm()">清除</button>
+          <button class="btn btn-pri" onclick="saveRecord()">&#x2713; 儲存加工記錄</button>
+        </div>
+      </div>
+
+      <!-- 今日記錄速覽 -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">今日加工記錄</div>
+          <div style="font-size:12px;color:var(--g3);" id="todayRecCount"></div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="tbl">
+            <thead><tr>
+              <th>批次號</th><th>時間</th><th>產品</th><th>規格</th>
+              <th>毛重</th><th>損耗</th><th>淨重</th><th>加工人員</th><th>操作</th>
+            </tr></thead>
+            <tbody id="todayRecBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 生產記錄 ─── -->
+    <div class="panel" id="page-records">
+      <div class="filter-bar">
+        <input class="f-input" type="date" id="recFrom" style="width:140px;" onchange="renderRecords()"/>
+        <span style="color:var(--g3);">至</span>
+        <input class="f-input" type="date" id="recTo" style="width:140px;" onchange="renderRecords()"/>
+        <select class="f-select" id="recProdFilter" onchange="renderRecords()">
+          <option value="">全部產品</option>
+        </select>
+        <select class="f-select" id="recSpecFilter" onchange="renderRecords()">
+          <option value="">全部規格</option>
+        </select>
+        <input class="f-input" type="text" id="recSearch" placeholder="搜尋批次號、人員..."
+          oninput="renderRecords()" style="width:160px;"/>
+        <button class="btn btn-out btn-sm" onclick="exportRecordsCSV()">匯出 CSV</button>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">生產記錄明細</div>
+          <div style="font-size:12px;color:var(--g3);" id="recCount"></div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="tbl">
+            <thead><tr>
+              <th>批次號</th><th>日期</th><th>時間</th><th>產品</th><th>規格</th>
+              <th>毛重(kg)</th><th>損耗(kg)</th><th>淨重(kg)</th><th>加工人員</th><th>備注</th><th>操作</th>
+            </tr></thead>
+            <tbody id="recBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 庫存概覽 ─── -->
+    <div class="panel" id="page-inventory">
+      <div class="filter-bar">
+        <select class="f-select" id="invProdFilter" onchange="renderInventory()">
+          <option value="">全部產品</option>
+        </select>
+        <input class="f-input" type="date" id="invFrom" style="width:140px;" onchange="renderInventory()"/>
+        <span style="color:var(--g3);">至</span>
+        <input class="f-input" type="date" id="invTo" style="width:140px;" onchange="renderInventory()"/>
+        <span style="font-size:12px;color:var(--g3);">（依加工日期統計）</span>
+      </div>
+      <div class="inv-grid" id="invGrid"></div>
+    </div>
+
+    <!-- ─── 產品管理 ─── -->
+    <div class="panel" id="page-products">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">加工產品管理</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div style="font-size:12px;color:var(--g3);">（與倉儲系統共用產品資料）</div>
+            <button class="btn btn-pri btn-sm" onclick="openAddProduct()">&#43; 新增產品</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="tbl">
+            <thead><tr>
+              <th>產品名稱</th><th>單位</th><th>規格 / 品相</th><th>備注</th><th>操作</th>
+            </tr></thead>
+            <tbody id="prodBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 選果作業 ─── -->
+    <div class="panel" id="page-sorting">
+      <div id="machineStatusBar"></div>
+      <div class="sort-stats" id="sortStats"></div>
+      <div class="op-zone">
+        <div class="op-zone-title">&#9881; 登錄選果批次</div>
+        <div class="form-grid">
+          <div class="section-divider">批次基本資訊</div>
+          <div>
+            <label class="f-lbl">批次號</label>
+            <input class="f-ctrl" type="text" id="srBatchNo" placeholder="自動產生"/>
+          </div>
+          <div>
+            <label class="f-lbl">日期 ＊</label>
+            <input class="f-ctrl" type="date" id="srDate"/>
+          </div>
+          <div>
+            <label class="f-lbl">時間</label>
+            <input class="f-ctrl" type="time" id="srTime"/>
+          </div>
+          <div>
+            <label class="f-lbl">作業人員 ＊</label>
+            <input class="f-ctrl" type="text" id="srOperator"/>
+          </div>
+          <div>
+            <label class="f-lbl">品種來源</label>
+            <select class="f-ctrl" id="srVariety">
+              <option value="">— 選擇品種 —</option>
+            </select>
+          </div>
+          <div>
+            <label class="f-lbl">投入總重 ＊</label>
+            <input class="f-ctrl" type="number" id="srInput" min="0" step="0.1"
+              placeholder="0.0" oninput="calcSortDist()"/>
+          </div>
+
+          <div class="section-divider">各品相產出重量</div>
+          <div class="f-full">
+            <table class="grade-tbl" id="gradeInputTable">
+              <thead><tr>
+                <th>品相</th><th>產出重量</th><th>單位</th><th>佔比</th>
+              </tr></thead>
+              <tbody id="gradeInputBody"></tbody>
+            </table>
+          </div>
+
+          <div class="f-full">
+            <div style="background:var(--g1);border-radius:10px;padding:14px 16px;">
+              <div style="font-size:12px;font-weight:700;color:var(--g3);margin-bottom:10px;">
+                品相分佈預覽</div>
+              <div id="distPreview"></div>
+              <div style="display:flex;gap:18px;margin-top:10px;font-size:12px;flex-wrap:wrap;"
+                id="sortSumRow"></div>
+            </div>
+          </div>
+
+          <div class="section-divider">機器資料（預留介面）</div>
+          <div>
+            <label class="f-lbl">水溫（°C）</label>
+            <input class="f-ctrl" type="number" id="srWaterTemp" placeholder="預留欄位" step="0.1"/>
+          </div>
+          <div>
+            <label class="f-lbl">流量（L/min）</label>
+            <input class="f-ctrl" type="number" id="srFlowRate" placeholder="預留欄位" step="0.1"/>
+          </div>
+          <div>
+            <label class="f-lbl">輸送帶速（m/min）</label>
+            <input class="f-ctrl" type="number" id="srBeltSpeed" placeholder="預留欄位" step="0.01"/>
+          </div>
+          <div>
+            <label class="f-lbl">機台編號</label>
+            <input class="f-ctrl" type="text" id="srMachineId" placeholder="M001"/>
+          </div>
+          <div class="f-full">
+            <label class="f-lbl">備注</label>
+            <textarea class="f-ctrl" id="srNotes" rows="2" placeholder="異常狀況、特殊備注..."></textarea>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap;">
+          <button class="btn btn-out" onclick="resetSortForm()">清除</button>
+          <button class="btn btn-pri" onclick="saveSortRecord()">&#x2713; 儲存選果記錄</button>
+        </div>
+      </div>
+
+      <!-- 今日選果速覽 -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">今日選果記錄</div>
+          <div style="font-size:12px;color:var(--g3);" id="todaySortCount"></div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="tbl">
+            <thead><tr>
+              <th>批次號</th><th>時間</th><th>品種</th><th>投入</th>
+              <th>總產出</th><th>良率</th><th>作業人員</th><th>操作</th>
+            </tr></thead>
+            <tbody id="todaySortBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 選果記錄 ─── -->
+    <div class="panel" id="page-sortrecords">
+      <div class="filter-bar">
+        <input class="f-input" type="date" id="srFrom" style="width:135px;" onchange="renderSortRecords()"/>
+        <span style="color:var(--g3);">至</span>
+        <input class="f-input" type="date" id="srTo" style="width:135px;" onchange="renderSortRecords()"/>
+        <select class="f-select" id="srVarFilter" onchange="renderSortRecords()">
+          <option value="">全部品種</option>
+        </select>
+        <input class="f-input" type="text" id="srSearch" placeholder="搜尋批次號、人員..."
+          oninput="renderSortRecords()" style="width:155px;"/>
+        <button class="btn btn-out btn-sm" onclick="exportSortCSV()">匯出 CSV</button>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">選果記錄明細</div>
+          <div style="font-size:12px;color:var(--g3);" id="sortRecCount"></div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="tbl">
+            <thead><tr>
+              <th>批次號</th><th>日期</th><th>品種</th><th>投入(kg)</th>
+              <th>總產出</th><th>良率</th><th>各品相分佈</th><th>作業人員</th><th>操作</th>
+            </tr></thead>
+            <tbody id="sortRecBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 選果設定 ─── -->
+    <div class="panel" id="page-sortconfig">
+      <!-- 品相管理 -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">品相管理</div>
+          <div style="font-size:12px;color:var(--g3);">可自訂品相名稱與顏色，用於選果記錄</div>
+        </div>
+        <div class="card-body">
+          <div id="gradeList" style="margin-bottom:14px;"></div>
+          <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
+            <div>
+              <label class="f-lbl">品相名稱</label>
+              <input class="f-ctrl" type="text" id="newGradeName" placeholder="例：特大"
+                style="width:130px;" onkeydown="if(event.key==='Enter')addGrade()"/>
+            </div>
+            <div>
+              <label class="f-lbl">顏色</label>
+              <input type="color" id="newGradeColor" value="#E8731A"
+                style="width:48px;height:38px;border-radius:8px;border:1.5px solid var(--g2);cursor:pointer;padding:2px;"/>
+            </div>
+            <button class="btn btn-pri btn-sm" onclick="addGrade()">&#43; 新增品相</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 單位管理 -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">計量單位管理</div>
+          <div style="font-size:12px;color:var(--g3);">可自訂各品相的可選單位</div>
+        </div>
+        <div class="card-body">
+          <div id="unitList" style="margin-bottom:14px;"></div>
+          <div style="display:flex;gap:8px;align-items:flex-end;">
+            <div>
+              <label class="f-lbl">新增單位</label>
+              <input class="f-ctrl" type="text" id="newUnitName" placeholder="例：台斤"
+                style="width:130px;" onkeydown="if(event.key==='Enter')addUnit()"/>
+            </div>
+            <button class="btn btn-pri btn-sm" onclick="addUnit()">&#43; 新增</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 機台管理 -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">機台 / 串接設定</div>
+          <div style="font-size:12px;color:var(--g3);">預留機器 API 串接介面</div>
+        </div>
+        <div class="card-body">
+          <div id="machineList" style="margin-bottom:14px;"></div>
+          <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
+            <div>
+              <label class="f-lbl">機台編號</label>
+              <input class="f-ctrl" type="text" id="newMachineId" placeholder="M001" style="width:110px;"/>
+            </div>
+            <div>
+              <label class="f-lbl">名稱 / 說明</label>
+              <input class="f-ctrl" type="text" id="newMachineName" placeholder="1號選果機" style="width:160px;"/>
+            </div>
+            <div>
+              <label class="f-lbl">API 端點（預留）</label>
+              <input class="f-ctrl" type="text" id="newMachineApi"
+                placeholder="http://192.168.1.X/api/..." style="width:230px;"/>
+            </div>
+            <button class="btn btn-pri btn-sm" onclick="addMachine()">&#43; 新增機台</button>
+          </div>
+          <div style="margin-top:14px;background:var(--g1);border-radius:8px;
+            padding:12px 14px;font-size:12px;color:var(--g3);line-height:1.8;">
+            &#128274; <strong>機器串接說明：</strong>未來可透過 API 讓選果機自動回傳各品相重量。<br/>
+            目前為手動輸入模式（模擬）。機器資料欄位（水溫、流量、帶速）已保留於資料庫結構中。<br/>
+            串接格式預期：<code style="background:var(--g2);padding:1px 5px;border-radius:4px;">
+            POST /api/sorter/batch → {grades:[{name,qty,unit}], machineData:{...}}</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─── Modal: 加工產品 ─── -->
+<div class="modal-overlay" id="prodModal" onclick="if(event.target===this)closeModal('prodModal')">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="prodModalTitle">新增加工產品</div>
+      <button class="modal-close" onclick="closeModal('prodModal')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pmEditId"/>
+      <div class="form-row">
+        <label class="f-lbl">產品名稱 ＊</label>
+        <input class="f-ctrl" type="text" id="pmName" placeholder="例：地瓜片"/>
+      </div>
+      <div class="form-row">
+        <label class="f-lbl">計量單位</label>
+        <input class="f-ctrl" type="text" id="pmUnit" placeholder="kg / 包 / 箱" value="kg"/>
+      </div>
+      <div class="form-row">
+        <label class="f-lbl">規格 / 品相（以逗號分隔）</label>
+        <input class="f-ctrl" type="text" id="pmSpecs" placeholder="例：A級、B級、C級"/>
+        <div style="font-size:11px;color:var(--g3);margin-top:4px;">多個規格請以逗號或頓號分隔</div>
+      </div>
+      <div class="form-row">
+        <label class="f-lbl">備注</label>
+        <input class="f-ctrl" type="text" id="pmNotes" placeholder="選填"/>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-out" onclick="closeModal('prodModal')">取消</button>
+      <button class="btn btn-pri" onclick="confirmProductEdit()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Modal: 選果詳情 ─── -->
+<div class="modal-overlay" id="sortDetailModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-head">
+      <div class="modal-title" id="sdTitle">選果批次詳情</div>
+      <button class="modal-close" onclick="document.getElementById('sortDetailModal').classList.remove('open')">&#x2715;</button>
+    </div>
+    <div class="modal-body" id="sdBody" style="max-height:70vh;overflow-y:auto;"></div>
+    <div class="modal-foot">
+      <button class="btn btn-out" onclick="document.getElementById('sortDetailModal').classList.remove('open')">關閉</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Modal: 編輯記錄 ─── -->
+<div class="modal-overlay" id="recEditModal" onclick="if(event.target===this)closeModal('recEditModal')">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">編輯加工記錄</div>
+      <button class="modal-close" onclick="closeModal('recEditModal')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="reEditId"/>
+      <div class="form-grid">
+        <div>
+          <label class="f-lbl">加工日期</label>
+          <input class="f-ctrl" type="date" id="reDate"/>
+        </div>
+        <div>
+          <label class="f-lbl">加工時間</label>
+          <input class="f-ctrl" type="time" id="reTime"/>
+        </div>
+        <div>
+          <label class="f-lbl">產品</label>
+          <select class="f-ctrl" id="reProduct" onchange="onReProductChange()">
+            <option value="">— 選擇 —</option>
+          </select>
+        </div>
+        <div>
+          <label class="f-lbl">規格</label>
+          <select class="f-ctrl" id="reSpec"></select>
+        </div>
+        <div>
+          <label class="f-lbl">毛重（kg）</label>
+          <input class="f-ctrl" type="number" id="reGross" min="0" step="0.1" oninput="calcReNet()"/>
+        </div>
+        <div>
+          <label class="f-lbl">損耗（kg）</label>
+          <input class="f-ctrl" type="number" id="reWaste" min="0" step="0.1" oninput="calcReNet()"/>
+        </div>
+        <div class="f-full" style="font-size:13px;color:var(--g3);padding:4px 0;">
+          淨重：<strong id="reNetPreview" style="color:var(--prc);font-size:15px;">—</strong> kg
+        </div>
+        <div>
+          <label class="f-lbl">加工人員</label>
+          <input class="f-ctrl" type="text" id="reOperator"/>
+        </div>
+        <div class="f-full">
+          <label class="f-lbl">備注</label>
+          <textarea class="f-ctrl" id="reNotes" rows="2"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-out" onclick="closeModal('recEditModal')">取消</button>
+      <button class="btn btn-pri" onclick="confirmRecEdit()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── Storage ──────────────────────────────────────────────────────────
+const getProcProd  = ()=>JSON.parse(localStorage.getItem('slg_proc_products')||'[]');
+const saveProcProd = d=>localStorage.setItem('slg_proc_products',JSON.stringify(d));
+const getRecords   = ()=>JSON.parse(localStorage.getItem('slg_proc_records')||'[]');
+const saveRecords  = d=>localStorage.setItem('slg_proc_records',JSON.stringify(d));
+// 選果系統
+const getSortRecs  = ()=>JSON.parse(localStorage.getItem('slg_sort_records')||'[]');
+const saveSortRecs = d=>localStorage.setItem('slg_sort_records',JSON.stringify(d));
+const getSortCfg   = ()=>JSON.parse(localStorage.getItem('slg_sort_cfg')||'null');
+const saveSortCfg  = d=>localStorage.setItem('slg_sort_cfg',JSON.stringify(d));
+// 品種（與倉儲共用）
+const getWhVar     = ()=>JSON.parse(localStorage.getItem('slg_wh_var')||'[]');
+
+const uid = ()=>'R'+Date.now()+Math.random().toString(36).slice(2,4).toUpperCase();
+const todayStr = ()=>new Date().toISOString().slice(0,10);
+const nowTime  = ()=>new Date().toTimeString().slice(0,5);
+const fmt = n=>n!=null?Number(n).toFixed(1):'—';
+
+function genBatchNo(){
+  const d=todayStr().replace(/-/g,'');
+  const recs=getRecords().filter(r=>r.date===todayStr());
+  const seq=String(recs.length+1).padStart(3,'0');
+  return `PC-${d}-${seq}`;
+}
+
+// ─── Seed processed products if missing ───────────────────────────────
+function seedProcProds(){
+  if(getProcProd().length) return;
+  saveProcProd([
+    {id:'PP001',name:'地瓜片',unit:'kg',specs:['A級','B級','C級'],notes:''},
+    {id:'PP002',name:'地瓜條',unit:'kg',specs:['特級','一般'],notes:''},
+    {id:'PP003',name:'地瓜酥',unit:'包',specs:['大包裝','小包裝'],notes:''},
+    {id:'PP004',name:'地瓜粉',unit:'kg',specs:['精細粉','粗粒粉'],notes:''},
+  ]);
+}
+
+// ─── Login ────────────────────────────────────────────────────────────
+let _role='';
+
+function doLogin(){
+  const account=document.getElementById('loginAccount').value.trim();
+  const password=document.getElementById('loginPassword').value.trim();
+  if(!account||!password){ showToast('請輸入帳號與密碼','err'); return; }
+  const users=JSON.parse(localStorage.getItem('slg_users')||'[]');
+  const user=users.find(u=>u.account===account&&u.password===password&&u.status==='active');
+  if(!user){ showToast('帳號或密碼錯誤','err'); return; }
+  const perms=JSON.parse(localStorage.getItem('slg_user_perms')||'{}');
+  const perm=(perms[user.id]||{})['processing']||'none';
+  if(perm==='none'){ showToast('您無此系統的存取權限，請聯絡管理員','err'); return; }
+  const role=perm==='supervisor'?'加工主管':'加工人員';
+  sessionStorage.setItem('proc_role',role);
+  sessionStorage.setItem('proc_name',user.name);
+  applyLogin();
+}
+function applyLogin(){
+  const role=sessionStorage.getItem('proc_role');
+  const name=sessionStorage.getItem('proc_name');
+  if(!role||!name){
+    document.getElementById('loginOverlay').style.display='';
+    document.getElementById('sidebar').style.display='none';
+    document.getElementById('mainArea').style.display='none';
+    return;
+  }
+  document.getElementById('loginOverlay').style.display='none';
+  document.getElementById('sidebar').style.display='';
+  document.getElementById('mainArea').style.display='';
+  _role=role;
+  document.getElementById('sbUser').textContent=name;
+  document.getElementById('sbRole').textContent=role;
+  document.getElementById('topAvatar').textContent=name.slice(0,1);
+  // role visibility
+  document.querySelectorAll('.admin-only').forEach(el=>{
+    el.style.display=role==='加工主管'?'':'none';
+  });
+  document.getElementById('opOperator').value=name;
+  init();
+}
+function doLogout(){
+  if(!confirm('確認登出？')) return;
+  sessionStorage.removeItem('proc_role');
+  sessionStorage.removeItem('proc_name');
+  _role='';
+  document.getElementById('loginAccount').value='';
+  document.getElementById('loginPassword').value='';
+  document.getElementById('loginOverlay').style.display='';
+  document.getElementById('sidebar').style.display='none';
+  document.getElementById('mainArea').style.display='none';
+}
+
+// ─── Page navigation ──────────────────────────────────────────────────
+const pageTitles={
+  operation:'加工作業',records:'生產記錄',inventory:'庫存概覽',products:'產品管理'
+};
+let currentPage='operation';
+
+function switchPage(name, el){
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  if(el) el.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('pageTitle').textContent=pageTitles[name]||name;
+  currentPage=name;
+  renderPage(name);
+}
+
+function renderPage(name){
+  if(name==='operation')   { renderOpStats(); renderTodayRecs(); }
+  if(name==='records')     { populateRecFilters(); renderRecords(); }
+  if(name==='inventory')   { populateInvFilters(); renderInventory(); }
+  if(name==='products')    renderProducts();
+  if(name==='sorting')     { renderSortingPage(); }
+  if(name==='sortrecords') { populateSortFilters(); renderSortRecords(); }
+  if(name==='sortconfig')  renderSortConfig();
+}
+
+function refreshAll(){ renderPage(currentPage); }
+
+// ─── Weight calc ──────────────────────────────────────────────────────
+function calcNet(){
+  const g=parseFloat(document.getElementById('opGross').value)||0;
+  const w=parseFloat(document.getElementById('opWaste').value)||0;
+  const n=Math.max(0,g-w);
+  document.getElementById('wpGross').textContent=g?g.toFixed(1)+' kg':'—';
+  document.getElementById('wpWaste').textContent=w?w.toFixed(1)+' kg':'—';
+  document.getElementById('wpNet').textContent=g?n.toFixed(1)+' kg':'—';
+}
+function calcReNet(){
+  const g=parseFloat(document.getElementById('reGross').value)||0;
+  const w=parseFloat(document.getElementById('reWaste').value)||0;
+  document.getElementById('reNetPreview').textContent=(Math.max(0,g-w)).toFixed(1);
+}
+
+// ─── Product selector ─────────────────────────────────────────────────
+function populateProductSelect(selId, specSelId, selectedProd, selectedSpec){
+  const sel=document.getElementById(selId);
+  const prods=getProcProd();
+  sel.innerHTML='<option value="">— 選擇產品 —</option>'+
+    prods.map(p=>`<option value="${p.id}"${p.id===selectedProd?' selected':''}>${p.name}（${p.unit}）</option>`).join('');
+  if(selectedProd) populateSpecSelect(specSelId, selectedProd, selectedSpec);
+}
+function populateSpecSelect(selId, prodId, selectedSpec){
+  const sel=document.getElementById(selId);
+  const prod=getProcProd().find(p=>p.id===prodId);
+  if(!prod||!prod.specs||!prod.specs.length){
+    sel.innerHTML='<option value="">無規格</option>'; return;
+  }
+  sel.innerHTML=prod.specs.map(s=>`<option value="${s}"${s===selectedSpec?' selected':''}>${s}</option>`).join('');
+}
+function onProductChange(){
+  const prodId=document.getElementById('opProduct').value;
+  populateSpecSelect('opSpec', prodId, '');
+}
+function onReProductChange(){
+  const prodId=document.getElementById('reProduct').value;
+  populateSpecSelect('reSpec', prodId, '');
+}
+
+// ─── Stats ────────────────────────────────────────────────────────────
+function renderOpStats(){
+  const today=todayStr();
+  const recs=getRecords();
+  const todayRecs=recs.filter(r=>r.date===today);
+  const totalNet=todayRecs.reduce((s,r)=>s+(parseFloat(r.netWeight)||0),0);
+  const allRecs=recs;
+  const totalAllNet=allRecs.reduce((s,r)=>s+(parseFloat(r.netWeight)||0),0);
+  const prods=getProcProd();
+  document.getElementById('opStats').innerHTML=`
+    <div class="stat c1">
+      <div class="stat-lbl">今日批次</div>
+      <div class="stat-val">${todayRecs.length}</div>
+      <div class="stat-sub">筆加工記錄</div>
+    </div>
+    <div class="stat c2">
+      <div class="stat-lbl">今日淨重</div>
+      <div class="stat-val" style="font-size:20px;">${totalNet.toFixed(1)}</div>
+      <div class="stat-sub">公斤</div>
+    </div>
+    <div class="stat c3">
+      <div class="stat-lbl">累計總淨重</div>
+      <div class="stat-val" style="font-size:20px;">${(totalAllNet/1000).toFixed(2)}</div>
+      <div class="stat-sub">公噸</div>
+    </div>
+    <div class="stat c4">
+      <div class="stat-lbl">產品種類</div>
+      <div class="stat-val">${prods.length}</div>
+      <div class="stat-sub">種加工產品</div>
+    </div>
+  `;
+}
+
+// ─── Today records ────────────────────────────────────────────────────
+function renderTodayRecs(){
+  const today=todayStr();
+  const recs=getRecords().filter(r=>r.date===today).sort((a,b)=>b.time?.localeCompare(a.time||'')||0);
+  document.getElementById('todayRecCount').textContent=`共 ${recs.length} 筆`;
+  const body=document.getElementById('todayRecBody');
+  if(!recs.length){
+    body.innerHTML='<tr><td colspan="9" style="text-align:center;padding:28px;color:var(--g3);">今日尚無加工記錄</td></tr>';
+    return;
+  }
+  body.innerHTML=recs.map(r=>`<tr>
+    <td><strong style="color:var(--prc);">${r.batchNo}</strong></td>
+    <td>${r.time||'—'}</td>
+    <td>${r.productName||'—'}</td>
+    <td><span class="chip chip-org">${r.spec||'—'}</span></td>
+    <td style="text-align:right;">${fmt(r.grossWeight)}</td>
+    <td style="text-align:right;">${fmt(r.wasteWeight)}</td>
+    <td style="text-align:right;font-weight:700;color:var(--prc);">${fmt(r.netWeight)}</td>
+    <td>${r.operator||'—'}</td>
+    <td>
+      <button class="btn btn-out btn-sm" onclick="openEditRec('${r.id}')">編輯</button>
+      <button class="btn btn-red btn-sm" onclick="deleteRecord('${r.id}')">刪除</button>
+    </td>
+  </tr>`).join('');
+}
+
+// ─── Save record ──────────────────────────────────────────────────────
+function saveRecord(){
+  const date=document.getElementById('opDate').value;
+  const time=document.getElementById('opTime').value;
+  const prodId=document.getElementById('opProduct').value;
+  const spec=document.getElementById('opSpec').value;
+  const grossWeight=parseFloat(document.getElementById('opGross').value)||0;
+  const wasteWeight=parseFloat(document.getElementById('opWaste').value)||0;
+  const operator=document.getElementById('opOperator').value.trim();
+  const notes=document.getElementById('opNotes').value.trim();
+
+  if(!date||!prodId||!operator){
+    showToast('請填寫日期、產品、加工人員','err'); return;
+  }
+  if(!grossWeight){ showToast('請輸入毛重','err'); return; }
+
+  const prod=getProcProd().find(p=>p.id===prodId);
+  const netWeight=Math.max(0,grossWeight-wasteWeight);
+  const batchNo=document.getElementById('opBatchNo').value.trim()||genBatchNo();
+
+  const rec={
+    id:uid(), batchNo, date, time, productId:prodId,
+    productName:prod?.name||'', spec, grossWeight, wasteWeight, netWeight,
+    operator, notes, createdAt:new Date().toISOString()
+  };
+
+  const recs=getRecords();
+  recs.push(rec);
+  saveRecords(recs);
+  showToast(`批次 ${batchNo} 已儲存 ✓`,'ok');
+  resetOpForm();
+  renderTodayRecs();
+  renderOpStats();
+}
+
+function resetOpForm(){
+  document.getElementById('opBatchNo').value=genBatchNo();
+  document.getElementById('opDate').value=todayStr();
+  document.getElementById('opTime').value=nowTime();
+  document.getElementById('opProduct').value='';
+  document.getElementById('opSpec').innerHTML='<option value="">— 先選產品 —</option>';
+  document.getElementById('opGross').value='';
+  document.getElementById('opWaste').value='';
+  document.getElementById('opNotes').value='';
+  calcNet();
+}
+
+// ─── Records page ─────────────────────────────────────────────────────
+function populateRecFilters(){
+  const prods=getProcProd();
+  const pSel=document.getElementById('recProdFilter');
+  const cur=pSel.value;
+  pSel.innerHTML='<option value="">全部產品</option>'+
+    prods.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  pSel.value=cur;
+
+  // populate spec filter from all records
+  const specs=[...new Set(getRecords().map(r=>r.spec).filter(Boolean))].sort();
+  const sSel=document.getElementById('recSpecFilter');
+  const curS=sSel.value;
+  sSel.innerHTML='<option value="">全部規格</option>'+specs.map(s=>`<option value="${s}">${s}</option>`).join('');
+  sSel.value=curS;
+}
+
+function renderRecords(){
+  const from=document.getElementById('recFrom').value;
+  const to=document.getElementById('recTo').value;
+  const prodF=document.getElementById('recProdFilter').value;
+  const specF=document.getElementById('recSpecFilter').value;
+  const kw=(document.getElementById('recSearch').value||'').trim();
+
+  let recs=getRecords();
+  if(from) recs=recs.filter(r=>r.date>=from);
+  if(to)   recs=recs.filter(r=>r.date<=to);
+  if(prodF) recs=recs.filter(r=>r.productId===prodF);
+  if(specF) recs=recs.filter(r=>r.spec===specF);
+  if(kw) recs=recs.filter(r=>
+    r.batchNo?.includes(kw)||r.operator?.includes(kw)||r.productName?.includes(kw));
+  recs.sort((a,b)=>b.date.localeCompare(a.date)||b.time?.localeCompare(a.time||'')||0);
+
+  const totalNet=recs.reduce((s,r)=>s+(parseFloat(r.netWeight)||0),0);
+  document.getElementById('recCount').textContent=
+    `共 ${recs.length} 筆 ／ 淨重合計：${totalNet.toFixed(1)} kg`;
+
+  const body=document.getElementById('recBody');
+  if(!recs.length){
+    body.innerHTML='<tr><td colspan="11" style="text-align:center;padding:28px;color:var(--g3);">無符合條件的記錄</td></tr>';
+    return;
+  }
+  body.innerHTML=recs.map(r=>`<tr>
+    <td><strong style="color:var(--prc);">${r.batchNo}</strong></td>
+    <td>${r.date}</td>
+    <td>${r.time||'—'}</td>
+    <td>${r.productName||'—'}</td>
+    <td><span class="chip chip-org">${r.spec||'—'}</span></td>
+    <td style="text-align:right;">${fmt(r.grossWeight)}</td>
+    <td style="text-align:right;">${fmt(r.wasteWeight)}</td>
+    <td style="text-align:right;font-weight:700;color:var(--prc);">${fmt(r.netWeight)}</td>
+    <td>${r.operator||'—'}</td>
+    <td style="font-size:12px;color:var(--g3);max-width:120px;">${r.notes||'—'}</td>
+    <td style="white-space:nowrap;">
+      <button class="btn btn-out btn-sm" onclick="openEditRec('${r.id}')">編輯</button>
+      <button class="btn btn-red btn-sm" onclick="deleteRecord('${r.id}')">刪除</button>
+    </td>
+  </tr>`).join('');
+}
+
+// ─── Edit record ──────────────────────────────────────────────────────
+function openEditRec(id){
+  const r=getRecords().find(x=>x.id===id);
+  if(!r) return;
+  document.getElementById('reEditId').value=id;
+  populateProductSelect('reProduct','reSpec',r.productId,r.spec);
+  document.getElementById('reDate').value=r.date||'';
+  document.getElementById('reTime').value=r.time||'';
+  document.getElementById('reGross').value=r.grossWeight||'';
+  document.getElementById('reWaste').value=r.wasteWeight||'';
+  document.getElementById('reOperator').value=r.operator||'';
+  document.getElementById('reNotes').value=r.notes||'';
+  calcReNet();
+  document.getElementById('recEditModal').classList.add('open');
+}
+function confirmRecEdit(){
+  const id=document.getElementById('reEditId').value;
+  const recs=getRecords();
+  const idx=recs.findIndex(x=>x.id===id);
+  if(idx<0) return;
+  const prodId=document.getElementById('reProduct').value;
+  const prod=getProcProd().find(p=>p.id===prodId);
+  const gross=parseFloat(document.getElementById('reGross').value)||0;
+  const waste=parseFloat(document.getElementById('reWaste').value)||0;
+  recs[idx]={...recs[idx],
+    date:document.getElementById('reDate').value,
+    time:document.getElementById('reTime').value,
+    productId:prodId,productName:prod?.name||recs[idx].productName,
+    spec:document.getElementById('reSpec').value,
+    grossWeight:gross,wasteWeight:waste,netWeight:Math.max(0,gross-waste),
+    operator:document.getElementById('reOperator').value.trim(),
+    notes:document.getElementById('reNotes').value.trim(),
+  };
+  saveRecords(recs);
+  closeModal('recEditModal');
+  renderPage(currentPage);
+  showToast('記錄已更新','ok');
+}
+function deleteRecord(id){
+  if(!confirm('確認刪除此加工記錄？')) return;
+  saveRecords(getRecords().filter(r=>r.id!==id));
+  renderPage(currentPage);
+  showToast('已刪除','ok');
+}
+
+// ─── Inventory ────────────────────────────────────────────────────────
+function populateInvFilters(){
+  const prods=getProcProd();
+  const sel=document.getElementById('invProdFilter');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">全部產品</option>'+
+    prods.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  sel.value=cur;
+}
+function renderInventory(){
+  const prodF=document.getElementById('invProdFilter').value;
+  const from=document.getElementById('invFrom').value;
+  const to=document.getElementById('invTo').value;
+  let recs=getRecords();
+  if(from) recs=recs.filter(r=>r.date>=from);
+  if(to)   recs=recs.filter(r=>r.date<=to);
+  if(prodF) recs=recs.filter(r=>r.productId===prodF);
+
+  const prods=getProcProd().filter(p=>!prodF||p.id===prodF);
+  const grid=document.getElementById('invGrid');
+  if(!prods.length){
+    grid.innerHTML='<div class="empty"><div class="empty-icon">&#128230;</div>尚無加工產品資料</div>';
+    return;
+  }
+
+  grid.innerHTML=prods.map(p=>{
+    const pRecs=recs.filter(r=>r.productId===p.id);
+    const total=pRecs.reduce((s,r)=>s+(parseFloat(r.netWeight)||0),0);
+    const specMap={};
+    pRecs.forEach(r=>{
+      const sp=r.spec||'(無規格)';
+      specMap[sp]=(specMap[sp]||0)+(parseFloat(r.netWeight)||0);
+    });
+    const specs=Object.entries(specMap).sort((a,b)=>b[1]-a[1]);
+    return `<div class="inv-card">
+      <div class="inv-name">${p.name}</div>
+      <div class="inv-unit">單位：${p.unit||'kg'} ／ 批次數：${pRecs.length}</div>
+      <div class="inv-specs">
+        ${specs.length?specs.map(([sp,wt])=>`
+          <div class="inv-spec-row">
+            <span class="inv-spec-name">${sp}</span>
+            <span class="inv-spec-val">${wt.toFixed(1)} ${p.unit||'kg'}</span>
+          </div>`).join('')
+          :'<div style="font-size:12px;color:var(--g3);padding:6px 0;">尚無記錄</div>'}
+      </div>
+      ${specs.length?`<div class="inv-total">
+        <span>合計</span>
+        <span style="color:var(--prc);">${total.toFixed(1)} ${p.unit||'kg'}</span>
+      </div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ─── Products page ────────────────────────────────────────────────────
+function renderProducts(){
+  const prods=getProcProd();
+  const body=document.getElementById('prodBody');
+  if(!prods.length){
+    body.innerHTML='<tr><td colspan="5" style="text-align:center;padding:28px;color:var(--g3);">尚無加工產品</td></tr>';
+    return;
+  }
+  body.innerHTML=prods.map(p=>`<tr>
+    <td><strong>${p.name}</strong></td>
+    <td>${p.unit||'kg'}</td>
+    <td>${(p.specs||[]).map(s=>`<span class="chip chip-org" style="margin:2px;">${s}</span>`).join('')||'—'}</td>
+    <td style="font-size:12px;color:var(--g3);">${p.notes||'—'}</td>
+    <td style="white-space:nowrap;">
+      <button class="btn btn-out btn-sm" onclick="openEditProduct('${p.id}')">編輯</button>
+      <button class="btn btn-red btn-sm" onclick="deleteProduct('${p.id}')">刪除</button>
+    </td>
+  </tr>`).join('');
+}
+function openAddProduct(){
+  document.getElementById('pmEditId').value='';
+  document.getElementById('pmName').value='';
+  document.getElementById('pmUnit').value='kg';
+  document.getElementById('pmSpecs').value='';
+  document.getElementById('pmNotes').value='';
+  document.getElementById('prodModalTitle').textContent='新增加工產品';
+  document.getElementById('prodModal').classList.add('open');
+}
+function openEditProduct(id){
+  const p=getProcProd().find(x=>x.id===id);
+  if(!p) return;
+  document.getElementById('pmEditId').value=id;
+  document.getElementById('pmName').value=p.name;
+  document.getElementById('pmUnit').value=p.unit||'kg';
+  document.getElementById('pmSpecs').value=(p.specs||[]).join('、');
+  document.getElementById('pmNotes').value=p.notes||'';
+  document.getElementById('prodModalTitle').textContent='編輯加工產品';
+  document.getElementById('prodModal').classList.add('open');
+}
+function confirmProductEdit(){
+  const id=document.getElementById('pmEditId').value;
+  const name=document.getElementById('pmName').value.trim();
+  const unit=document.getElementById('pmUnit').value.trim()||'kg';
+  const specsRaw=document.getElementById('pmSpecs').value.trim();
+  const specs=specsRaw?specsRaw.split(/[,，、]+/).map(s=>s.trim()).filter(Boolean):[];
+  const notes=document.getElementById('pmNotes').value.trim();
+  if(!name){ showToast('請輸入產品名稱','err'); return; }
+  const prods=getProcProd();
+  if(id){ const p=prods.find(x=>x.id===id); if(p){p.name=name;p.unit=unit;p.specs=specs;p.notes=notes;} }
+  else prods.push({id:'PP'+Date.now(),name,unit,specs,notes});
+  saveProcProd(prods);
+  closeModal('prodModal');
+  renderProducts();
+  populateProductSelect('opProduct','opSpec','','');
+  showToast(id?'產品已更新':'產品已新增','ok');
+}
+function deleteProduct(id){
+  if(!confirm('確認刪除此加工產品？')) return;
+  saveProcProd(getProcProd().filter(p=>p.id!==id));
+  renderProducts();
+  showToast('已刪除','ok');
+}
+
+// ─── Export CSV ───────────────────────────────────────────────────────
+function exportRecordsCSV(){
+  const from=document.getElementById('recFrom').value;
+  const to=document.getElementById('recTo').value;
+  let recs=getRecords();
+  if(from) recs=recs.filter(r=>r.date>=from);
+  if(to)   recs=recs.filter(r=>r.date<=to);
+  recs.sort((a,b)=>a.date.localeCompare(b.date)||a.time?.localeCompare(b.time||'')||0);
+  const rows=[['批次號','日期','時間','產品','規格','毛重(kg)','損耗(kg)','淨重(kg)','加工人員','備注']];
+  recs.forEach(r=>rows.push([r.batchNo,r.date,r.time||'',r.productName||'',r.spec||'',
+    r.grossWeight||0,r.wasteWeight||0,r.netWeight||0,r.operator||'',r.notes||'']));
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download=`加工記錄_${todayStr()}.csv`; a.click();
+  showToast('CSV 已匯出','ok');
+}
+
+// ─── Modal helpers ────────────────────────────────────────────────────
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+// ─── Toast ────────────────────────────────────────────────────────────
+let _toastT;
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show'+(type?' '+type:'');
+  clearTimeout(_toastT);
+  _toastT=setTimeout(()=>t.className='toast',3200);
+}
+
+// ════════════════════════════════════════════════════
+// 選果系統
+// ════════════════════════════════════════════════════
+
+// ─── Seed sort config ─────────────────────────────────────────────────
+function seedSortCfg(){
+  if(getSortCfg()) return;
+  saveSortCfg({
+    grades:[
+      {id:'GR1',name:'特大',color:'#9B59B6'},
+      {id:'GR2',name:'大',  color:'#3A7BB5'},
+      {id:'GR3',name:'中',  color:'#3AAB6D'},
+      {id:'GR4',name:'小',  color:'#E8731A'},
+      {id:'GR5',name:'特小',color:'#F5A84B'},
+      {id:'GR6',name:'壞品',color:'#D94F3D'},
+    ],
+    units:['kg','台斤','斤','箱','包'],
+    machines:[
+      {id:'M001',name:'1號選果機',apiEndpoint:'',status:'simulated'},
+    ],
+    defaultUnit:'kg',
+  });
+}
+
+function genSortBatchNo(){
+  const d=todayStr().replace(/-/g,'');
+  const cnt=getSortRecs().filter(r=>r.date===todayStr()).length;
+  return `SORT-${d}-${String(cnt+1).padStart(3,'0')}`;
+}
+
+// ─── Sorting page ─────────────────────────────────────────────────────
+function renderSortingPage(){
+  const cfg=getSortCfg()||{grades:[],units:['kg'],machines:[]};
+  renderMachineStatus(cfg);
+  renderSortStats();
+  buildGradeInputTable(cfg);
+  renderTodaySortRecs();
+  // populate variety select
+  const sel=document.getElementById('srVariety');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">— 選擇品種 —</option>'+
+    getWhVar().map(v=>`<option value="${v.id}">${v.name}</option>`).join('');
+  sel.value=cur;
+}
+
+function renderMachineStatus(cfg){
+  const machines=cfg.machines||[];
+  const m=machines[0]||null;
+  const status=m?m.status:'offline';
+  const label=status==='online'?'機台已連線（自動接收數據）'
+    :status==='simulated'?`模擬模式 — ${m?.name||'未設定機台'} | 手動輸入數據`
+    :'機台未連線 — 手動輸入模式';
+  // === 機器 API 串接預留 ===
+  // fetch(m.apiEndpoint + '/status').then(r=>r.json()).then(updateFromMachine)
+  document.getElementById('machineStatusBar').innerHTML=`
+    <div class="machine-status ${status}">
+      <div class="ms-dot ${status}"></div>
+      <span>${label}</span>
+      <span style="margin-left:auto;font-size:11px;opacity:.7;">
+        API 串接：${m?.apiEndpoint||'未設定'}</span>
+    </div>`;
+}
+
+function renderSortStats(){
+  const today=todayStr();
+  const recs=getSortRecs();
+  const todayRecs=recs.filter(r=>r.date===today);
+  const totalIn=todayRecs.reduce((s,r)=>s+(parseFloat(r.totalInput)||0),0);
+  const totalOut=todayRecs.reduce((s,r)=>s+(parseFloat(r.totalOutput)||0),0);
+  const yieldRate=totalIn>0?((totalOut/totalIn)*100).toFixed(1):'—';
+  document.getElementById('sortStats').innerHTML=`
+    <div class="ss-card">
+      <div class="ss-lbl">今日批次</div>
+      <div class="ss-val">${todayRecs.length}</div>
+    </div>
+    <div class="ss-card">
+      <div class="ss-lbl">今日投入</div>
+      <div class="ss-val">${totalIn.toFixed(1)}<span style="font-size:12px;"> kg</span></div>
+    </div>
+    <div class="ss-card">
+      <div class="ss-lbl">今日良率</div>
+      <div class="ss-val">${yieldRate}<span style="font-size:12px;">%</span></div>
+    </div>`;
+}
+
+function buildGradeInputTable(cfg){
+  const grades=cfg.grades||[];
+  const units=cfg.units||['kg'];
+  const defaultUnit=cfg.defaultUnit||'kg';
+  const unitOpts=units.map(u=>`<option value="${u}">${u}</option>`).join('');
+  document.getElementById('gradeInputBody').innerHTML=grades.map(g=>`
+    <tr data-gid="${g.id}">
+      <td>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="grade-dot" style="background:${g.color};"></span>
+          <span style="font-weight:600;">${g.name}</span>
+        </div>
+      </td>
+      <td>
+        <input class="f-ctrl gr-qty" type="number" min="0" step="0.1"
+          placeholder="0.0" style="width:100px;" oninput="calcSortDist()"/>
+      </td>
+      <td>
+        <select class="f-ctrl gr-unit" style="width:90px;">${unitOpts}</select>
+      </td>
+      <td class="gr-pct" style="font-weight:700;color:var(--g3);">—</td>
+    </tr>`).join('');
+  calcSortDist();
+}
+
+function calcSortDist(){
+  const totalInput=parseFloat(document.getElementById('srInput').value)||0;
+  const rows=document.querySelectorAll('#gradeInputBody tr');
+  let totalOut=0;
+  const gradeData=[];
+  const cfg=getSortCfg()||{grades:[]};
+  rows.forEach((row,i)=>{
+    const gid=row.dataset.gid;
+    const grade=cfg.grades.find(g=>g.id===gid)||{name:'',color:'#ccc'};
+    const qty=parseFloat(row.querySelector('.gr-qty').value)||0;
+    totalOut+=qty;
+    gradeData.push({gid, name:grade.name, color:grade.color, qty});
+  });
+  // update pct cells
+  rows.forEach((row,i)=>{
+    const pct=totalOut>0?((gradeData[i].qty/totalOut)*100).toFixed(1):'—';
+    row.querySelector('.gr-pct').textContent=pct!=='—'?pct+'%':'—';
+  });
+  // distribution preview
+  const input=totalInput||totalOut;
+  const wasteG=gradeData.find(g=>g.name==='壞品');
+  const wasteQty=wasteG?wasteG.qty:0;
+  const goodQty=totalOut-wasteQty;
+  const yieldRate=input>0?((goodQty/input)*100).toFixed(1):'—';
+
+  document.getElementById('distPreview').innerHTML=
+    totalOut===0?'<div style="color:var(--g3);font-size:12px;">請輸入各品相重量</div>':
+    gradeData.filter(g=>g.qty>0).map(g=>{
+      const pct=totalOut>0?(g.qty/totalOut*100):0;
+      return `<div class="dist-row">
+        <span class="dist-lbl" style="color:${g.color};">${g.name}</span>
+        <div class="dist-track">
+          <div class="dist-fill" style="width:${pct.toFixed(1)}%;background:${g.color};"></div>
+        </div>
+        <span class="dist-pct">${pct.toFixed(1)}%</span>
+        <span class="dist-qty">${g.qty} kg</span>
+      </div>`;
+    }).join('');
+
+  document.getElementById('sortSumRow').innerHTML=`
+    <span>總產出：<strong>${totalOut.toFixed(1)} kg</strong></span>
+    <span>良率：<strong style="color:${parseFloat(yieldRate)>=90?'var(--grn)':parseFloat(yieldRate)>=70?'var(--org)':'var(--red)'};">${yieldRate}%</strong></span>
+    ${input>0&&totalOut>input?'<span style="color:var(--red);font-size:11px;">⚠ 產出超過投入，請確認</span>':''}`;
+}
+
+function saveSortRecord(){
+  const date=document.getElementById('srDate').value;
+  const operator=document.getElementById('srOperator').value.trim();
+  const totalInput=parseFloat(document.getElementById('srInput').value)||0;
+  if(!date||!operator){ showToast('請填寫日期和作業人員','err'); return; }
+  if(!totalInput){ showToast('請輸入投入總重','err'); return; }
+
+  const cfg=getSortCfg()||{grades:[]};
+  const rows=document.querySelectorAll('#gradeInputBody tr');
+  const grades=[];
+  rows.forEach(row=>{
+    const gid=row.dataset.gid;
+    const grade=cfg.grades.find(g=>g.id===gid)||{};
+    const qty=parseFloat(row.querySelector('.gr-qty').value)||0;
+    const unit=row.querySelector('.gr-unit').value;
+    grades.push({gradeId:gid, gradeName:grade.name||'', color:grade.color||'#ccc', qty, unit});
+  });
+  const totalOutput=grades.reduce((s,g)=>s+g.qty,0);
+  if(!totalOutput){ showToast('請至少輸入一個品相的產出重量','err'); return; }
+
+  const wasteQty=(grades.find(g=>g.gradeName==='壞品')||{qty:0}).qty;
+  const batchNo=document.getElementById('srBatchNo').value.trim()||genSortBatchNo();
+  const varietyId=document.getElementById('srVariety').value;
+  const varietyName=getWhVar().find(v=>v.id===varietyId)?.name||'';
+
+  // === 機器資料欄位（預留給硬體串接） ===
+  const machineData={
+    waterTemp: parseFloat(document.getElementById('srWaterTemp').value)||null,
+    flowRate:  parseFloat(document.getElementById('srFlowRate').value)||null,
+    beltSpeed: parseFloat(document.getElementById('srBeltSpeed').value)||null,
+    machineId: document.getElementById('srMachineId').value.trim()||null,
+    // 未來擴充欄位預留
+    lineSpeed: null, humidity: null, ambientTemp: null, cycleTime: null,
+  };
+
+  const rec={
+    id:uid(), batchNo, date, time:document.getElementById('srTime').value,
+    operator, varietyId, varietyName, totalInput, grades, totalOutput,
+    yieldRate: totalInput>0?+((( totalOutput-wasteQty)/totalInput*100).toFixed(2)):null,
+    machineData,
+    source:'manual', // 'manual' | 'machine' — 未來機器串接後自動改為 'machine'
+    notes:document.getElementById('srNotes').value.trim(),
+    createdAt:new Date().toISOString(),
+  };
+  const recs=getSortRecs(); recs.push(rec); saveSortRecs(recs);
+  showToast(`批次 ${batchNo} 已儲存`,'ok');
+  resetSortForm();
+  renderSortStats();
+  renderTodaySortRecs();
+}
+
+function resetSortForm(){
+  document.getElementById('srBatchNo').value=genSortBatchNo();
+  document.getElementById('srDate').value=todayStr();
+  document.getElementById('srTime').value=nowTime();
+  document.getElementById('srInput').value='';
+  document.getElementById('srWaterTemp').value='';
+  document.getElementById('srFlowRate').value='';
+  document.getElementById('srBeltSpeed').value='';
+  document.getElementById('srMachineId').value='';
+  document.getElementById('srNotes').value='';
+  document.querySelectorAll('#gradeInputBody .gr-qty').forEach(el=>el.value='');
+  calcSortDist();
+}
+
+function renderTodaySortRecs(){
+  const today=todayStr();
+  const recs=getSortRecs().filter(r=>r.date===today)
+    .sort((a,b)=>b.time?.localeCompare(a.time||'')||0);
+  document.getElementById('todaySortCount').textContent=`共 ${recs.length} 筆`;
+  const body=document.getElementById('todaySortBody');
+  if(!recs.length){
+    body.innerHTML='<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--g3);">今日尚無選果記錄</td></tr>';
+    return;
+  }
+  body.innerHTML=recs.map(r=>`<tr>
+    <td><strong style="color:var(--prc);">${r.batchNo}</strong></td>
+    <td>${r.time||'—'}</td>
+    <td>${r.varietyName||'—'}</td>
+    <td style="text-align:right;">${(r.totalInput||0).toFixed(1)}</td>
+    <td style="text-align:right;">${(r.totalOutput||0).toFixed(1)}</td>
+    <td style="font-weight:700;color:${r.yieldRate>=90?'var(--grn)':r.yieldRate>=70?'var(--org)':'var(--red)'};">
+      ${r.yieldRate!=null?r.yieldRate+'%':'—'}</td>
+    <td>${r.operator}</td>
+    <td>
+      <button class="btn btn-out btn-sm" onclick="openSortDetail('${r.id}')">詳情</button>
+      <button class="btn btn-red btn-sm" onclick="deleteSortRec('${r.id}')">刪除</button>
+    </td>
+  </tr>`).join('');
+}
+
+// ─── Sort records page ────────────────────────────────────────────────
+function populateSortFilters(){
+  const sel=document.getElementById('srVarFilter');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">全部品種</option>'+
+    getWhVar().map(v=>`<option value="${v.id}">${v.name}</option>`).join('');
+  sel.value=cur;
+  const{from,to}=getMonthRange(0);
+  if(!document.getElementById('srFrom').value){
+    document.getElementById('srFrom').value=from;
+    document.getElementById('srTo').value=to;
+  }
+}
+function renderSortRecords(){
+  const from=document.getElementById('srFrom').value;
+  const to=document.getElementById('srTo').value;
+  const varF=document.getElementById('srVarFilter').value;
+  const kw=(document.getElementById('srSearch').value||'').trim();
+  let recs=getSortRecs();
+  if(from) recs=recs.filter(r=>r.date>=from);
+  if(to)   recs=recs.filter(r=>r.date<=to);
+  if(varF) recs=recs.filter(r=>r.varietyId===varF);
+  if(kw)   recs=recs.filter(r=>r.batchNo?.includes(kw)||r.operator?.includes(kw));
+  recs.sort((a,b)=>b.date.localeCompare(a.date)||b.time?.localeCompare(a.time||'')||0);
+
+  const totalIn=recs.reduce((s,r)=>s+(r.totalInput||0),0);
+  document.getElementById('sortRecCount').textContent=
+    `共 ${recs.length} 筆 ／ 投入合計 ${totalIn.toFixed(1)} kg`;
+
+  const cfg=getSortCfg()||{grades:[]};
+  const body=document.getElementById('sortRecBody');
+  if(!recs.length){
+    body.innerHTML='<tr><td colspan="9" style="text-align:center;padding:28px;color:var(--g3);">無符合條件的記錄</td></tr>';
+    return;
+  }
+  body.innerHTML=recs.map(r=>`<tr>
+    <td><strong style="color:var(--prc);">${r.batchNo}</strong></td>
+    <td>${r.date}</td>
+    <td>${r.varietyName||'—'}</td>
+    <td style="text-align:right;">${(r.totalInput||0).toFixed(1)}</td>
+    <td style="text-align:right;">${(r.totalOutput||0).toFixed(1)}</td>
+    <td style="font-weight:700;color:${r.yieldRate>=90?'var(--grn)':r.yieldRate>=70?'var(--org)':'var(--red)'};">
+      ${r.yieldRate!=null?r.yieldRate+'%':'—'}</td>
+    <td style="font-size:12px;">${(r.grades||[]).filter(g=>g.qty>0).map(g=>
+      `<span style="display:inline-flex;align-items:center;gap:3px;margin:1px;
+        background:${g.color}22;border-radius:12px;padding:1px 7px;font-weight:600;color:${g.color};">
+        ${g.gradeName} ${g.qty}</span>`).join('')}</td>
+    <td>${r.operator}</td>
+    <td>
+      <button class="btn btn-out btn-sm" onclick="openSortDetail('${r.id}')">詳情</button>
+      <button class="btn btn-red btn-sm" onclick="deleteSortRec('${r.id}')">刪除</button>
+    </td>
+  </tr>`).join('');
+}
+
+function openSortDetail(id){
+  const r=getSortRecs().find(x=>x.id===id);
+  if(!r) return;
+  const totalOut=r.totalOutput||0;
+  const gradeBars=(r.grades||[]).filter(g=>g.qty>0).map(g=>{
+    const pct=totalOut>0?(g.qty/totalOut*100):0;
+    return `<div class="dist-row">
+      <span class="dist-lbl" style="color:${g.color};">${g.gradeName}</span>
+      <div class="dist-track">
+        <div class="dist-fill" style="width:${pct.toFixed(1)}%;background:${g.color};"></div>
+      </div>
+      <span class="dist-pct">${pct.toFixed(1)}%</span>
+      <span class="dist-qty">${g.qty} ${g.unit}</span>
+    </div>`;
+  }).join('');
+
+  const hasMachineData=Object.values(r.machineData||{}).some(v=>v!=null);
+
+  document.getElementById('sdTitle').textContent=`選果批次 ${r.batchNo}`;
+  document.getElementById('sdBody').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+      <div><span style="font-size:11px;color:var(--g3);">日期</span><div style="font-weight:700;">${r.date} ${r.time||''}</div></div>
+      <div><span style="font-size:11px;color:var(--g3);">作業人員</span><div style="font-weight:700;">${r.operator}</div></div>
+      <div><span style="font-size:11px;color:var(--g3);">品種</span><div style="font-weight:700;">${r.varietyName||'—'}</div></div>
+      <div><span style="font-size:11px;color:var(--g3);">資料來源</span>
+        <div><span class="chip ${r.source==='machine'?'chip-grn':'chip-g'}">${r.source==='machine'?'機器自動':'手動輸入'}</span></div></div>
+      <div><span style="font-size:11px;color:var(--g3);">投入總重</span>
+        <div style="font-weight:700;">${(r.totalInput||0).toFixed(1)} kg</div></div>
+      <div><span style="font-size:11px;color:var(--g3);">總產出</span>
+        <div style="font-weight:700;">${totalOut.toFixed(1)} kg</div></div>
+      <div><span style="font-size:11px;color:var(--g3);">良率</span>
+        <div style="font-weight:800;color:${r.yieldRate>=90?'var(--grn)':r.yieldRate>=70?'var(--org)':'var(--red)'};">
+          ${r.yieldRate!=null?r.yieldRate+'%':'—'}</div></div>
+    </div>
+    <div style="font-size:12px;font-weight:700;color:var(--g3);margin-bottom:8px;">品相分佈</div>
+    ${gradeBars||'<div style="color:var(--g3);font-size:12px;">無品相資料</div>'}
+    ${hasMachineData?`
+      <div style="font-size:12px;font-weight:700;color:var(--g3);margin:14px 0 8px;">機器數據</div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;font-size:13px;">
+        ${r.machineData.waterTemp!=null?`<div><span style="color:var(--g3);">水溫</span> <strong>${r.machineData.waterTemp}°C</strong></div>`:''}
+        ${r.machineData.flowRate!=null?`<div><span style="color:var(--g3);">流量</span> <strong>${r.machineData.flowRate} L/min</strong></div>`:''}
+        ${r.machineData.beltSpeed!=null?`<div><span style="color:var(--g3);">帶速</span> <strong>${r.machineData.beltSpeed} m/min</strong></div>`:''}
+        ${r.machineData.machineId?`<div><span style="color:var(--g3);">機台</span> <strong>${r.machineData.machineId}</strong></div>`:''}
+      </div>`:''}
+    ${r.notes?`<div style="margin-top:12px;font-size:13px;color:var(--g3);">&#128204; ${r.notes}</div>`:''}`;
+  document.getElementById('sortDetailModal').classList.add('open');
+}
+
+function deleteSortRec(id){
+  if(!confirm('確認刪除此選果記錄？')) return;
+  saveSortRecs(getSortRecs().filter(r=>r.id!==id));
+  renderPage(currentPage);
+  showToast('已刪除','ok');
+}
+
+function exportSortCSV(){
+  const from=document.getElementById('srFrom').value;
+  const to=document.getElementById('srTo').value;
+  let recs=getSortRecs();
+  if(from) recs=recs.filter(r=>r.date>=from);
+  if(to)   recs=recs.filter(r=>r.date<=to);
+  recs.sort((a,b)=>a.date.localeCompare(b.date));
+  const allGrades=[...new Set(recs.flatMap(r=>(r.grades||[]).map(g=>g.gradeName)))];
+  const header=['批次號','日期','時間','品種','投入(kg)','總產出(kg)','良率(%)',
+    ...allGrades,'水溫','流量','帶速','機台','資料來源','作業人員','備注'];
+  const rows=[header];
+  recs.forEach(r=>{
+    const gradeMap={};
+    (r.grades||[]).forEach(g=>gradeMap[g.gradeName]=g.qty);
+    rows.push([r.batchNo,r.date,r.time||'',r.varietyName||'',
+      r.totalInput||0, r.totalOutput||0, r.yieldRate??'',
+      ...allGrades.map(g=>gradeMap[g]||0),
+      r.machineData?.waterTemp??'', r.machineData?.flowRate??'',
+      r.machineData?.beltSpeed??'', r.machineData?.machineId||'',
+      r.source==='machine'?'機器':'手動', r.operator, r.notes||'']);
+  });
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`選果記錄_${todayStr()}.csv`; a.click();
+  showToast('CSV 已匯出','ok');
+}
+
+// ─── Sort config page ─────────────────────────────────────────────────
+function renderSortConfig(){
+  const cfg=getSortCfg()||{grades:[],units:[],machines:[]};
+  // Grades
+  document.getElementById('gradeList').innerHTML=
+    (cfg.grades||[]).map((g,i)=>`
+      <span class="cfg-tag" style="background:${g.color}22;color:${g.color};
+        border:1.5px solid ${g.color}55;">
+        <span class="grade-dot" style="background:${g.color};"></span>
+        ${g.name}
+        <span class="cfg-tag-x" onclick="removeGrade(${i})">&#x2715;</span>
+      </span>`).join('')||'<span style="font-size:13px;color:var(--g3);">尚無品相</span>';
+  // Units
+  document.getElementById('unitList').innerHTML=
+    (cfg.units||[]).map((u,i)=>`
+      <span class="cfg-tag" style="background:var(--prc-l);color:var(--prc);
+        border:1.5px solid var(--prc-m);">
+        ${u}
+        <span class="cfg-tag-x" onclick="removeUnit(${i})">&#x2715;</span>
+      </span>`).join('')||'<span style="font-size:13px;color:var(--g3);">尚無單位</span>';
+  // Machines
+  document.getElementById('machineList').innerHTML=
+    (cfg.machines||[]).length?`
+      <table class="tbl" style="margin-bottom:8px;">
+        <thead><tr><th>機台ID</th><th>名稱</th><th>API 端點</th><th>狀態</th><th>操作</th></tr></thead>
+        <tbody>${cfg.machines.map((m,i)=>`<tr>
+          <td><strong>${m.id}</strong></td>
+          <td>${m.name}</td>
+          <td style="font-size:11px;color:var(--g3);">${m.apiEndpoint||'未設定'}</td>
+          <td><span class="chip ${m.status==='online'?'chip-grn':m.status==='simulated'?'chip-prc':'chip-g'}">
+            ${m.status==='online'?'已連線':m.status==='simulated'?'模擬':'離線'}</span></td>
+          <td><button class="btn btn-red btn-sm" onclick="removeMachine(${i})">移除</button></td>
+        </tr>`).join('')}</tbody>
+      </table>`
+    :'<div style="font-size:13px;color:var(--g3);margin-bottom:8px;">尚無機台設定</div>';
+}
+
+function addGrade(){
+  const name=document.getElementById('newGradeName').value.trim();
+  const color=document.getElementById('newGradeColor').value;
+  if(!name){ showToast('請輸入品相名稱','err'); return; }
+  const cfg=getSortCfg();
+  if(cfg.grades.find(g=>g.name===name)){ showToast('品相名稱已存在','err'); return; }
+  cfg.grades.push({id:'GR'+Date.now(),name,color});
+  saveSortCfg(cfg);
+  document.getElementById('newGradeName').value='';
+  renderSortConfig();
+  showToast(`品相「${name}」已新增`,'ok');
+}
+function removeGrade(i){
+  const cfg=getSortCfg();
+  if(!confirm(`確認刪除品相「${cfg.grades[i]?.name}」？`)) return;
+  cfg.grades.splice(i,1);
+  saveSortCfg(cfg);
+  renderSortConfig();
+  showToast('已刪除','ok');
+}
+function addUnit(){
+  const name=document.getElementById('newUnitName').value.trim();
+  if(!name){ showToast('請輸入單位名稱','err'); return; }
+  const cfg=getSortCfg();
+  if(cfg.units.includes(name)){ showToast('單位已存在','err'); return; }
+  cfg.units.push(name);
+  saveSortCfg(cfg);
+  document.getElementById('newUnitName').value='';
+  renderSortConfig();
+  showToast(`單位「${name}」已新增`,'ok');
+}
+function removeUnit(i){
+  const cfg=getSortCfg();
+  cfg.units.splice(i,1);
+  saveSortCfg(cfg);
+  renderSortConfig();
+}
+function addMachine(){
+  const id=document.getElementById('newMachineId').value.trim();
+  const name=document.getElementById('newMachineName').value.trim();
+  const api=document.getElementById('newMachineApi').value.trim();
+  if(!id||!name){ showToast('請填寫機台編號和名稱','err'); return; }
+  const cfg=getSortCfg();
+  if(cfg.machines.find(m=>m.id===id)){ showToast('機台ID已存在','err'); return; }
+  cfg.machines.push({id,name,apiEndpoint:api,status:'simulated'});
+  saveSortCfg(cfg);
+  document.getElementById('newMachineId').value='';
+  document.getElementById('newMachineName').value='';
+  document.getElementById('newMachineApi').value='';
+  renderSortConfig();
+  showToast(`機台 ${id} 已新增`,'ok');
+}
+function removeMachine(i){
+  const cfg=getSortCfg();
+  if(!confirm(`確認移除機台「${cfg.machines[i]?.name}」？`)) return;
+  cfg.machines.splice(i,1);
+  saveSortCfg(cfg);
+  renderSortConfig();
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────
+function init(){
+  seedProcProds();
+  seedSortCfg();
+  const n=new Date();
+  document.getElementById('todayLabel').textContent=
+    n.toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric'});
+  // Set default dates
+  document.getElementById('opDate').value=todayStr();
+  document.getElementById('opTime').value=nowTime();
+  document.getElementById('opBatchNo').value=genBatchNo();
+  const{from,to}=getMonthRange(0);
+  document.getElementById('recFrom').value=from;
+  document.getElementById('recTo').value=to;
+  // Populate product dropdown
+  populateProductSelect('opProduct','opSpec','','');
+  renderOpStats();
+  renderTodayRecs();
+  // Sort form defaults
+  document.getElementById('srBatchNo').value=genSortBatchNo();
+  document.getElementById('srDate').value=todayStr();
+  document.getElementById('srTime').value=nowTime();
+  const sess=sessionStorage.getItem('prc_name');
+  if(sess) document.getElementById('srOperator').value=sess;
+  const{from:sf,to:st}=getMonthRange(0);
+  document.getElementById('srFrom').value=sf;
+  document.getElementById('srTo').value=st;
+  // Populate variety dropdown
+  const vars=getWhVar();
+  const vSel=document.getElementById('srVariety');
+  vSel.innerHTML='<option value="">— 不指定 —</option>';
+  vars.forEach(v=>{ const o=document.createElement('option'); o.value=v.id||v.name; o.textContent=v.name; vSel.appendChild(o); });
+}
+function getMonthRange(offset){
+  const d=new Date(); d.setMonth(d.getMonth()+offset);
+  const y=d.getFullYear(),m=d.getMonth();
+  const from=`${y}-${String(m+1).padStart(2,'0')}-01`;
+  const last=new Date(y,m+1,0);
+  const to=`${y}-${String(m+1).padStart(2,'0')}-${String(last.getDate()).padStart(2,'0')}`;
+  return{from,to};
+}
+
+// ─── Start ────────────────────────────────────────────────────────────
+applyLogin();
+</script>
+</body>
+</html>

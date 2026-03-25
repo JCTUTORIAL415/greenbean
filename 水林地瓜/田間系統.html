@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>水林地瓜 — 田間管理系統</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --org:#E8731A;--org-l:#FDF0E6;--org-m:#F5A84B;
+      --brn:#7B4F2E;--bg:#F7F4F0;--wh:#fff;
+      --g1:#F0EDE8;--g2:#D5CEC6;--g3:#8C8078;--tx:#2D2018;
+      --grn:#3AAB6D;--red:#D94F3D;--blu:#3A7BB5;--pur:#9B59B6;
+      --fld:#2E7D32;--fld-l:#E8F5E9;
+      --r:12px;--sh:0 2px 16px rgba(0,0,0,.09);
+    }
+    body{font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;
+      background:var(--bg);color:var(--tx);font-size:15px;display:flex;min-height:100vh;}
+
+    /* ─── Sidebar ─── */
+    .sidebar{width:215px;background:var(--fld);min-height:100vh;
+      display:flex;flex-direction:column;flex-shrink:0;
+      position:fixed;top:0;left:0;bottom:0;z-index:20;}
+    .sb-logo{padding:20px 16px 14px;border-bottom:1px solid rgba(255,255,255,.15);}
+    .sb-logo .brand{font-size:16px;font-weight:800;color:#fff;letter-spacing:1px;}
+    .sb-logo .sub{font-size:11px;color:rgba(255,255,255,.5);margin-top:3px;}
+    .sb-menu{flex:1;padding:8px 0;overflow-y:auto;}
+    .sb-section{font-size:10px;font-weight:700;letter-spacing:1.2px;
+      color:rgba(255,255,255,.35);padding:12px 16px 3px;text-transform:uppercase;}
+    .sb-item{display:flex;align-items:center;gap:8px;padding:10px 16px;
+      color:rgba(255,255,255,.75);cursor:pointer;font-size:13px;
+      border-left:3px solid transparent;transition:all .15s;white-space:nowrap;}
+    .sb-item:hover{background:rgba(255,255,255,.1);color:#fff;}
+    .sb-item.active{background:rgba(255,255,255,.15);color:#fff;
+      border-left-color:#A5D6A7;font-weight:600;}
+    .sb-icon{font-size:15px;width:19px;text-align:center;flex-shrink:0;}
+    .sb-foot{padding:12px 16px;border-top:1px solid rgba(255,255,255,.15);}
+    .sb-date{color:rgba(255,255,255,.5);font-size:11px;}
+
+    /* ─── Main ─── */
+    .main{margin-left:215px;flex:1;display:flex;flex-direction:column;}
+    .topbar{background:var(--wh);border-bottom:1px solid var(--g2);
+      padding:0 26px;height:56px;display:flex;align-items:center;
+      justify-content:space-between;position:sticky;top:0;z-index:10;}
+    .topbar-title{font-size:17px;font-weight:700;color:var(--fld);}
+    .topbar-r{display:flex;align-items:center;gap:10px;}
+    .btn{padding:7px 15px;border-radius:8px;border:none;font-size:13px;
+      font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s;white-space:nowrap;}
+    .btn:hover{opacity:.85;}
+    .btn-pri{background:var(--fld);color:#fff;}
+    .btn-org{background:var(--org);color:#fff;}
+    .btn-out{background:transparent;border:1.5px solid var(--g2);color:var(--g3);}
+    .btn-red{background:var(--red);color:#fff;}
+    .btn-sm{padding:4px 10px;font-size:12px;}
+
+    .content{padding:20px 24px 48px;}
+    .panel{display:none;}
+    .panel.active{display:block;}
+
+    /* ─── Stats ─── */
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+    @media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr);}}
+    .stat{background:var(--wh);border-radius:var(--r);padding:16px 18px;
+      box-shadow:var(--sh);border-top:4px solid transparent;}
+    .stat.c1{border-top-color:var(--fld);}
+    .stat.c2{border-top-color:var(--org);}
+    .stat.c3{border-top-color:var(--blu);}
+    .stat.c4{border-top-color:var(--pur);}
+    .stat-lbl{font-size:12px;color:var(--g3);margin-bottom:4px;}
+    .stat-val{font-size:26px;font-weight:800;line-height:1;}
+    .stat-sub{font-size:11px;color:var(--g3);margin-top:3px;}
+
+    /* ─── Card ─── */
+    .card{background:var(--wh);border-radius:var(--r);box-shadow:var(--sh);
+      overflow:hidden;margin-bottom:16px;}
+    .card-head{padding:13px 18px;border-bottom:1px solid var(--g1);
+      display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+    .card-title{font-size:14px;font-weight:700;}
+    .card-body{padding:18px;}
+
+    /* ─── Table ─── */
+    .tbl{width:100%;border-collapse:collapse;}
+    .tbl th{background:var(--g1);padding:10px 12px;text-align:left;
+      font-size:12px;font-weight:600;color:var(--g3);white-space:nowrap;}
+    .tbl td{padding:11px 12px;font-size:13px;border-bottom:1px solid var(--g1);
+      vertical-align:top;}
+    .tbl tr:last-child td{border-bottom:none;}
+    .tbl tbody tr:hover td{background:var(--fld-l);}
+
+    /* ─── Chips ─── */
+    .chip{display:inline-block;padding:2px 8px;border-radius:20px;
+      font-size:11px;font-weight:700;white-space:nowrap;}
+    .chip-grn{background:#E8F7EE;color:var(--grn);}
+    .chip-org{background:var(--org-l);color:var(--org);}
+    .chip-red{background:#FDECEA;color:var(--red);}
+    .chip-blu{background:#E8F0FB;color:var(--blu);}
+    .chip-g{background:var(--g1);color:var(--g3);}
+    .chip-fld{background:var(--fld-l);color:var(--fld);}
+    .chip-pur{background:#F3E8FB;color:var(--pur);}
+
+    /* ─── Filter ─── */
+    .filter-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;}
+    .f-input,.f-select{border:1.5px solid var(--g2);border-radius:8px;
+      padding:7px 11px;font-size:13px;color:var(--tx);
+      background:var(--wh);outline:none;font-family:inherit;}
+    .f-input:focus,.f-select:focus{border-color:var(--fld);}
+
+    /* ─── Modal ─── */
+    .modal-overlay{display:none;position:fixed;inset:0;
+      background:rgba(0,0,0,.45);z-index:200;
+      align-items:flex-start;justify-content:center;
+      padding:20px 12px;overflow-y:auto;}
+    .modal-overlay.open{display:flex;}
+    .modal{background:var(--wh);border-radius:var(--r);
+      width:580px;max-width:95vw;box-shadow:0 8px 40px rgba(0,0,0,.22);margin:auto;}
+    .modal.xl{width:780px;}
+    .modal-head{padding:14px 20px;border-bottom:1px solid var(--g1);
+      display:flex;align-items:center;justify-content:space-between;}
+    .modal-title{font-size:15px;font-weight:700;}
+    .modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--g3);line-height:1;}
+    .modal-body{padding:20px;max-height:75vh;overflow-y:auto;}
+    .modal-foot{padding:12px 20px;border-top:1px solid var(--g1);
+      display:flex;justify-content:flex-end;gap:8px;}
+
+    /* ─── Form ─── */
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    .form-grid.g3{grid-template-columns:1fr 1fr 1fr;}
+    @media(max-width:600px){.form-grid,.form-grid.g3{grid-template-columns:1fr;}}
+    .f-full{grid-column:1/-1;}
+    .f-lbl{display:block;font-size:12px;font-weight:600;color:var(--g3);margin-bottom:4px;}
+    .f-ctrl{width:100%;border:1.5px solid var(--g2);border-radius:8px;
+      padding:9px 12px;font-size:14px;color:var(--tx);outline:none;
+      font-family:inherit;background:var(--wh);}
+    .f-ctrl:focus{border-color:var(--fld);}
+    .section-divider{grid-column:1/-1;font-size:11px;font-weight:700;color:var(--g3);
+      text-transform:uppercase;letter-spacing:.8px;
+      padding:10px 0 5px;border-bottom:1px solid var(--g1);margin-top:6px;}
+
+    /* ─── Variety multi-select ─── */
+    .variety-picker{display:flex;flex-wrap:wrap;gap:6px;
+      border:1.5px solid var(--g2);border-radius:8px;padding:8px 10px;
+      min-height:44px;cursor:pointer;background:var(--wh);}
+    .variety-picker:focus-within{border-color:var(--fld);}
+    .var-chip{display:inline-flex;align-items:center;gap:5px;
+      background:var(--fld-l);color:var(--fld);border-radius:20px;
+      padding:2px 8px;font-size:12px;font-weight:600;}
+    .var-chip-del{cursor:pointer;font-size:14px;line-height:1;
+      color:var(--fld);opacity:.7;}
+    .var-chip-del:hover{opacity:1;}
+    .var-placeholder{font-size:13px;color:var(--g3);}
+    .variety-dropdown{position:relative;}
+    .vd-menu{position:absolute;top:100%;left:0;right:0;z-index:50;
+      background:var(--wh);border:1.5px solid var(--g2);border-radius:8px;
+      box-shadow:var(--sh);max-height:200px;overflow-y:auto;display:none;}
+    .vd-menu.open{display:block;}
+    .vd-item{padding:9px 14px;font-size:13px;cursor:pointer;display:flex;
+      align-items:center;justify-content:space-between;}
+    .vd-item:hover{background:var(--fld-l);}
+    .vd-item.sel{background:var(--fld-l);font-weight:600;color:var(--fld);}
+
+    /* ─── Detail view ─── */
+    .detail-section{font-size:11px;font-weight:700;color:var(--g3);
+      text-transform:uppercase;letter-spacing:.8px;
+      margin:16px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--g1);}
+    .info-row{display:flex;align-items:flex-start;padding:7px 0;
+      border-bottom:1px solid var(--g1);gap:12px;font-size:13px;}
+    .info-row:last-child{border-bottom:none;}
+    .info-lbl{color:var(--g3);min-width:100px;flex-shrink:0;}
+    .info-val{font-weight:600;flex:1;}
+
+    /* ─── Farmer card (list mode) ─── */
+    .farmer-list{display:flex;flex-direction:column;gap:12px;}
+    .farmer-card{background:var(--wh);border-radius:var(--r);
+      box-shadow:var(--sh);border-left:5px solid var(--fld);
+      padding:16px 20px;transition:box-shadow .15s;}
+    .farmer-card:hover{box-shadow:0 4px 24px rgba(0,0,0,.13);}
+    .farmer-card.trace-yes{border-left-color:var(--grn);}
+    .farmer-card.trace-no{border-left-color:var(--g3);}
+    .farmer-card.trace-pending{border-left-color:var(--org);}
+    .fc-top{display:flex;align-items:flex-start;justify-content:space-between;
+      gap:12px;flex-wrap:wrap;margin-bottom:8px;}
+    .fc-name{font-size:16px;font-weight:800;}
+    .fc-parcel{font-size:12px;color:var(--g3);margin-top:2px;}
+    .fc-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+    .fc-body{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--g3);}
+    .fc-body-item{display:flex;align-items:center;gap:4px;}
+    .fc-actions{display:flex;gap:6px;margin-top:10px;}
+
+    /* ─── Empty ─── */
+    .empty{text-align:center;padding:48px;color:var(--g3);}
+    .empty-icon{font-size:40px;margin-bottom:8px;}
+
+    /* ─── Toast ─── */
+    .toast{position:fixed;bottom:22px;right:22px;background:var(--tx);color:#fff;
+      padding:11px 18px;border-radius:10px;font-size:14px;font-weight:600;
+      z-index:9999;opacity:0;transform:translateY(8px);
+      transition:all .25s;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.2);}
+    .toast.show{opacity:1;transform:translateY(0);}
+    .toast.ok{background:var(--grn);}
+    .toast.err{background:var(--red);}
+
+    /* ─── View toggle ─── */
+    .view-toggle{display:flex;gap:4px;}
+    .view-btn{padding:6px 10px;border-radius:7px;border:1.5px solid var(--g2);
+      background:var(--wh);cursor:pointer;font-size:14px;transition:all .15s;}
+    .view-btn.active{background:var(--fld);color:#fff;border-color:var(--fld);}
+
+    /* ─── Parcel rows ─── */
+    .parcel-row{display:flex;gap:8px;align-items:center;margin-bottom:6px;}
+    .parcel-row .f-ctrl{margin:0;}
+    .parcel-row .pr-no{flex:2;}
+    .parcel-row .pr-area{flex:1;}
+    .parcel-tbl{width:100%;border-collapse:collapse;margin-top:4px;}
+    .parcel-tbl th{font-size:11px;color:var(--g3);font-weight:600;
+      text-align:left;padding:4px 8px;background:var(--g1);}
+    .parcel-tbl td{font-size:13px;padding:6px 8px;border-bottom:1px solid var(--g1);}
+    .parcel-tbl tr:last-child td{border-bottom:none;}
+  </style>
+</head>
+<body>
+
+<!-- ─── Sidebar ─── -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="brand">水林地瓜 ERP</div>
+    <div class="sub">田間管理系統</div>
+  </div>
+  <nav class="sb-menu">
+    <div class="sb-section">田間管理</div>
+    <div class="sb-item active" onclick="switchPage('farmers',this)">
+      <span class="sb-icon">&#128104;&#8205;&#127806;</span>農民資料
+    </div>
+    <div class="sb-item" onclick="switchPage('land',this)">
+      <span class="sb-icon">&#127807;</span>土地一覽
+    </div>
+    <div class="sb-item" onclick="switchPage('varieties',this)">
+      <span class="sb-icon">&#127810;</span>品種管理
+    </div>
+    <div class="sb-section">連結系統</div>
+    <div class="sb-item" onclick="window.location.href='倉儲系統.html'">
+      <span class="sb-icon">&#127981;</span>倉儲系統
+    </div>
+    <div class="sb-item" onclick="window.location.href='主管後台.html'">
+      <span class="sb-icon">&#128197;</span>出勤後台
+    </div>
+    <div class="sb-item" onclick="window.location.href='考核系統.html'">
+      <span class="sb-icon">&#9989;</span>考核系統
+    </div>
+    <div class="sb-item" onclick="window.location.href='總後台.html'"
+      style="margin-top:8px;border-top:1px solid rgba(255,255,255,.12);padding-top:14px;">
+      <span class="sb-icon">&#9729;</span>總後台
+    </div>
+  </nav>
+  <div class="sb-foot">
+    <div class="sb-date" id="todayLabel"></div>
+  </div>
+</aside>
+
+<!-- ─── Main ─── -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="pageTitle">農民資料建檔</div>
+    <div class="topbar-r">
+      <button class="btn btn-out btn-sm" onclick="renderCurrentPage()">重新整理</button>
+      <button class="btn btn-org" onclick="openAddFarmer()">&#43; 新增農民</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ─── Farmers ─── -->
+    <div class="panel active" id="page-farmers">
+      <!-- Stats -->
+      <div class="stats" id="farmerStats"></div>
+
+      <!-- Filters -->
+      <div class="filter-bar">
+        <input class="f-input" type="text" id="fSearch"
+          placeholder="搜尋姓名、地段號、電話..."
+          oninput="renderFarmers()" style="width:220px;"/>
+        <select class="f-select" id="fVarFilter" onchange="renderFarmers()">
+          <option value="">全部品種</option>
+        </select>
+        <select class="f-select" id="fTraceFilter" onchange="renderFarmers()">
+          <option value="">全部履歷狀態</option>
+          <option value="yes">有產銷履歷</option>
+          <option value="pending">申請中</option>
+          <option value="no">無產銷履歷</option>
+        </select>
+        <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+          <div class="view-toggle">
+            <button class="view-btn active" id="viewCard" onclick="setView('card')">&#9646;&#9646;</button>
+            <button class="view-btn" id="viewTable" onclick="setView('table')">&#9776;</button>
+          </div>
+          <button class="btn btn-out btn-sm" onclick="exportFarmerCSV()">匯出 CSV</button>
+        </div>
+      </div>
+
+      <!-- Card View -->
+      <div id="farmerCardView"></div>
+
+      <!-- Table View (hidden by default) -->
+      <div id="farmerTableView" style="display:none;">
+        <div class="card">
+          <div style="overflow-x:auto;">
+            <table class="tbl">
+              <thead><tr>
+                <th>姓名</th><th>土地地段號</th><th>電話</th><th>住址</th>
+                <th>種植品種</th><th>面積（公頃）</th><th>產銷履歷</th><th>操作</th>
+              </tr></thead>
+              <tbody id="farmerTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Land Overview ─── -->
+    <div class="panel" id="page-land">
+      <div class="filter-bar">
+        <input class="f-input" type="text" id="landSearch"
+          placeholder="搜尋地段號、農民姓名..." oninput="renderLand()" style="width:220px;"/>
+        <select class="f-select" id="landVarFilter" onchange="renderLand()">
+          <option value="">全部品種</option>
+        </select>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">土地地段一覽</div>
+          <div style="font-size:12px;color:var(--g3);" id="landCount"></div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="tbl">
+            <thead><tr>
+              <th>土地地段號</th><th>農民姓名</th><th>電話</th>
+              <th>種植品種</th><th>種植面積</th><th>產銷履歷</th><th>操作</th>
+            </tr></thead>
+            <tbody id="landBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Variety Management ─── -->
+    <div class="panel" id="page-varieties">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">品種管理</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div style="font-size:12px;color:var(--g3);">（與倉儲系統共用品種資料）</div>
+            <button class="btn btn-pri btn-sm" onclick="openAddVariety()">&#43; 新增品種</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="tbl">
+            <thead><tr>
+              <th>品種名稱</th><th>種植農民數</th><th>倉庫存放上限</th><th>操作</th>
+            </tr></thead>
+            <tbody id="varietyBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─── Modal: Add / Edit Farmer ─── -->
+<div class="modal-overlay" id="farmerModal" onclick="closeBg('farmerModal',event)">
+  <div class="modal xl">
+    <div class="modal-head">
+      <div class="modal-title" id="farmerModalTitle">新增農民資料</div>
+      <button class="modal-close" onclick="closeModal('farmerModal')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="fmEditId"/>
+      <div class="form-grid">
+        <div class="section-divider">基本資料</div>
+        <div>
+          <label class="f-lbl">農民姓名 ＊</label>
+          <input class="f-ctrl" type="text" id="fmName" placeholder="真實姓名"/>
+        </div>
+        <div>
+          <label class="f-lbl">電話 ＊</label>
+          <input class="f-ctrl" type="tel" id="fmPhone" placeholder="0912-345-678"/>
+        </div>
+        <div class="f-full">
+          <label class="f-lbl">住址 ＊</label>
+          <input class="f-ctrl" type="text" id="fmAddress" placeholder="雲林縣水林鄉..."/>
+        </div>
+        <div>
+          <label class="f-lbl">身分證字號 / 統一編號（選填）</label>
+          <input class="f-ctrl" type="text" id="fmIdNo" placeholder="A123456789"/>
+        </div>
+        <div>
+          <label class="f-lbl">Email（選填）</label>
+          <input class="f-ctrl" type="email" id="fmEmail" placeholder="farmer@example.com"/>
+        </div>
+
+        <div class="section-divider">土地資訊</div>
+        <div class="f-full">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <label class="f-lbl" style="margin:0;">土地地段（可多筆）＊</label>
+            <button class="btn btn-out btn-sm" type="button" onclick="addParcelRow()">＋ 新增地塊</button>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:4px;">
+            <span style="flex:2;font-size:11px;color:var(--g3);font-weight:600;">地段號</span>
+            <span style="flex:1;font-size:11px;color:var(--g3);font-weight:600;">面積（公頃）</span>
+            <span style="width:32px;"></span>
+          </div>
+          <div id="parcelRows"></div>
+        </div>
+
+        <div class="section-divider">種植資訊</div>
+        <div class="f-full">
+          <label class="f-lbl">種植品種 ＊（可多選）</label>
+          <div class="variety-dropdown" id="varDropdown">
+            <div class="variety-picker" id="varPicker" onclick="toggleVarMenu()">
+              <span class="var-placeholder" id="varPlaceholder">點擊選擇品種...</span>
+            </div>
+            <div class="vd-menu" id="varMenu"></div>
+          </div>
+        </div>
+
+        <div class="section-divider">產銷履歷</div>
+        <div>
+          <label class="f-lbl">產銷履歷狀態 ＊</label>
+          <select class="f-ctrl" id="fmTrace" onchange="toggleCertField()">
+            <option value="no">無產銷履歷</option>
+            <option value="pending">申請中</option>
+            <option value="yes">有產銷履歷</option>
+          </select>
+        </div>
+        <div id="certNoRow">
+          <label class="f-lbl">產銷履歷證號</label>
+          <input class="f-ctrl" type="text" id="fmCertNo" placeholder="履歷追溯碼或證書編號"/>
+        </div>
+
+        <div class="section-divider">其他</div>
+        <div class="f-full">
+          <label class="f-lbl">備注</label>
+          <textarea class="f-ctrl" id="fmNotes" rows="2"
+            placeholder="合作方式、慣行或有機、特殊事項..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-out" onclick="closeModal('farmerModal')">取消</button>
+      <button class="btn btn-pri" onclick="confirmFarmerEdit()">儲存農民資料</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Modal: Farmer Detail ─── -->
+<div class="modal-overlay" id="detailModal" onclick="closeBg('detailModal',event)">
+  <div class="modal xl">
+    <div class="modal-head">
+      <div class="modal-title" id="detailModalTitle">農民詳細資料</div>
+      <button class="modal-close" onclick="closeModal('detailModal')">&#x2715;</button>
+    </div>
+    <div class="modal-body" id="detailModalBody"></div>
+    <div class="modal-foot" id="detailModalFoot"></div>
+  </div>
+</div>
+
+<!-- ─── Modal: Add / Edit Variety ─── -->
+<div class="modal-overlay" id="varModal" onclick="closeBg('varModal',event)">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="varModalTitle">新增品種</div>
+      <button class="modal-close" onclick="closeModal('varModal')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="vmEditId"/>
+      <div style="margin-bottom:12px;">
+        <label class="f-lbl">品種名稱 ＊</label>
+        <input class="f-ctrl" type="text" id="vmName" placeholder="例：台農57號"/>
+      </div>
+      <div>
+        <label class="f-lbl">倉庫存放上限（天）</label>
+        <input class="f-ctrl" type="number" id="vmMaxDays" min="1" placeholder="90"/>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-out" onclick="closeModal('varModal')">取消</button>
+      <button class="btn btn-pri" onclick="confirmVarEdit()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── Storage ──────────────────────────────────────────────────────────
+// 農民資料（田間系統專用）
+const getFarmers  = ()=>JSON.parse(localStorage.getItem('slg_field_farmers')||'[]');
+const saveFarmers = d=>localStorage.setItem('slg_field_farmers',JSON.stringify(d));
+// 品種（與倉儲系統共用 slg_wh_var）
+const getVar  = ()=>JSON.parse(localStorage.getItem('slg_wh_var')||'[]');
+const saveVar = d=>localStorage.setItem('slg_wh_var',JSON.stringify(d));
+
+const uid = ()=>'F'+Date.now()+Math.random().toString(36).slice(2,5).toUpperCase();
+const todayStr = ()=>new Date().toISOString().slice(0,10);
+const escH = s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+// ─── Parcel helpers ───────────────────────────────────────────────────
+// Support old data (parcelNo string) and new data (parcels array)
+function getFarmerParcels(f){
+  if(f.parcels && f.parcels.length) return f.parcels;
+  if(f.parcelNo){
+    return f.parcelNo.split(/[,，、]+/).map(s=>s.trim()).filter(Boolean)
+      .map(no=>({no, area:parseFloat(f.area)||0}));
+  }
+  return [];
+}
+function farmerTotalArea(f){
+  return getFarmerParcels(f).reduce((s,p)=>s+(parseFloat(p.area)||0),0);
+}
+
+// ─── Seed varieties if empty ──────────────────────────────────────────
+function seedVarieties(){
+  if(getVar().length) return;
+  saveVar([
+    {id:'V001',name:'台農57號',maxDays:120},
+    {id:'V002',name:'台農66號',maxDays:100},
+    {id:'V003',name:'台農73號',maxDays:90},
+    {id:'V004',name:'台農78號',maxDays:120},
+  ]);
+}
+
+// ─── Multi-variety picker state ───────────────────────────────────────
+let selectedVarIds = [];
+let varMenuOpen = false;
+
+function toggleVarMenu(){
+  varMenuOpen = !varMenuOpen;
+  const menu = document.getElementById('varMenu');
+  if(varMenuOpen){
+    buildVarMenu();
+    menu.classList.add('open');
+    // close on outside click
+    setTimeout(()=>document.addEventListener('click', closeVarMenuOutside), 10);
+  } else {
+    menu.classList.remove('open');
+  }
+}
+function closeVarMenuOutside(e){
+  if(!document.getElementById('varDropdown').contains(e.target)){
+    varMenuOpen=false;
+    document.getElementById('varMenu').classList.remove('open');
+    document.removeEventListener('click', closeVarMenuOutside);
+  }
+}
+function buildVarMenu(){
+  const vars=getVar();
+  document.getElementById('varMenu').innerHTML=vars.map(v=>`
+    <div class="vd-item ${selectedVarIds.includes(v.id)?'sel':''}"
+      onclick="toggleVarId('${v.id}','${v.name}',event)">
+      <span>${v.name}</span>
+      ${selectedVarIds.includes(v.id)?'<span style="color:var(--fld);">&#10003;</span>':''}
+    </div>
+  `).join('') || '<div style="padding:12px;color:var(--g3);font-size:13px;">尚無品種資料</div>';
+}
+function toggleVarId(id, name, e){
+  e.stopPropagation();
+  if(selectedVarIds.includes(id)){
+    selectedVarIds=selectedVarIds.filter(x=>x!==id);
+  } else {
+    selectedVarIds.push(id);
+  }
+  buildVarMenu();
+  renderVarPicker();
+}
+function renderVarPicker(){
+  const vars=getVar();
+  const picker=document.getElementById('varPicker');
+  const ph=document.getElementById('varPlaceholder');
+  if(!selectedVarIds.length){
+    ph.style.display='';
+    // remove chips
+    picker.querySelectorAll('.var-chip').forEach(c=>c.remove());
+    return;
+  }
+  ph.style.display='none';
+  picker.querySelectorAll('.var-chip').forEach(c=>c.remove());
+  selectedVarIds.forEach(id=>{
+    const v=vars.find(x=>x.id===id);
+    if(!v) return;
+    const chip=document.createElement('span');
+    chip.className='var-chip';
+    chip.innerHTML=`${v.name}<span class="var-chip-del" onclick="toggleVarId('${id}','${v.name}',event)">&#x2715;</span>`;
+    picker.insertBefore(chip, ph);
+  });
+}
+function setSelectedVarIds(ids){
+  selectedVarIds=ids||[];
+  renderVarPicker();
+}
+
+// ─── Parcel rows (modal) ──────────────────────────────────────────────
+let _parcels=[{no:'',area:''}];
+
+function renderParcelRows(){
+  document.getElementById('parcelRows').innerHTML=_parcels.map((p,i)=>`
+    <div class="parcel-row">
+      <input class="f-ctrl pr-no" type="text" placeholder="例：水林段 123-1"
+        value="${escH(p.no||'')}"/>
+      <input class="f-ctrl pr-area" type="number" placeholder="0.00" min="0" step="0.01"
+        value="${p.area||''}"/>
+      <button class="btn btn-red btn-sm" type="button" onclick="removeParcelRow(${i})">&#x2715;</button>
+    </div>`).join('');
+}
+function syncParcelsFromDOM(){
+  const rows=document.querySelectorAll('#parcelRows .parcel-row');
+  _parcels=[];
+  rows.forEach(row=>{
+    const no=row.querySelector('.pr-no').value.trim();
+    const area=parseFloat(row.querySelector('.pr-area').value)||0;
+    _parcels.push({no,area});
+  });
+}
+function addParcelRow(){
+  syncParcelsFromDOM();
+  _parcels.unshift({no:'',area:''});
+  renderParcelRows();
+  const first=document.querySelector('#parcelRows .parcel-row');
+  if(first) first.querySelector('.pr-no').focus();
+}
+function removeParcelRow(i){
+  syncParcelsFromDOM();
+  _parcels.splice(i,1);
+  renderParcelRows();
+}
+
+// ─── Traceability chip ────────────────────────────────────────────────
+const TRACE_MAP={
+  yes:{label:'有產銷履歷',cls:'chip-grn'},
+  pending:{label:'申請中',cls:'chip-org'},
+  no:{label:'無產銷履歷',cls:'chip-g'},
+};
+function traceChip(val){
+  const t=TRACE_MAP[val]||TRACE_MAP.no;
+  return `<span class="chip ${t.cls}">${t.label}</span>`;
+}
+
+// ─── Page switching ───────────────────────────────────────────────────
+const pageTitles={farmers:'農民資料建檔',land:'土地地段一覽',varieties:'品種管理'};
+let currentPage='farmers';
+let currentView='card';
+
+function switchPage(name, el){
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  if(el) el.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('pageTitle').textContent=pageTitles[name]||name;
+  // show/hide add button
+  document.querySelector('.topbar-r .btn-org').style.display=
+    name==='farmers'?'':'none';
+  currentPage=name;
+  renderCurrentPage();
+}
+
+function renderCurrentPage(){
+  if(currentPage==='farmers'){ populateVarFilter('fVarFilter'); renderFarmers(); renderFarmerStats(); }
+  if(currentPage==='land')   { populateVarFilter('landVarFilter'); renderLand(); }
+  if(currentPage==='varieties') renderVarieties();
+}
+
+function populateVarFilter(id){
+  const sel=document.getElementById(id);
+  const cur=sel.value;
+  sel.innerHTML='<option value="">全部品種</option>'+
+    getVar().map(v=>`<option value="${v.id}">${v.name}</option>`).join('');
+  sel.value=cur;
+}
+
+// ─── Stats ────────────────────────────────────────────────────────────
+function renderFarmerStats(){
+  const farmers=getFarmers();
+  const totalArea=farmers.reduce((s,f)=>s+farmerTotalArea(f),0);
+  const withTrace=farmers.filter(f=>f.traceability==='yes').length;
+  const pending=farmers.filter(f=>f.traceability==='pending').length;
+  document.getElementById('farmerStats').innerHTML=`
+    <div class="stat c1">
+      <div class="stat-lbl">登記農民</div>
+      <div class="stat-val">${farmers.length}</div>
+      <div class="stat-sub">位</div>
+    </div>
+    <div class="stat c2">
+      <div class="stat-lbl">總種植面積</div>
+      <div class="stat-val" style="font-size:20px;">${totalArea.toFixed(2)}</div>
+      <div class="stat-sub">公頃</div>
+    </div>
+    <div class="stat c3">
+      <div class="stat-lbl">有產銷履歷</div>
+      <div class="stat-val" style="color:var(--grn);">${withTrace}</div>
+      <div class="stat-sub">位 / ${pending} 位申請中</div>
+    </div>
+    <div class="stat c4">
+      <div class="stat-lbl">品種數量</div>
+      <div class="stat-val">${getVar().length}</div>
+      <div class="stat-sub">種（共用資料）</div>
+    </div>
+  `;
+}
+
+// ─── Farmer List ──────────────────────────────────────────────────────
+function setView(v){
+  currentView=v;
+  document.getElementById('viewCard').classList.toggle('active',v==='card');
+  document.getElementById('viewTable').classList.toggle('active',v==='table');
+  document.getElementById('farmerCardView').style.display=v==='card'?'':'none';
+  document.getElementById('farmerTableView').style.display=v==='table'?'':'none';
+  renderFarmers();
+}
+
+function renderFarmers(){
+  const kw=(document.getElementById('fSearch').value||'').trim();
+  const varF=document.getElementById('fVarFilter').value;
+  const traceF=document.getElementById('fTraceFilter').value;
+  const vars=getVar();
+
+  let farmers=getFarmers();
+  if(kw) farmers=farmers.filter(f=>
+    f.name.includes(kw)||f.phone.includes(kw)||
+    getFarmerParcels(f).some(p=>p.no.includes(kw)));
+  if(varF) farmers=farmers.filter(f=>(f.varietyIds||[]).includes(varF));
+  if(traceF) farmers=farmers.filter(f=>f.traceability===traceF);
+  farmers.sort((a,b)=>a.name.localeCompare(b.name,'zh-TW'));
+
+  if(currentView==='card') renderFarmerCards(farmers, vars);
+  else renderFarmerTable(farmers, vars);
+}
+
+function renderFarmerCards(farmers, vars){
+  const el=document.getElementById('farmerCardView');
+  if(!farmers.length){
+    el.innerHTML='<div class="empty"><div class="empty-icon">&#128104;&#8205;&#127806;</div>尚無農民資料，請點「新增農民」開始建檔</div>';
+    return;
+  }
+  el.innerHTML='<div class="farmer-list">'+farmers.map(f=>{
+    const varNames=(f.varietyIds||[]).map(id=>vars.find(v=>v.id===id)).filter(Boolean);
+    const traceClass=f.traceability==='yes'?'trace-yes':f.traceability==='pending'?'trace-pending':'trace-no';
+    const parcels=getFarmerParcels(f);
+    const totalArea=farmerTotalArea(f);
+    const parcelLabel=parcels.length?parcels.map(p=>p.no).join('、'):'—';
+    return `<div class="farmer-card ${traceClass}">
+      <div class="fc-top">
+        <div>
+          <div class="fc-name">${f.name}</div>
+          <div class="fc-parcel">&#128205; ${parcelLabel}</div>
+        </div>
+        <div class="fc-meta">
+          ${parcels.length>1?`<span class="chip chip-blu">${parcels.length} 筆地段</span>`:''}
+          ${traceChip(f.traceability)}
+          ${f.certNo?`<span class="chip chip-fld">&#128196; ${f.certNo}</span>`:''}
+        </div>
+      </div>
+      <div class="fc-body">
+        <div class="fc-body-item">&#128222; ${f.phone||'—'}</div>
+        <div class="fc-body-item">&#127968; ${f.address||'—'}</div>
+        ${totalArea?`<div class="fc-body-item">&#128506; ${totalArea.toFixed(2)} 公頃${parcels.length>1?` (${parcels.length} 筆)`:''}</div>`:''}
+      </div>
+      ${varNames.length?`<div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;">
+        ${varNames.map(v=>`<span class="chip chip-fld">&#127810; ${v.name}</span>`).join('')}
+      </div>`:''}
+      ${f.notes?`<div style="font-size:12px;color:var(--g3);margin-top:6px;">&#128204; ${f.notes}</div>`:''}
+      <div class="fc-actions">
+        <button class="btn btn-out btn-sm" onclick="openDetail('${f.id}')">&#128065; 詳情</button>
+        <button class="btn btn-out btn-sm" onclick="openEditFarmer('${f.id}')">&#9998; 編輯</button>
+        <button class="btn btn-red btn-sm" onclick="deleteFarmer('${f.id}')">&#128465; 刪除</button>
+      </div>
+    </div>`;
+  }).join('')+'</div>';
+}
+
+function renderFarmerTable(farmers, vars){
+  const body=document.getElementById('farmerTableBody');
+  if(!farmers.length){
+    body.innerHTML='<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--g3);">無資料</td></tr>';
+    return;
+  }
+  body.innerHTML=farmers.map(f=>{
+    const varNames=(f.varietyIds||[]).map(id=>vars.find(v=>v.id===id)).filter(Boolean);
+    return `<tr>
+      <td><strong>${f.name}</strong>${f.idNo?`<br/><span style="font-size:11px;color:var(--g3);">${f.idNo}</span>`:''}</td>
+      <td style="font-size:12px;">${(()=>{const ps=getFarmerParcels(f);return ps.length?ps.map(p=>p.no).join('<br/>'):'—';})()}</td>
+      <td>${f.phone||'—'}</td>
+      <td style="font-size:12px;max-width:160px;">${f.address||'—'}</td>
+      <td>${varNames.map(v=>`<span class="chip chip-fld" style="margin:1px;">${v.name}</span>`).join('')||'—'}</td>
+      <td style="text-align:center;">${farmerTotalArea(f).toFixed(2)||'—'}</td>
+      <td>${traceChip(f.traceability)}${f.certNo?`<br/><span style="font-size:11px;color:var(--g3);">${f.certNo}</span>`:''}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-out btn-sm" onclick="openDetail('${f.id}')">詳情</button>
+        <button class="btn btn-out btn-sm" onclick="openEditFarmer('${f.id}')">編輯</button>
+        <button class="btn btn-red btn-sm" onclick="deleteFarmer('${f.id}')">刪除</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ─── Land View ────────────────────────────────────────────────────────
+function renderLand(){
+  const kw=(document.getElementById('landSearch').value||'').trim();
+  const varF=document.getElementById('landVarFilter').value;
+  const vars=getVar();
+
+  // Expand each farmer's parcels into rows
+  let rows=[];
+  getFarmers().forEach(f=>{
+    const parcels=getFarmerParcels(f);
+    const varNames=(f.varietyIds||[]).map(id=>vars.find(v=>v.id===id)).filter(Boolean);
+    if(varF&&!(f.varietyIds||[]).includes(varF)) return;
+    const targets=parcels.length?parcels:[{no:'—',area:0}];
+    targets.forEach(p=>{
+      if(kw&&!p.no.includes(kw)&&!f.name.includes(kw)) return;
+      rows.push({parcel:p,farmer:f,varNames});
+    });
+  });
+
+  document.getElementById('landCount').textContent=`共 ${rows.length} 筆地段`;
+  const body=document.getElementById('landBody');
+  if(!rows.length){
+    body.innerHTML='<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--g3);">無地段資料</td></tr>';
+    return;
+  }
+  body.innerHTML=rows.map(r=>`<tr>
+    <td><strong style="color:var(--fld);">${r.parcel.no}</strong></td>
+    <td><strong>${r.farmer.name}</strong></td>
+    <td style="font-size:12px;">${r.farmer.phone||'—'}</td>
+    <td>${r.varNames.map(v=>`<span class="chip chip-fld" style="margin:1px;">${v.name}</span>`).join('')||'—'}</td>
+    <td>${r.parcel.area?r.parcel.area+' 公頃':'—'}</td>
+    <td>${traceChip(r.farmer.traceability)}</td>
+    <td>
+      <button class="btn btn-out btn-sm" onclick="openDetail('${r.farmer.id}')">詳情</button>
+      <button class="btn btn-out btn-sm" onclick="openEditFarmer('${r.farmer.id}')">編輯</button>
+    </td>
+  </tr>`).join('');
+}
+
+// ─── Variety Management ───────────────────────────────────────────────
+function renderVarieties(){
+  const vars=getVar();
+  const farmers=getFarmers();
+  const body=document.getElementById('varietyBody');
+  if(!vars.length){
+    body.innerHTML='<tr><td colspan="4" style="text-align:center;padding:28px;color:var(--g3);">尚無品種，請新增</td></tr>';
+    return;
+  }
+  body.innerHTML=vars.map(v=>{
+    const cnt=farmers.filter(f=>(f.varietyIds||[]).includes(v.id)).length;
+    return `<tr>
+      <td><strong>${v.name}</strong></td>
+      <td style="text-align:center;">${cnt} 位</td>
+      <td style="text-align:center;">${v.maxDays||'—'} 天</td>
+      <td>
+        <button class="btn btn-out btn-sm" onclick="openEditVariety('${v.id}')">編輯</button>
+        <button class="btn btn-red btn-sm" onclick="deleteVariety('${v.id}')"
+          ${cnt>0?'disabled title="仍有農民種植此品種"':''}>刪除</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+function openAddVariety(){
+  document.getElementById('vmEditId').value='';
+  document.getElementById('vmName').value='';
+  document.getElementById('vmMaxDays').value='';
+  document.getElementById('varModalTitle').textContent='新增品種';
+  document.getElementById('varModal').classList.add('open');
+}
+function openEditVariety(id){
+  const v=getVar().find(x=>x.id===id);
+  if(!v) return;
+  document.getElementById('vmEditId').value=id;
+  document.getElementById('vmName').value=v.name;
+  document.getElementById('vmMaxDays').value=v.maxDays||'';
+  document.getElementById('varModalTitle').textContent='編輯品種';
+  document.getElementById('varModal').classList.add('open');
+}
+function confirmVarEdit(){
+  const id=document.getElementById('vmEditId').value;
+  const name=document.getElementById('vmName').value.trim();
+  const maxDays=parseInt(document.getElementById('vmMaxDays').value)||90;
+  if(!name){ showToast('請輸入品種名稱','err'); return; }
+  const vars=getVar();
+  if(id){ const v=vars.find(x=>x.id===id); if(v){v.name=name;v.maxDays=maxDays;} }
+  else vars.push({id:'V'+Date.now(),name,maxDays});
+  saveVar(vars);
+  closeModal('varModal');
+  renderVarieties();
+  populateVarFilter('fVarFilter');
+  populateVarFilter('landVarFilter');
+  showToast(id?'品種已更新':'品種已新增','ok');
+}
+function deleteVariety(id){
+  if(!confirm('確認刪除此品種？')) return;
+  saveVar(getVar().filter(v=>v.id!==id));
+  renderVarieties();
+  showToast('已刪除','ok');
+}
+
+// ─── Farmer CRUD ─────────────────────────────────────────────────────
+function openAddFarmer(){
+  selectedVarIds=[];
+  _parcels=[{no:'',area:''}];
+  document.getElementById('fmEditId').value='';
+  document.getElementById('fmName').value='';
+  document.getElementById('fmPhone').value='';
+  document.getElementById('fmAddress').value='';
+  document.getElementById('fmIdNo').value='';
+  document.getElementById('fmEmail').value='';
+  document.getElementById('fmTrace').value='no';
+  document.getElementById('fmCertNo').value='';
+  document.getElementById('fmNotes').value='';
+  renderVarPicker();
+  renderParcelRows();
+  toggleCertField();
+  document.getElementById('farmerModalTitle').textContent='新增農民資料';
+  document.getElementById('farmerModal').classList.add('open');
+}
+
+function openEditFarmer(id){
+  const f=getFarmers().find(x=>x.id===id);
+  if(!f) return;
+  document.getElementById('fmEditId').value=id;
+  document.getElementById('fmName').value=f.name||'';
+  document.getElementById('fmPhone').value=f.phone||'';
+  document.getElementById('fmAddress').value=f.address||'';
+  document.getElementById('fmIdNo').value=f.idNo||'';
+  document.getElementById('fmEmail').value=f.email||'';
+  document.getElementById('fmTrace').value=f.traceability||'no';
+  document.getElementById('fmCertNo').value=f.certNo||'';
+  document.getElementById('fmNotes').value=f.notes||'';
+  _parcels=getFarmerParcels(f).length?getFarmerParcels(f):[{no:'',area:''}];
+  setSelectedVarIds(f.varietyIds||[]);
+  renderParcelRows();
+  toggleCertField();
+  document.getElementById('farmerModalTitle').textContent=`編輯 — ${f.name}`;
+  document.getElementById('farmerModal').classList.add('open');
+}
+
+function toggleCertField(){
+  const trace=document.getElementById('fmTrace').value;
+  document.getElementById('certNoRow').style.display=
+    trace==='yes'||trace==='pending'?'':'none';
+}
+
+function confirmFarmerEdit(){
+  const id=document.getElementById('fmEditId').value;
+  const name=document.getElementById('fmName').value.trim();
+  const phone=document.getElementById('fmPhone').value.trim();
+  const address=document.getElementById('fmAddress').value.trim();
+
+  syncParcelsFromDOM();
+  const parcels=_parcels.filter(p=>p.no.trim());
+
+  if(!name||!phone||!address){
+    showToast('請填寫姓名、電話、住址','err'); return;
+  }
+  if(!parcels.length){
+    showToast('請填寫至少一筆土地地段號','err'); return;
+  }
+  if(!selectedVarIds.length){
+    showToast('請選擇至少一個種植品種','err'); return;
+  }
+
+  const rec={
+    id:id||uid(),
+    name,
+    phone,
+    address,
+    idNo:document.getElementById('fmIdNo').value.trim(),
+    email:document.getElementById('fmEmail').value.trim(),
+    parcels,
+    varietyIds:[...selectedVarIds],
+    traceability:document.getElementById('fmTrace').value,
+    certNo:document.getElementById('fmCertNo').value.trim(),
+    notes:document.getElementById('fmNotes').value.trim(),
+    createdAt:id?undefined:new Date().toISOString(),
+    updatedAt:new Date().toISOString(),
+  };
+
+  const farmers=getFarmers();
+  if(id){
+    const idx=farmers.findIndex(x=>x.id===id);
+    if(idx>=0){ rec.createdAt=farmers[idx].createdAt; farmers[idx]=rec; }
+  } else {
+    farmers.push(rec);
+  }
+  saveFarmers(farmers);
+  closeModal('farmerModal');
+  renderCurrentPage();
+  showToast(id?`${name} 資料已更新`:`${name} 已建檔`,'ok');
+}
+
+function deleteFarmer(id){
+  const f=getFarmers().find(x=>x.id===id);
+  if(!f||!confirm(`確認刪除 ${f.name} 的資料？`)) return;
+  saveFarmers(getFarmers().filter(x=>x.id!==id));
+  renderCurrentPage();
+  showToast('已刪除','ok');
+}
+
+// ─── Detail Modal ─────────────────────────────────────────────────────
+function openDetail(id){
+  const f=getFarmers().find(x=>x.id===id);
+  if(!f) return;
+  const vars=getVar();
+  const varNames=(f.varietyIds||[]).map(vid=>vars.find(v=>v.id===vid)).filter(Boolean);
+  document.getElementById('detailModalTitle').textContent=`${f.name} — 農民資料`;
+  document.getElementById('detailModalBody').innerHTML=`
+    <div class="detail-section">基本資料</div>
+    <div class="info-row"><span class="info-lbl">姓名</span>
+      <span class="info-val" style="font-size:17px;">${f.name}</span></div>
+    <div class="info-row"><span class="info-lbl">身分證 / 統編</span>
+      <span class="info-val">${f.idNo||'—'}</span></div>
+    <div class="info-row"><span class="info-lbl">電話</span>
+      <span class="info-val">${f.phone||'—'}</span></div>
+    <div class="info-row"><span class="info-lbl">Email</span>
+      <span class="info-val">${f.email||'—'}</span></div>
+    <div class="info-row"><span class="info-lbl">住址</span>
+      <span class="info-val">${f.address||'—'}</span></div>
+
+    <div class="detail-section">土地 &amp; 種植</div>
+    ${(()=>{const ps=getFarmerParcels(f); const tot=farmerTotalArea(f);
+      return `<div class="info-row"><span class="info-lbl">土地地段</span>
+      <span class="info-val">
+        <table class="parcel-tbl">
+          <thead><tr><th>地段號</th><th>面積（公頃）</th></tr></thead>
+          <tbody>${ps.length?ps.map(p=>`<tr>
+            <td style="color:var(--fld);font-weight:600;">${p.no}</td>
+            <td>${p.area||'—'}</td></tr>`).join('')
+            :'<tr><td colspan="2" style="color:var(--g3);">無地段資料</td></tr>'}
+          </tbody>
+        </table>
+        ${ps.length>1?`<div style="font-size:12px;color:var(--g3);margin-top:4px;">共 ${ps.length} 筆・合計 ${tot.toFixed(2)} 公頃</div>`:''}
+      </span></div>`;
+    })()}
+    <div class="info-row"><span class="info-lbl">種植品種</span>
+      <span class="info-val">${varNames.length
+        ?varNames.map(v=>`<span class="chip chip-fld" style="margin:2px;">&#127810; ${v.name}</span>`).join('')
+        :'—'}</span></div>
+
+    <div class="detail-section">產銷履歷</div>
+    <div class="info-row"><span class="info-lbl">履歷狀態</span>
+      <span class="info-val">${traceChip(f.traceability)}</span></div>
+    <div class="info-row"><span class="info-lbl">履歷證號</span>
+      <span class="info-val">${f.certNo||'—'}</span></div>
+
+    ${f.notes?`<div class="detail-section">備注</div>
+    <div style="font-size:13px;color:var(--g3);padding:8px 0;">${f.notes}</div>`:''}
+
+    <div style="font-size:11px;color:var(--g3);margin-top:14px;">
+      建檔：${f.createdAt?new Date(f.createdAt).toLocaleString('zh-TW'):'—'}
+      ／更新：${f.updatedAt?new Date(f.updatedAt).toLocaleString('zh-TW'):'—'}
+    </div>
+  `;
+  document.getElementById('detailModalFoot').innerHTML=`
+    <button class="btn btn-out" onclick="closeModal('detailModal')">關閉</button>
+    <button class="btn btn-pri" onclick="closeModal('detailModal');openEditFarmer('${f.id}')">&#9998; 編輯</button>
+  `;
+  document.getElementById('detailModal').classList.add('open');
+}
+
+// ─── Export CSV ───────────────────────────────────────────────────────
+function exportFarmerCSV(){
+  const vars=getVar();
+  const farmers=getFarmers();
+  const rows=[['姓名','身分證/統編','電話','Email','住址','地段號','面積(公頃)',
+    '種植品種','產銷履歷','履歷證號','備注','建檔時間']];
+  farmers.forEach(f=>{
+    const varNames=(f.varietyIds||[]).map(id=>vars.find(v=>v.id===id)?.name||'').filter(Boolean).join('、');
+    const traceLabel={yes:'有',pending:'申請中',no:'無'}[f.traceability]||'無';
+    const parcels=getFarmerParcels(f);
+    if(parcels.length===0){
+      rows.push([f.name,f.idNo||'',f.phone||'',f.email||'',f.address||'',
+        '','',varNames,traceLabel,f.certNo||'',f.notes||'',
+        f.createdAt?new Date(f.createdAt).toLocaleString('zh-TW'):'']);
+    } else {
+      parcels.forEach((p,i)=>{
+        rows.push([i===0?f.name:'',i===0?(f.idNo||''):'',i===0?(f.phone||''):'',
+          i===0?(f.email||''):'',i===0?(f.address||''):'',
+          p.no,p.area||'',
+          i===0?varNames:'',i===0?traceLabel:'',i===0?(f.certNo||''):'',
+          i===0?(f.notes||''):'',
+          i===0?(f.createdAt?new Date(f.createdAt).toLocaleString('zh-TW'):''):'']);
+      });
+    }
+  });
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=`農民資料_${todayStr()}.csv`; a.click();
+  URL.revokeObjectURL(url);
+  showToast('CSV 已匯出','ok');
+}
+
+// ─── Modal helpers ────────────────────────────────────────────────────
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function closeBg(id,e){ if(e.target===document.getElementById(id)) closeModal(id); }
+
+// ─── Toast ────────────────────────────────────────────────────────────
+let toastT;
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast show'+(type?' '+type:'');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>t.className='toast',3200);
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────
+function init(){
+  seedVarieties();
+  toggleCertField();
+  const n=new Date();
+  document.getElementById('todayLabel').textContent=
+    n.toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric'});
+  populateVarFilter('fVarFilter');
+  populateVarFilter('landVarFilter');
+  renderFarmerStats();
+  renderFarmers();
+}
+
+init();
+</script>
+</body>
+</html>
