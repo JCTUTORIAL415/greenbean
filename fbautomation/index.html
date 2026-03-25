@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>蓋好賣</title>
+<style>
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+body {
+font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+color: #1a202c;
+line-height: 1.6;
+min-height: 100vh;
+}
+.sidebar {
+width: 280px;
+height: 100vh;
+background: rgba(255, 255, 255, 0.95);
+backdrop-filter: blur(10px);
+position: fixed;
+padding: 30px 20px;
+box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1);
+z-index: 100;
+}
+.logo {
+font-size: 2.4rem;
+font-weight: 800;
+margin-bottom: 40px;
+text-align: center;
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+}
+.sidebar ul {
+list-style: none;
+}
+.sidebar ul li {
+padding: 16px 20px;
+margin-bottom: 8px;
+font-size: 1.05rem;
+cursor: pointer;
+border-radius: 12px;
+transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+color: #4a5568;
+font-weight: 500;
+}
+.sidebar ul li:hover {
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+color: white;
+transform: translateX(5px);
+box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+.sidebar ul li:first-child {
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+color: white;
+box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+.content {
+margin-left: 280px;
+padding: 40px 50px;
+min-height: 100vh;
+}
+.header {
+margin-bottom: 40px;
+}
+.header h1 {
+color: white;
+font-size: 2.2rem;
+font-weight: 700;
+margin-bottom: 8px;
+text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+.header p {
+color: rgba(255, 255, 255, 0.9);
+font-size: 1rem;
+}
+.dashboard {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+gap: 30px;
+margin-bottom: 40px;
+}
+.card.full-width {
+grid-column: 1 / -1;
+}
+.card {
+background: rgba(255, 255, 255, 0.95);
+backdrop-filter: blur(10px);
+padding: 28px;
+border-radius: 20px;
+box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+border: 1px solid rgba(255, 255, 255, 0.3);
+}
+.card:hover {
+transform: translateY(-8px);
+box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+}
+.card h3 {
+font-size: 1.3rem;
+margin-bottom: 20px;
+color: #2d3748;
+font-weight: 700;
+}
+.stats-grid {
+display: grid;
+gap: 15px;
+}
+.stat-item {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 18px;
+background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+border-radius: 12px;
+transition: all 0.2s;
+}
+.stat-item:hover {
+background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+transform: scale(1.02);
+}
+.stat-label {
+font-size: 0.95rem;
+color: #718096;
+font-weight: 600;
+}
+.stat-value {
+font-size: 1.5rem;
+font-weight: 700;
+color: #2d3748;
+}
+.stat-change {
+font-size: 0.85rem;
+font-weight: 600;
+margin-left: 10px;
+}
+.stat-change.up {
+color: #48bb78;
+}
+.stat-change.down {
+color: #f56565;
+}
+.controls {
+display: flex;
+gap: 12px;
+margin-bottom: 20px;
+flex-wrap: wrap;
+}
+.controls select,
+.controls input {
+padding: 10px 16px;
+border: 2px solid #e2e8f0;
+border-radius: 10px;
+font-size: 0.9rem;
+background: white;
+color: #2d3748;
+transition: all 0.2s;
+font-weight: 500;
+}
+.controls select:focus,
+.controls input:focus {
+outline: none;
+border-color: #667eea;
+box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+.calendar {
+display: grid;
+grid-template-columns: repeat(7, 1fr);
+gap: 8px;
+margin-top: 15px;
+}
+.calendar-day {
+padding: 14px;
+background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+text-align: center;
+border-radius: 10px;
+font-size: 0.9rem;
+font-weight: 600;
+color: #4a5568;
+transition: all 0.2s;
+cursor: pointer;
+}
+.calendar-day:hover {
+transform: scale(1.05);
+background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+}
+.calendar-day.active {
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+color: white;
+box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+.heatmap-container {
+margin-top: 20px;
+}
+.heatmap {
+display: flex;
+flex-direction: column;
+gap: 4px;
+}
+.heatmap-labels {
+display: grid;
+grid-template-columns: 40px repeat(7, 1fr);
+gap: 4px;
+margin-bottom: 4px;
+}
+.time-label {
+width: 40px;
+}
+.day-label {
+text-align: center;
+font-size: 0.85rem;
+font-weight: 700;
+color: #4a5568;
+padding: 8px 0;
+}
+.heatmap-row {
+display: grid;
+grid-template-columns: 40px repeat(7, 1fr);
+gap: 4px;
+}
+.hour-label {
+display: flex;
+align-items: center;
+justify-content: flex-end;
+padding-right: 8px;
+font-size: 0.8rem;
+font-weight: 600;
+color: #718096;
+}
+.heatmap-cell {
+aspect-ratio: 1;
+display: flex;
+align-items: center;
+justify-content: center;
+border-radius: 6px;
+font-size: 0.75rem;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.2s;
+background: #f7fafc;
+color: #a0aec0;
+}
+.heatmap-cell:hover {
+transform: scale(1.1);
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+z-index: 10;
+}
+.heatmap-cell[data-value="0"] {
+background: #f7fafc;
+color: #cbd5e0;
+}
+.heatmap-cell[data-value="1"],
+.heatmap-cell[data-value="2"] {
+background: linear-gradient(135deg, #bee3f8 0%, #90cdf4 100%);
+color: #2c5282;
+}
+.heatmap-cell[data-value="3"],
+.heatmap-cell[data-value="4"],
+.heatmap-cell[data-value="5"] {
+background: linear-gradient(135deg, #90cdf4 0%, #4299e1 100%);
+color: #1a365d;
+}
+.heatmap-cell[data-value="6"],
+.heatmap-cell[data-value="7"],
+.heatmap-cell[data-value="8"],
+.heatmap-cell[data-value="9"] {
+background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+color: white;
+}
+.heatmap-cell[data-value="10"] {
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+color: white;
+box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+font-weight: 700;
+}
+.heatmap-legend {
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 10px;
+margin-top: 15px;
+font-size: 0.8rem;
+color: #718096;
+}
+.legend-gradient {
+width: 120px;
+height: 12px;
+border-radius: 6px;
+background: linear-gradient(90deg,
+#f7fafc 0%,
+#bee3f8 25%,
+#4299e1 50%,
+#3182ce 75%,
+#764ba2 100%);
+}
+.chart-container {
+background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+border-radius: 16px;
+padding: 25px;
+margin-top: 20px;
+}
+.bar-chart {
+display: flex;
+justify-content: space-around;
+align-items: flex-end;
+height: 220px;
+gap: 8px;
+}
+.bar-group {
+flex: 1;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 8px;
+}
+.bars {
+display: flex;
+gap: 6px;
+align-items: flex-end;
+height: 180px;
+}
+.bar {
+width: 28px;
+border-radius: 8px 8px 0 0;
+position: relative;
+display: flex;
+align-items: flex-start;
+justify-content: center;
+padding-top: 8px;
+font-size: 0.75rem;
+font-weight: 700;
+color: white;
+transition: all 0.3s;
+cursor: pointer;
+}
+.bar:hover {
+transform: scaleY(1.05);
+filter: brightness(1.1);
+}
+.bar.success {
+background: linear-gradient(180deg, #48bb78 0%, #38a169 100%);
+box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+}
+.bar.failed {
+background: linear-gradient(180deg, #f56565 0%, #e53e3e 100%);
+box-shadow: 0 4px 12px rgba(245, 101, 101, 0.3);
+}
+.label {
+font-size: 0.85rem;
+color: #4a5568;
+font-weight: 600;
+margin-top: 8px;
+}
+.legend {
+display: flex;
+justify-content: center;
+gap: 30px;
+margin-top: 20px;
+font-size: 0.95rem;
+font-weight: 600;
+}
+.legend-item {
+display: flex;
+align-items: center;
+gap: 8px;
+}
+.legend-color {
+width: 16px;
+height: 16px;
+border-radius: 4px;
+}
+.legend-color.success {
+background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+}
+.legend-color.failed {
+background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+}
+.member-section {
+background: rgba(255, 255, 255, 0.95);
+backdrop-filter: blur(10px);
+border-radius: 20px;
+overflow: hidden;
+box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+margin-bottom: 30px;
+}
+.section-header {
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+padding: 25px 30px;
+color: white;
+}
+.section-header h2 {
+font-size: 1.5rem;
+font-weight: 700;
+}
+.member-table {
+width: 100%;
+border-collapse: collapse;
+}
+.member-table th {
+background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+color: #2d3748;
+padding: 18px 20px;
+text-align: left;
+font-weight: 700;
+font-size: 0.95rem;
+white-space: nowrap;
+}
+.member-table td {
+padding: 20px;
+border-bottom: 1px solid #e2e8f0;
+font-size: 0.95rem;
+color: #4a5568;
+vertical-align: top;
+}
+.member-table tr:hover {
+background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+}
+.member-table a {
+color: #667eea;
+text-decoration: none;
+font-weight: 600;
+transition: all 0.2s;
+}
+.member-table a:hover {
+color: #764ba2;
+text-decoration: underline;
+}
+.vpn-controls {
+display: flex;
+flex-direction: column;
+gap: 10px;
+align-items: flex-start;
+}
+.vpn-toggle {
+display: flex;
+align-items: center;
+gap: 10px;
+}
+.toggle-btn {
+position: relative;
+width: 50px;
+height: 26px;
+background: #ccc;
+border-radius: 13px;
+cursor: pointer;
+transition: all 0.3s;
+}
+.toggle-btn.active {
+background: #48bb78;
+}
+.toggle-slider {
+position: absolute;
+top: 2px;
+left: 2px;
+width: 22px;
+height: 22px;
+background: white;
+border-radius: 50%;
+transition: all 0.3s;
+}
+.toggle-btn.active .toggle-slider {
+transform: translateX(24px);
+}
+.input-group {
+display: flex;
+gap: 15px;
+align-items: center;
+width: 100%;
+}
+.vpn-input {
+padding: 12px 16px;
+border: 2px solid #e2e8f0;
+border-radius: 10px;
+font-size: 0.95rem;
+flex: 1;
+max-width: 300px;
+transition: all 0.2s;
+}
+.vpn-input:focus {
+outline: none;
+border-color: #667eea;
+box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+.vpn-btn {
+background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+color: white;
+border: none;
+padding: 12px 24px;
+border-radius: 10px;
+font-size: 0.95rem;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s;
+box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+white-space: nowrap;
+}
+.vpn-btn:hover {
+transform: translateY(-2px);
+box-shadow: 0 6px 20px rgba(72, 187, 120, 0.4);
+}
+.toggle-label {
+font-size: 0.95rem;
+color: #4a5568;
+font-weight: 600;
+}
+.footer {
+background: rgba(255, 255, 255, 0.95);
+backdrop-filter: blur(10px);
+padding: 25px;
+border-radius: 20px;
+display: flex;
+justify-content: space-around;
+flex-wrap: wrap;
+gap: 15px;
+box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+.footer-item {
+color: #718096;
+font-size: 0.85rem;
+font-weight: 500;
+}
+@keyframes fadeIn {
+  from {
+opacity: 0;
+transform: translateY(20px);
+  }
+  to {
+opacity: 1;
+transform: translateY(0);
+  }
+}
+.card {
+animation: fadeIn 0.6s ease-out;
+}
+.card:nth-child(1) { animation-delay: 0.1s; }
+.card:nth-child(2) { animation-delay: 0.2s; }
+.card:nth-child(3) { animation-delay: 0.3s; }
+@media (max-width: 768px) {
+.member-table th,
+.member-table td {
+padding: 12px 10px;
+font-size: 0.85rem;
+}
+.vpn-input {
+max-width: 100%;
+}
+.input-group {
+flex-direction: column;
+gap: 10px;
+}
+}
+</style>
+</head>
+<body>
+<div class="sidebar">
+<div class="logo">🏆 蓋好賣</div>
+<ul>
+<li onclick="window.location.href='index.html'">📊 首頁</li>
+<li onclick="window.location.href='account.html'">👤 帳號管理</li>
+<li onclick="window.location.href='schedule.html'">📝 排程管理</li>
+<li onclick="window.location.href='normalPost.html'">💬 一般社團發文</li>
+<li class="active" onclick="window.location.href='marketPlace.html'">🛒 拍賣+社團發文</li>
+<li onclick="window.location.href='addClub.html'">➕ 自動加入社團</li>
+<li onclick="window.location.href='cultivateAccount.html'">🤖 自動養號</li>
+<li onclick="window.location.href='SentMs.html'">📩 自動私訊</li>
+<li class="" onclick="window.location.href='PostAct.html'">👍 指定貼文按讚留言</li>
+<li class="" onclick="window.location.href='scrape.html'">🕷️ 社團關鍵字爬蟲</li>
+<li  onclick="window.location.href='sequentialSchedule.html'">🔄 連貫排程</li>
+</ul>
+</div>
+<div class="content">
+<div class="header">
+<h1>數據儀表板</h1>
+<p>即時追蹤您的發文成效與帳號表現</p>
+</div>
+<div class="dashboard">
+<div class="card">
+<h3>📊 最近七天總數</h3>
+<div class="stats-grid">
+<div class="stat-item">
+<div>
+<div class="stat-label">成功發文</div>
+<div class="stat-value"><span style="font-size: 5rem; color: #3c485a;">20篇</span></div>
+</div>
+<span class="stat-change up" style="font-size: 2rem;">↑ 10%</span>
+</div>
+<div class="stat-item">
+<div>
+<div class="stat-label">失敗發文</div>
+<div class="stat-value"><span style="font-size: 5rem; color:#3c485a;">3篇</span></div>
+</div>
+<span class="stat-change down" style="font-size: 2rem;">↓ 5%</span>
+</div>
+</div>
+</div>
+<div class="card">
+<h3>📅 發文頻率</h3>
+<div class="controls">
+<select>
+<option value="this">本週</option>
+<option value="last">上週</option>
+</select>
+<select>
+<option value="account1">帳號 1</option>
+<option value="account2">帳號 2</option>
+</select>
+</div>
+<div class="heatmap-container">
+<div class="heatmap">
+<div class="heatmap-labels">
+<div class="time-label"></div>
+<div class="day-label">日</div>
+<div class="day-label">一</div>
+<div class="day-label">二</div>
+<div class="day-label">三</div>
+<div class="day-label">四</div>
+<div class="day-label">五</div>
+<div class="day-label">六</div>
+</div>
+<div class="heatmap-row">
+<div class="hour-label">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+</div>
+<div class="heatmap-row">
+<div class="hour-label">4</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+</div>
+<div class="heatmap-row">
+<div class="hour-label">8</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="2">2</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+</div>
+<div class="heatmap-row">
+<div class="hour-label">12</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="5">5</div>
+<div class="heatmap-cell" data-value="10">10</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+</div>
+<div class="heatmap-row">
+<div class="hour-label">16</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+</div>
+<div class="heatmap-row">
+<div class="hour-label">20</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+<div class="heatmap-cell" data-value="0">0</div>
+</div>
+</div>
+<div class="heatmap-legend">
+<span>少</span>
+<div class="legend-gradient"></div>
+<span>多</span>
+</div>
+</div>
+</div>
+<div class="card full-width">
+<h3>📈 每週詳細報表</h3>
+<div class="chart-container">
+<div class="bar-chart">
+<div class="bar-group">
+<div class="bars">
+<div class="bar success" style="height: 60px;">6</div>
+<div class="bar failed" style="height: 30px;">3</div>
+</div>
+<div class="label">周一</div>
+</div>
+<div class="bar-group">
+<div class="bars">
+<div class="bar success" style="height: 45px;">4</div>
+<div class="bar failed" style="height: 15px;">1</div>
+</div>
+<div class="label">周二</div>
+</div>
+<div class="bar-group">
+<div class="bars">
+<div class="bar success" style="height: 90px;">9</div>
+<div class="bar failed" style="height: 20px;">2</div>
+</div>
+<div class="label">周三</div>
+</div>
+<div class="bar-group">
+<div class="bars">
+<div class="bar success" style="height: 120px;">12</div>
+<div class="bar failed" style="height: 10px;">1</div>
+</div>
+<div class="label">周四</div>
+</div>
+<div class="bar-group">
+<div class="bars">
+<div class="bar success" style="height: 100px;">10</div>
+<div class="bar failed" style="height: 25px;">2</div>
+</div>
+<div class="label">周五</div>
+</div>
+<div class="bar-group">
+<div class="bars">
+<div class="bar success" style="height: 30px;">3</div>
+<div class="bar failed" style="height: 40px;">4</div>
+</div>
+<div class="label">周六</div>
+</div>
+<div class="bar-group">
+<div class="bars">
+<div class="bar success" style="height: 75px;">7</div>
+<div class="bar failed" style="height: 35px;">3</div>
+</div>
+<div class="label">周日</div>
+</div>
+</div>
+<div class="legend">
+<div class="legend-item">
+<div class="legend-color success"></div>
+<span>成功發文</span>
+</div>
+<div class="legend-item">
+<div class="legend-color failed"></div>
+<span>失敗發文</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="member-section">
+<div class="section-header">
+<h2>💎 會員資訊</h2>
+</div>
+<table class="member-table">
+<thead>
+<tr>
+<th>會員到期日</th>
+<!-- <th>邀請碼</th> -->
+<!-- <th>可領獎金</th> -->
+<!-- <th>推薦獎金後台</th> -->
+<th>FlyVPN(大量帳號需要才輸入)</th>
+<th>Google路徑(如果需要才輸入)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2025-11-15</td>
+<!-- <td><strong>H2AEHF</strong></td> -->
+<!-- <td><strong style="color: #48bb78;">500 元</strong></td> -->
+<!-- <td><a href="#">前往後台 →</a></td> -->
+<td>
+<div class="vpn-controls">
+<div class="vpn-toggle">
+<span class="toggle-label">FlyVPN 狀態:</span>
+<div class="toggle-btn" id="flyVpnToggle" onclick="toggleFlyVPN()">
+<div class="toggle-slider"></div>
+</div>
+</div>
+<div class="input-group" id="flyVpnInputGroup" style="display: none;">
+<input type="text" class="vpn-input" id="vpnCredentials" placeholder="輸入路徑">
+<button class="vpn-btn" onclick="connectFlyVPN()">儲存</button>
+</div>
+</div>
+</td>
+<td>
+<div class="vpn-controls">
+<div class="input-group">
+<input type="text" class="vpn-input" id="googlePath" placeholder="輸入Google路徑">
+<button class="vpn-btn" onclick="connectGoogle()">儲存</button>
+</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- <div class="footer">
+    <div class="footer-item">📧 a0908463504@gmail.com</div>
+    <div class="footer-item">🕒 2025-10-22 14:17 更新</div>
+    <div class="footer-item">🔑 H2AEHF</div>
+    <div class="footer-item">🔗 https://aicoinmaker.com/?REFCODE=H2AEHF</div>
+    <div class="footer-item">💰 0 元</div>
+  </div> -->
+</div>
+<script>
+function toggleFlyVPN() {
+  const toggle = document.getElementById('flyVpnToggle');
+  const inputGroup = document.getElementById('flyVpnInputGroup');
+ 
+  toggle.classList.toggle('active');
+ 
+  if (toggle.classList.contains('active')) {
+    inputGroup.style.display = 'flex';
+    alert('FlyVPN 已啟用！請輸入路徑並儲存。');
+  } else {
+    inputGroup.style.display = 'none';
+    alert('FlyVPN 已關閉。');
+  }
+}
+function connectFlyVPN() {
+  const input = document.getElementById('vpnCredentials').value;
+  if (input) {
+    alert('FlyVPN 路徑已儲存: ' + input);
+  } else {
+    alert('請輸入 FlyVPN 路徑。');
+  }
+}
+function connectGoogle() {
+  const input = document.getElementById('googlePath').value;
+  if (input) {
+    alert('Google 路徑已儲存: ' + input);
+  } else {
+    alert('請輸入 Google 路徑。');
+  }
+}
+</script>
+</body>
+</html>

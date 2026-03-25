@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>蓋好賣 - 帳號管理</title>
+<style>
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+body {
+font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+color: #1a202c;
+line-height: 1.6;
+min-height: 100vh;
+}
+.sidebar {
+width: 280px;
+height: 100vh;
+background: rgba(255, 255, 255, 0.95);
+backdrop-filter: blur(10px);
+position: fixed;
+padding: 30px 20px;
+box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1);
+z-index: 100;
+}
+.logo {
+font-size: 2.4rem;
+font-weight: 800;
+margin-bottom: 40px;
+text-align: center;
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+}
+.sidebar ul {
+list-style: none;
+}
+.sidebar ul li {
+padding: 16px 20px;
+margin-bottom: 8px;
+font-size: 1.05rem;
+cursor: pointer;
+border-radius: 12px;
+transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+color: #4a5568;
+font-weight: 500;
+}
+.sidebar ul li:hover {
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+color: white;
+transform: translateX(5px);
+box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+.sidebar ul li:nth-child(2) {
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+color: white;
+box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+.content {
+margin-left: 280px;
+padding: 40px 50px;
+min-height: 100vh;
+}
+.header {
+margin-bottom: 40px;
+}
+.header h1 {
+color: white;
+font-size: 2.2rem;
+font-weight: 700;
+margin-bottom: 8px;
+text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+.header p {
+color: rgba(255, 255, 255, 0.9);
+font-size: 1rem;
+}
+.add-account-btn {
+background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+color: white;
+border: none;
+padding: 14px 28px;
+border-radius: 12px;
+font-size: 1rem;
+font-weight: 600;
+cursor: pointer;
+box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+transition: all 0.3s;
+margin-bottom: 30px;
+}
+.add-account-btn:hover {
+transform: translateY(-2px);
+box-shadow: 0 6px 20px rgba(72, 187, 120, 0.4);
+}
+.status-info {
+background: rgba(255, 255, 255, 0.95);
+backdrop-filter: blur(10px);
+padding: 25px 30px;
+border-radius: 20px;
+box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+margin-bottom: 30px;
+}
+.status-info h3 {
+font-size: 1.3rem;
+margin-bottom: 15px;
+color: #2d3748;
+font-weight: 700;
+}
+.status-list {
+display: flex;
+flex-direction: column;
+gap: 12px;
+}
+.status-item {
+display: flex;
+align-items: center;
+gap: 10px;
+padding: 12px;
+background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+border-radius: 10px;
+}
+.status-icon {
+font-size: 1.2rem;
+}
+.status-text {
+font-size: 0.95rem;
+color: #4a5568;
+}
+.status-item.success { border-left: 4px solid #48bb78; }
+.status-item.warning { border-left: 4px solid #ed8936; }
+.status-item.error { border-left: 4px solid #f56565; }
+.accounts-table-container {
+background: rgba(255, 255, 255, 0.95);
+backdrop-filter: blur(10px);
+border-radius: 20px;
+overflow: hidden;
+box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+animation: fadeIn 0.6s ease-out;
+margin-bottom: 30px;
+}
+.table-header {
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+padding: 25px 30px;
+color: white;
+}
+.table-header h2 {
+font-size: 1.5rem;
+font-weight: 700;
+}
+.accounts-table {
+width: 100%;
+border-collapse: collapse;
+}
+.accounts-table th {
+background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+color: #2d3748;
+padding: 18px 30px;
+text-align: left;
+font-weight: 700;
+font-size: 0.95rem;
+}
+.accounts-table td {
+padding: 20px 30px;
+border-bottom: 1px solid #e2e8f0;
+font-size: 0.95rem;
+color: #4a5568;
+}
+.accounts-table tr:hover {
+background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+}
+.accounts-table tr:first-child {
+background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%);
+}
+.account-status {
+display: inline-flex;
+align-items: center;
+gap: 6px;
+padding: 6px 12px;
+border-radius: 8px;
+font-size: 0.85rem;
+font-weight: 600;
+}
+.account-status.active {
+background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
+color: #22543d;
+}
+.account-status.inactive {
+background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+color: #742a2a;
+}
+.account-email {
+color: #667eea;
+font-weight: 600;
+}
+.account-id {
+color: #667eea;
+text-decoration: none;
+font-weight: 500;
+transition: all 0.2s;
+}
+.account-id:hover {
+color: #764ba2;
+text-decoration: underline;
+}
+.actions {
+display: flex;
+gap: 10px;
+}
+.action-btn {
+background: none;
+border: none;
+font-size: 1.2rem;
+cursor: pointer;
+padding: 8px;
+border-radius: 8px;
+transition: all 0.2s;
+color: #718096;
+}
+.action-btn:hover {
+background: #edf2f7;
+transform: scale(1.1);
+}
+.context-menu {
+display: none;
+position: fixed;
+background: white;
+border-radius: 12px;
+box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+padding: 8px;
+z-index: 1000;
+min-width: 180px;
+}
+.context-menu.show {
+display: block;
+}
+.context-menu-item {
+padding: 12px 16px;
+cursor: pointer;
+border-radius: 8px;
+transition: all 0.2s;
+color: #4a5568;
+font-size: 0.95rem;
+font-weight: 500;
+}
+.context-menu-item:hover {
+background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+}
+.context-menu-item.disabled {
+color: #a0aec0;
+cursor: not-allowed;
+}
+.context-menu-item.disabled:hover {
+background: none;
+}
+.modal {
+display: none;
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.5);
+backdrop-filter: blur(4px);
+z-index: 2000;
+justify-content: center;
+align-items: center;
+}
+.modal.show {
+display: flex;
+}
+.modal-content {
+background: white;
+padding: 35px;
+border-radius: 20px;
+max-width: 500px;
+width: 90%;
+box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+.modal-header {
+font-size: 1.5rem;
+font-weight: 700;
+margin-bottom: 25px;
+color: #2d3748;
+}
+.form-group {
+margin-bottom: 20px;
+}
+.form-group label {
+display: block;
+margin-bottom: 8px;
+font-weight: 600;
+color: #4a5568;
+font-size: 0.95rem;
+}
+.form-group input {
+width: 100%;
+padding: 12px 16px;
+border: 2px solid #e2e8f0;
+border-radius: 10px;
+font-size: 0.95rem;
+transition: all 0.2s;
+}
+.form-group input:focus {
+outline: none;
+border-color: #667eea;
+box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+.modal-actions {
+display: flex;
+gap: 12px;
+justify-content: flex-end;
+margin-top: 25px;
+}
+.btn {
+padding: 12px 24px;
+border: none;
+border-radius: 10px;
+font-size: 0.95rem;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s;
+}
+.btn-primary {
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+color: white;
+box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+.btn-primary:hover {
+transform: translateY(-2px);
+box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+.btn-secondary {
+background: #edf2f7;
+color: #4a5568;
+}
+.btn-secondary:hover {
+background: #e2e8f0;
+}
+.groups-modal {
+display: none;
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.5);
+backdrop-filter: blur(4px);
+z-index: 2000;
+justify-content: center;
+align-items: center;
+}
+.groups-modal.show {
+display: flex;
+}
+.groups-modal-content {
+background: rgba(255, 255, 255, 0.95);
+backdrop-filter: blur(10px);
+border-radius: 20px;
+overflow: hidden;
+box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+width: 90%;
+max-width: 900px;
+max-height: 80vh;
+display: flex;
+flex-direction: column;
+}
+.groups-modal-header {
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+padding: 25px 30px;
+color: white;
+font-size: 1.5rem;
+font-weight: 700;
+}
+.groups-modal-body {
+padding: 25px 30px;
+overflow-y: auto;
+flex: 1;
+}
+.groups-controls {
+display: flex;
+justify-content: flex-end;
+margin-bottom: 20px;
+}
+.groups-search {
+padding: 10px 16px;
+border: 2px solid #e2e8f0;
+border-radius: 10px;
+font-size: 0.9rem;
+width: 250px;
+transition: all 0.2s;
+}
+.groups-search:focus {
+outline: none;
+border-color: #667eea;
+box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+.groups-table {
+width: 100%;
+border-collapse: collapse;
+}
+.groups-table th {
+background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+color: #2d3748;
+padding: 18px 30px;
+text-align: left;
+font-weight: 700;
+font-size: 0.95rem;
+}
+.groups-table td {
+padding: 20px 30px;
+border-bottom: 1px solid #e2e8f0;
+font-size: 0.95rem;
+color: #4a5568;
+}
+.groups-table tr:hover {
+background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+}
+.status-container {
+display: inline-flex;
+align-items: center;
+gap: 6px;
+}
+.groups-pagination {
+display: flex;
+justify-content: flex-end;
+align-items: center;
+gap: 8px;
+padding: 20px 30px;
+border-top: 1px solid #e2e8f0;
+}
+.page-btn {
+padding: 8px 14px;
+border: 2px solid #e2e8f0;
+background: white;
+border-radius: 8px;
+cursor: pointer;
+font-weight: 600;
+color: #4a5568;
+transition: all 0.2s;
+font-size: 0.9rem;
+}
+.page-btn:hover {
+background: #f7fafc;
+border-color: #667eea;
+}
+.page-btn.active {
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+color: white;
+border-color: #667eea;
+}
+.page-info {
+font-size: 0.85rem;
+color: #718096;
+margin: 0 10px;
+}
+.groups-modal-footer {
+padding: 20px 30px;
+border-top: 2px solid #e2e8f0;
+display: flex;
+justify-content: flex-end;
+}
+.close-groups-btn {
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+color: white;
+border: none;
+padding: 12px 32px;
+border-radius: 10px;
+font-size: 0.95rem;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s;
+box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+.close-groups-btn:hover {
+transform: translateY(-2px);
+box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+.bind-modal {
+display: none;
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.5);
+backdrop-filter: blur(4px);
+z-index: 2000;
+justify-content: center;
+align-items: center;
+}
+.bind-modal.show {
+display: flex;
+}
+.bind-modal-content {
+background: white;
+padding: 35px;
+border-radius: 20px;
+max-width: 500px;
+width: 90%;
+box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+.account-group-modal {
+display: none;
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.5);
+backdrop-filter: blur(4px);
+z-index: 2000;
+justify-content: center;
+align-items: center;
+}
+.account-group-modal.show {
+display: flex;
+}
+.account-group-modal-content {
+background: rgba(255, 255, 255, 0.95);
+backdrop-filter: blur(10px);
+border-radius: 20px;
+overflow: hidden;
+box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+width: 90%;
+max-width: 900px;
+max-height: 80vh;
+display: flex;
+flex-direction: column;
+}
+.account-group-modal-header {
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+padding: 25px 30px;
+color: white;
+font-size: 1.5rem;
+font-weight: 700;
+}
+.account-group-modal-body {
+padding: 25px 30px;
+overflow-y: auto;
+flex: 1;
+}
+.account-group-controls {
+display: flex;
+justify-content: space-between;
+margin-bottom: 20px;
+}
+.account-group-search {
+padding: 10px 16px;
+border: 2px solid #e2e8f0;
+border-radius: 10px;
+font-size: 0.9rem;
+width: 250px;
+transition: all 0.2s;
+}
+.account-group-search:focus {
+outline: none;
+border-color: #667eea;
+box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+.account-group-name {
+padding: 10px 16px;
+border: 2px solid #e2e8f0;
+border-radius: 10px;
+font-size: 0.9rem;
+width: 250px;
+transition: all 0.2s;
+}
+.account-group-name:focus {
+outline: none;
+border-color: #667eea;
+box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+.account-group-table {
+width: 100%;
+border-collapse: collapse;
+}
+.account-group-table th {
+background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+color: #2d3748;
+padding: 18px 30px;
+text-align: left;
+font-weight: 700;
+font-size: 0.95rem;
+}
+.account-group-table td {
+padding: 20px 30px;
+border-bottom: 1px solid #e2e8f0;
+font-size: 0.95rem;
+color: #4a5568;
+}
+.account-group-table tr:hover {
+background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+}
+.account-group-modal-footer {
+padding: 20px 30px;
+border-top: 2px solid #e2e8f0;
+display: flex;
+justify-content: flex-end;
+gap: 12px;
+}
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(20px); }
+to { opacity: 1; transform: translateY(0); }
+}
+.accounts-table-container {
+animation: fadeIn 0.6s ease-out;
+}
+.tab-buttons {
+display: flex;
+gap: 10px;
+margin-bottom: 20px;
+}
+.tab-btn {
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+color: white;
+border: none;
+padding: 12px 24px;
+border-radius: 10px;
+font-size: 1rem;
+font-weight: 600;
+cursor: pointer;
+box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+transition: all 0.3s;
+}
+.tab-btn.active {
+background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+}
+.tab-btn:hover {
+transform: translateY(-2px);
+}
+.hidden {
+display: none;
+}
+.accounts-controls {
+display: flex;
+justify-content: flex-end;
+margin-bottom: 20px;
+}
+.accounts-search {
+padding: 10px 16px;
+border: 2px solid #e2e8f0;
+border-radius: 10px;
+font-size: 0.9rem;
+width: 250px;
+transition: all 0.2s;
+}
+.accounts-search:focus {
+outline: none;
+border-color: #667eea;
+box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+</style>
+</head>
+<body>
+<div class="sidebar">
+<div class="logo">🏆 蓋好賣</div>
+<ul>
+<li onclick="window.location.href='index.html'">📊 首頁</li>
+<li class="active" onclick="window.location.href='account.html'">👤 帳號管理</li>
+<li onclick="window.location.href='schedule.html'">📝 排程管理</li>
+<li onclick="window.location.href='normalPost.html'">💬 一般社團發文</li>
+<li onclick="window.location.href='marketPlace.html'">🛒 拍賣+社團發文</li>
+<li onclick="window.location.href='addClub.html'">➕ 自動加入社團</li>
+<li onclick="window.location.href='cultivateAccount.html'">🤖 自動養號</li>
+<li onclick="window.location.href='SentMs.html'">📩 自動私訊</li>
+<li class="" onclick="window.location.href='PostAct.html'">👍 指定貼文按讚留言</li>
+<li class="" onclick="window.location.href='scrape.html'">🕷️ 社團關鍵字爬蟲</li>
+<li onclick="window.location.href='sequentialSchedule.html'">🔄 連貫排程</li>
+</ul>
+</div>
+<div class="content">
+<div class="header">
+<h1>帳號管理</h1>
+<p>管理您的 Facebook 帳號與狀態監控</p>
+</div>
+<div class="status-info">
+<h3>帳號狀態說明（初次使用請先掃描profile）</h3>
+<div class="status-list">
+<div class="status-item success">
+<span class="status-icon">✅</span>
+<span class="status-text">偵測到的profile</span>
+</div>
+<div class="status-item error">
+<span class="status-icon">❌</span>
+<span class="status-text">帳號被鎖/數量權限不足/未設置好 請聯繫客服 </span>
+</div>
+</div>
+</div>
+<button class="add-account-btn" onclick="">掃描profile
+</button>
+<button class="add-account-btn" onclick="openAccountGroupModal('create')" style="margin-left: 20px;">創建帳號組合</button>
+<div class="tab-buttons">
+<button class="tab-btn active" onclick="switchTab('accounts')">帳號列表</button>
+<button class="tab-btn" onclick="switchTab('groups')">帳號組合列表</button>
+</div>
+<div id="accounts-container" class="accounts-table-container">
+<div class="table-header">
+<h2>帳號列表</h2>
+</div>
+<div class="accounts-controls">
+<input type="text" class="accounts-search" placeholder="搜尋帳號..." id="accountSearch" oninput="loadAccounts()">
+</div>
+<table class="accounts-table">
+<thead>
+<tr>
+<th>#</th>
+<th>帳號ID</th>
+<th>帳號名稱</th>
+<th>備註</th>
+<th>操作</th>
+</tr>
+</thead>
+<tbody id="accountsTableBody">
+<!-- 動態填充數據 -->
+</tbody>
+</table>
+</div>
+<div id="account-groups-container" class="accounts-table-container hidden">
+<div class="table-header">
+<h2>帳號組合列表</h2>
+</div>
+<table class="accounts-table">
+<thead>
+<tr>
+<th>#</th>
+<th>組合名稱</th>
+<th>帳號數量</th>
+<th>操作</th>
+</tr>
+</thead>
+<tbody id="accountGroupsTableBody">
+</tbody>
+</table>
+</div>
+</div>
+<!-- Context Menu -->
+<div id="contextMenu" class="context-menu">
+<div class="context-menu-item" onclick="editAccount()">修改</div>
+<div class="context-menu-item" onclick="reImportAccount()">綁定帳號</div>
+<div class="context-menu-item" onclick="openAccount()">開啟帳號</div>
+<div class="context-menu-item" id="deleteMenuItem" onclick="deleteAccount()" style="color: #f56565;">刪除</div>
+</div>
+<!-- Add/Edit Account Modal -->
+<div id="accountModal" class="modal">
+<div class="modal-content">
+<div class="modal-header" id="modalTitle">新增帳號</div>
+<div class="form-group">
+<label for="accountEmail">帳號 Email/電話</label>
+<input type="text" id="accountEmail" placeholder="輸入 Facebook 帳號">
+</div>
+<div class="form-group">
+<label for="accountPassword">密碼</label>
+<input type="password" id="accountPassword" placeholder="輸入密碼">
+</div>
+<div class="form-group">
+<label for="accountName">帳號名稱</label>
+<input type="text" id="accountName" placeholder="輸入帳號名稱">
+</div>
+<div class="form-group">
+<label for="accountNote">備註</label>
+<input type="text" id="accountNote" placeholder="輸入備註（可選）">
+</div>
+<div class="modal-actions">
+<button class="btn btn-secondary" onclick="closeModal()">取消</button>
+<button class="btn btn-primary" onclick="saveAccount()">儲存</button>
+</div>
+</div>
+</div>
+<!-- Bind Confirmation Modal -->
+<div id="bindModal" class="bind-modal">
+<div class="bind-modal-content">
+<div class="modal-header">確認綁定帳號</div>
+<p style="margin-bottom: 20px; color: #4a5568;">確定綁定此帳號嗎？綁定後本帳號將不得再更改，如有其他需求需聯繫客服人員。</p>
+<p style="margin-bottom: 20px; color: #4a5568;">本帳號數量限制：10個社團</p>
+<div class="modal-actions">
+<button class="btn btn-secondary" onclick="closeBindModal()">取消</button>
+<button class="btn btn-primary" onclick="confirmBind()">確認綁定</button>
+</div>
+</div>
+</div>
+<!-- Groups Modal -->
+<div id="groupsModal" class="groups-modal">
+<div class="groups-modal-content">
+<div class="groups-modal-header">社團列表</div>
+<div class="groups-modal-body">
+<div class="groups-controls">
+<input type="text" class="groups-search" placeholder="搜尋社團..." id="groupSearch" oninput="loadGroups()">
+</div>
+<table class="groups-table">
+<thead>
+<tr>
+<th>#</th>
+<th>社團名稱</th>
+<th>狀態</th>
+</tr>
+</thead>
+<tbody id="groupsTableBody">
+<!-- 動態填充數據 -->
+</tbody>
+</table>
+<div class="groups-pagination">
+<button class="page-btn" onclick="changePage(-1)">上一頁</button>
+<span class="page-info" id="pageInfo">第 1 頁 / 共 1 頁</span>
+<button class="page-btn" onclick="changePage(1)">下一頁</button>
+</div>
+</div>
+<div class="groups-modal-footer">
+<button class="close-groups-btn" onclick="closeGroupsModal()">關閉</button>
+</div>
+</div>
+</div>
+<!-- Account Group Modal -->
+<div id="accountGroupModal" class="account-group-modal">
+<div class="account-group-modal-content">
+<div class="account-group-modal-header">創建帳號組合</div>
+<div class="account-group-modal-body">
+<div class="account-group-controls">
+<input type="text" class="account-group-search" placeholder="搜尋帳號..." id="accountGroupSearch" oninput="loadAccountGroups()">
+<input type="text" class="account-group-name" placeholder="輸入組合名稱" id="accountGroupName">
+</div>
+<table class="account-group-table">
+<thead>
+<tr>
+<th>選擇</th>
+<th>帳號名稱</th>
+</tr>
+</thead>
+<tbody id="accountGroupTableBody">
+<!-- 動態填充數據 -->
+</tbody>
+</table>
+</div>
+<div class="account-group-modal-footer">
+<button class="btn btn-secondary" onclick="closeAccountGroupModal()">取消</button>
+<button class="btn btn-primary" id="saveGroupBtn" onclick="saveAccountGroup()">創建組合</button>
+</div>
+</div>
+</div>
+<script>
+let currentAccountId = null;
+let currentGroupAccountId = null;
+let currentPage = 1;
+let groupsPerPage = 10;
+let currentMode = 'create';
+let currentGroupIndex = null;
+const groupsData = [
+    { id: 1, name: "社團 A" },
+    { id: 2, name: "社團 B" },
+    { id: 3, name: "社團 C" },
+    { id: 4, name: "社團 D" },
+    { id: 5, name: "社團 E" },
+    { id: 6, name: "社團 F" },
+    { id: 7, name: "社團 G" },
+    { id: 8, name: "社團 H" },
+    { id: 9, name: "社團 I" },
+    { id: 10, name: "社團 J" },
+    { id: 11, name: "社團 K" },
+    { id: 12, name: "社團 L" },
+];
+const accountsData = [
+    { id: 1, email: "<Xieqiaoli44@gmail.com>", name: "謝巧莉", note: "主要帳號", status: "active", groups: 182 },
+    { id: 2, email: "<Chenming88@gmail.com>", name: "陳明", note: "備用帳號", status: "inactive", groups: null },
+    { id: 3, email: "<Liwen33@gmail.com>", name: "李文", note: "-", status: "inactive", groups: null },
+    { id: 4, email: "<Wangyuting22@gmail.com>", name: "王玉婷", note: "行銷用", status: "active", groups: 95 },
+];
+// 加載儲存的帳號組合（從localStorage）
+let accountGroups = JSON.parse(localStorage.getItem('accountGroups')) || [];
+function switchTab(tab) {
+const accountsContainer = document.getElementById('accounts-container');
+const groupsContainer = document.getElementById('account-groups-container');
+const buttons = document.querySelectorAll('.tab-btn');
+buttons.forEach(btn => btn.classList.remove('active'));
+if (tab === 'accounts') {
+accountsContainer.classList.remove('hidden');
+groupsContainer.classList.add('hidden');
+document.querySelector(`.tab-btn[onclick="switchTab('accounts')"]`).classList.add('active');
+    } else {
+accountsContainer.classList.add('hidden');
+groupsContainer.classList.remove('hidden');
+document.querySelector(`.tab-btn[onclick="switchTab('groups')"]`).classList.add('active');
+    }
+}
+function openAddModal() {
+document.getElementById('modalTitle').textContent = '新增帳號';
+document.getElementById('accountEmail').value = '';
+document.getElementById('accountPassword').value = '';
+document.getElementById('accountName').value = '';
+document.getElementById('accountNote').value = '';
+document.getElementById('accountModal').classList.add('show');
+currentAccountId = null;
+}
+function editAccount(id) {
+const account = accountsData.find(acc => acc.id === id);
+document.getElementById('modalTitle').textContent = '修改帳號';
+document.getElementById('accountEmail').value = account.email;
+document.getElementById('accountPassword').value = '••••••••';
+document.getElementById('accountName').value = account.name;
+document.getElementById('accountNote').value = account.note;
+document.getElementById('accountModal').classList.add('show');
+currentAccountId = id;
+closeContextMenu();
+}
+function closeModal() {
+document.getElementById('accountModal').classList.remove('show');
+}
+function saveAccount() {
+alert('帳號已儲存！');
+closeModal();
+loadAccounts();
+}
+function showContextMenu(event, id) {
+event.preventDefault();
+const menu = document.getElementById('contextMenu');
+const deleteItem = document.getElementById('deleteMenuItem');
+currentAccountId = id;
+const account = accountsData.find(acc => acc.id === id);
+const isBound = account.status === 'active';
+deleteItem.classList.toggle('disabled', isBound);
+menu.classList.add('show');
+menu.style.left = event.clientX + 'px';
+menu.style.top = event.clientY + 'px';
+}
+function closeContextMenu() {
+document.getElementById('contextMenu').classList.remove('show');
+}
+function reImportAccount() {
+openBindModal(currentAccountId);
+closeContextMenu();
+}
+function openAccount() {
+window.open('https://www.facebook.com/profile_status/?referrer=profile_settings', '_blank');
+closeContextMenu();
+}
+function deleteAccount() {
+const account = accountsData.find(acc => acc.id === currentAccountId);
+if (account.status === 'active') {
+alert('已綁定的帳號無法刪除，請聯繫客服！');
+closeContextMenu();
+return;
+    }
+if (confirm('確定要刪除此帳號嗎？')) {
+const index = accountsData.findIndex(acc => acc.id === currentAccountId);
+accountsData.splice(index, 1);
+alert('帳號已刪除！');
+closeContextMenu();
+loadAccounts();
+    }
+}
+function openBindModal(id) {
+currentAccountId = id;
+document.getElementById('bindModal').classList.add('show');
+}
+function closeBindModal() {
+document.getElementById('bindModal').classList.remove('show');
+}
+function confirmBind() {
+alert('帳號已綁定！');
+closeBindModal();
+const account = accountsData.find(acc => acc.id === currentAccountId);
+account.status = 'active';
+account.groups = 10; // 示例
+loadAccounts();
+}
+document.addEventListener('click', function(event) {
+if (!event.target.closest('#contextMenu') && !event.target.closest('.action-btn')) {
+closeContextMenu();
+    }
+});
+document.getElementById('accountModal').addEventListener('click', function(event) {
+if (event.target === this) {
+closeModal();
+    }
+});
+document.getElementById('bindModal').addEventListener('click', function(event) {
+if (event.target === this) {
+closeBindModal();
+    }
+});
+function openGroupsModal(id) {
+currentGroupAccountId = id;
+document.getElementById('groupsModal').classList.add('show');
+loadGroups();
+}
+function closeGroupsModal() {
+document.getElementById('groupsModal').classList.remove('show');
+}
+function loadGroups() {
+const tbody = document.getElementById('groupsTableBody');
+tbody.innerHTML = '';
+const searchTerm = document.getElementById('groupSearch').value.toLowerCase();
+const start = (currentPage - 1) * groupsPerPage;
+const end = start + groupsPerPage;
+const filteredGroups = groupsData.filter(group =>
+group.name.toLowerCase().includes(searchTerm)
+    ).slice(start, end);
+filteredGroups.forEach(group => {
+const row = document.createElement('tr');
+row.innerHTML = `
+            <td>${group.id}</td>
+            <td>${group.name}</td>
+            <td class="status-container">✅3 ❌5</td>
+        `;
+tbody.appendChild(row);
+    });
+updatePagination(filteredGroups.length);
+}
+function updatePagination(totalFiltered) {
+const totalPages = Math.ceil(groupsData.length / groupsPerPage);
+document.getElementById('pageInfo').textContent = `第 ${currentPage} 頁 / 共 ${totalPages} 頁`;
+document.querySelectorAll('.page-btn').forEach(btn => {
+btn.disabled = totalPages <= 1;
+    });
+}
+function changePage(direction) {
+const totalPages = Math.ceil(groupsData.length / groupsPerPage);
+currentPage += direction;
+if (currentPage < 1) currentPage = 1;
+if (currentPage > totalPages) currentPage = totalPages;
+loadGroups();
+}
+function scanGroups(id) {
+alert('請勿關閉電腦直到社團掃描結束');
+// 在這裡添加實際的掃描邏輯，例如調用 API 或更新社團數據
+}
+function loadAccountGroupsList() {
+const tbody = document.getElementById('accountGroupsTableBody');
+tbody.innerHTML = '';
+accountGroups.forEach((group, index) => {
+const row = document.createElement('tr');
+row.innerHTML = `
+<td>${index + 1}</td>
+<td>${group.name}</td>
+<td>${group.accounts.length}</td>
+<td>
+<div class="actions">
+<button class="action-btn" title="查看" onclick="viewAccountGroup(${index})">👁️</button>
+<button class="action-btn" title="編輯" onclick="editAccountGroup(${index})">✏️</button>
+<button class="action-btn" title="刪除" onclick="deleteAccountGroup(${index})">🗑️</button>
+</div>
+</td>
+`;
+tbody.appendChild(row);
+});
+}
+// 新增帳號組合功能
+function openAccountGroupModal(mode = 'create', index = null) {
+currentMode = mode;
+currentGroupIndex = index;
+const header = document.querySelector('.account-group-modal-header');
+const nameInput = document.getElementById('accountGroupName');
+const searchInput = document.getElementById('accountGroupSearch');
+const saveBtn = document.getElementById('saveGroupBtn');
+const secondaryBtn = document.querySelector('.account-group-modal-footer .btn-secondary');
+if (mode === 'create') {
+header.textContent = '創建帳號組合';
+nameInput.value = '';
+nameInput.disabled = false;
+searchInput.disabled = false;
+saveBtn.textContent = '創建組合';
+saveBtn.onclick = saveAccountGroup;
+saveBtn.style.display = '';
+secondaryBtn.textContent = '取消';
+document.querySelectorAll('.account-checkbox').forEach(cb => {
+cb.checked = false;
+cb.disabled = false;
+});
+} else if (mode === 'edit') {
+const group = accountGroups[index];
+header.textContent = '編輯帳號組合';
+nameInput.value = group.name;
+nameInput.disabled = false;
+searchInput.disabled = false;
+saveBtn.textContent = '儲存變更';
+saveBtn.onclick = updateAccountGroup;
+saveBtn.style.display = '';
+secondaryBtn.textContent = '取消';
+document.querySelectorAll('.account-checkbox').forEach(cb => {
+cb.checked = group.accounts.includes(parseInt(cb.dataset.id));
+cb.disabled = false;
+});
+} else if (mode === 'view') {
+const group = accountGroups[index];
+header.textContent = '查看帳號組合';
+nameInput.value = group.name;
+nameInput.disabled = true;
+searchInput.disabled = true;
+saveBtn.style.display = 'none';
+secondaryBtn.textContent = '關閉';
+document.querySelectorAll('.account-checkbox').forEach(cb => {
+cb.checked = group.accounts.includes(parseInt(cb.dataset.id));
+cb.disabled = true;
+});
+}
+document.getElementById('accountGroupModal').classList.add('show');
+loadAccountGroups();
+}
+function closeAccountGroupModal() {
+document.getElementById('accountGroupModal').classList.remove('show');
+document.getElementById('accountGroupName').value = '';
+document.getElementById('accountGroupSearch').value = '';
+}
+function loadAccountGroups() {
+const tbody = document.getElementById('accountGroupTableBody');
+tbody.innerHTML = '';
+const searchTerm = document.getElementById('accountGroupSearch').value.toLowerCase();
+const filteredAccounts = accountsData.filter(account =>
+account.name.toLowerCase().includes(searchTerm) || account.email.toLowerCase().includes(searchTerm)
+);
+filteredAccounts.forEach(account => {
+const row = document.createElement('tr');
+row.innerHTML = `
+            <td><input type="checkbox" class="account-checkbox" data-id="${account.id}" ${currentMode === 'view' ? 'disabled' : ''}></td>
+            <td>${account.name}</td>
+        `;
+tbody.appendChild(row);
+});
+if (currentMode === 'edit' || currentMode === 'view') {
+const group = accountGroups[currentGroupIndex];
+document.querySelectorAll('.account-checkbox').forEach(cb => {
+cb.checked = group.accounts.includes(parseInt(cb.dataset.id));
+});
+}
+}
+function saveAccountGroup() {
+const groupName = document.getElementById('accountGroupName').value.trim();
+if (!groupName) {
+alert('請輸入組合名稱！');
+return;
+}
+const selectedIds = [];
+document.querySelectorAll('.account-checkbox:checked').forEach(checkbox => {
+selectedIds.push(parseInt(checkbox.dataset.id));
+});
+if (selectedIds.length === 0) {
+alert('請至少選擇一個帳號！');
+return;
+}
+accountGroups.push({ name: groupName, accounts: selectedIds });
+localStorage.setItem('accountGroups', JSON.stringify(accountGroups)); // 儲存到localStorage
+alert(`帳號組合 "${groupName}" 已創建！可在其他功能中導入使用。`);
+// 清空選擇和名稱
+document.querySelectorAll('.account-checkbox').forEach(checkbox => checkbox.checked = false);
+document.getElementById('accountGroupName').value = '';
+closeAccountGroupModal();
+loadAccountGroupsList();
+// 在其他功能中使用時，可以透過 localStorage.getItem('accountGroups') 導入
+console.log('所有帳號組合:', accountGroups); // 模擬輸出，可用於其他功能
+}
+function updateAccountGroup() {
+const groupName = document.getElementById('accountGroupName').value.trim();
+if (!groupName) {
+alert('請輸入組合名稱！');
+return;
+}
+const selectedIds = [];
+document.querySelectorAll('.account-checkbox:checked').forEach(checkbox => {
+selectedIds.push(parseInt(checkbox.dataset.id));
+});
+if (selectedIds.length === 0) {
+alert('請至少選擇一個帳號！');
+return;
+}
+accountGroups[currentGroupIndex] = { name: groupName, accounts: selectedIds };
+localStorage.setItem('accountGroups', JSON.stringify(accountGroups));
+alert(`帳號組合 "${groupName}" 已更新！`);
+closeAccountGroupModal();
+loadAccountGroupsList();
+}
+function viewAccountGroup(index) {
+openAccountGroupModal('view', index);
+}
+function editAccountGroup(index) {
+openAccountGroupModal('edit', index);
+}
+function deleteAccountGroup(index) {
+if (confirm(`確定要刪除組合 "${accountGroups[index].name}" 嗎？`)) {
+accountGroups.splice(index, 1);
+localStorage.setItem('accountGroups', JSON.stringify(accountGroups));
+alert('組合已刪除！');
+loadAccountGroupsList();
+}
+}
+document.getElementById('accountGroupModal').addEventListener('click', function(event) {
+if (event.target === this) {
+closeAccountGroupModal();
+    }
+});
+function loadAccounts() {
+const tbody = document.getElementById('accountsTableBody');
+tbody.innerHTML = '';
+const searchTerm = document.getElementById('accountSearch').value.toLowerCase();
+const filteredAccounts = accountsData.filter(account =>
+account.name.toLowerCase().includes(searchTerm) ||
+account.email.toLowerCase().includes(searchTerm) ||
+account.note.toLowerCase().includes(searchTerm)
+    );
+filteredAccounts.forEach(account => {
+const row = document.createElement('tr');
+const statusSpan = account.status === 'active' ?
+`<span class="account-status active">✅</span>` :
+`<span class="account-status inactive">❌</span>`;
+const groupsLink = account.groups !== null ?
+`<a href="#" class="account-id" onclick="openGroupsModal(${account.id}); return false;">${account.groups}個社團</a>` :
+`<span class="account-id" onclick="openBindModal(${account.id})">綁定帳號後查看社團</span>`;
+row.innerHTML = `
+            <td>${account.id}</td>
+            <td>${statusSpan} <span class="account-email">${account.email}</span><br>${groupsLink}</td>
+            <td>${account.name}</td>
+            <td>${account.note}</td>
+            <td>
+                <div class="actions">
+                    <button class="action-btn" title="編輯" onclick="editAccount(${account.id})">✏️</button>
+                    <button class="action-btn" title="更多" onclick="showContextMenu(event, ${account.id})">⋯</button>
+                    <button class="action-btn" title="更新掃描社團" onclick="scanGroups(${account.id})">🔄</button>
+                </div>
+            </td>
+        `;
+tbody.appendChild(row);
+    });
+}
+document.addEventListener('DOMContentLoaded', () => {
+loadGroups();
+loadAccountGroupsList();
+loadAccounts();
+});
+</script>
+</body>
+</html>
