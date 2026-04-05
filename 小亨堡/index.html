@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>媽媽行程規劃神器 | MomTrip</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --mint: #5BBFAD; --mint-dark: #3EA898; --mint-light: #A8E6CF; --mint-soft: #E8F8F5;
+            --blue: #6BAFCF; --blue-light: #B0D9ED; --blue-soft: #EBF5FB;
+            --blush: #F4A9A8; --blush-light: #FCDADA; --blush-soft: #FFF5F5;
+            --cream: #FAF8F5; --cream-dark: #F2EDE7;
+            --white: #FFFFFF; --text: #2D3E50; --text-light: #6B8299; --text-muted: #9DB2C4;
+            --border: #E4EDF2; --border-light: #F0F5F8;
+            --shadow-sm: 0 2px 8px rgba(91,191,173,0.08);
+            --shadow-md: 0 4px 16px rgba(91,191,173,0.1);
+            --shadow-lg: 0 8px 30px rgba(91,191,173,0.12);
+            --green: #5BBFAD; --red: #E57373; --yellow: #FFD54F; --orange: #FFAB76;
+            --r-sm: 12px; --r-md: 18px; --r-lg: 24px; --r-full: 50px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans TC', -apple-system, sans-serif; background: var(--cream); color: var(--text); height: 100vh; overflow: hidden; }
+
+        .screen { display: none; height: 100vh; flex-direction: column; }
+        .screen.active { display: flex; }
+
+        /* ═══ DASHBOARD ═══ */
+        .dash-header { background: var(--white); padding: 14px 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1.5px solid var(--border); box-shadow: var(--shadow-sm); }
+        .logo { width: 46px; height: 46px; background: linear-gradient(135deg, var(--mint), var(--blue)); border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; font-size: 22px; color: white; box-shadow: 0 4px 14px rgba(91,191,173,0.25); flex-shrink: 0; }
+        .dash-header h1 { font-size: 1.15rem; font-weight: 900; color: var(--text); }
+        .dash-header p { font-size: 0.7rem; color: var(--text-muted); margin-top: 1px; }
+
+        .dash-body { flex: 1; overflow-y: auto; padding: 24px 18px; }
+        .dash-body::-webkit-scrollbar { width: 5px; }
+        .dash-body::-webkit-scrollbar-thumb { background: var(--mint-light); border-radius: 3px; }
+
+        .welcome-card { background: linear-gradient(135deg, var(--mint), var(--blue)); border-radius: var(--r-lg); padding: 32px 24px; color: white; text-align: center; position: relative; overflow: hidden; margin-bottom: 28px; box-shadow: var(--shadow-lg); }
+        .welcome-card::before { content:''; position:absolute; inset:0; background: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.12) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.08) 0%, transparent 50%); }
+        .welcome-card * { position: relative; }
+        .welcome-card .g-emoji { font-size: 3rem; margin-bottom: 10px; }
+        .welcome-card h2 { font-size: 1.4rem; font-weight: 900; margin-bottom: 6px; }
+        .welcome-card p { font-size: 0.88rem; opacity: 0.92; margin-bottom: 22px; line-height: 1.7; }
+        .start-btn { background: white; color: var(--mint-dark); border: none; padding: 14px 36px; border-radius: var(--r-full); font-size: 1rem; font-weight: 800; cursor: pointer; font-family: inherit; transition: all 0.3s; box-shadow: 0 4px 14px rgba(0,0,0,0.08); display: inline-flex; align-items: center; gap: 8px; }
+        .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
+
+        .section-title { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+        .section-title h3 { font-size: 1rem; font-weight: 800; }
+        .badge { background: var(--mint-soft); color: var(--mint-dark); font-size: 0.68rem; padding: 3px 10px; border-radius: var(--r-full); font-weight: 700; }
+
+        /* ── Past Trips ── */
+        .past-trips-grid { display: flex; flex-direction: column; gap: 14px; }
+        .ptc { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-sm); transition: all 0.3s; }
+        .ptc:hover { box-shadow: var(--shadow-md); }
+        .ptc-main { padding: 18px; }
+        .ptc-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .ptc-location { font-size: 1.05rem; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+        .ptc-date { font-size: 0.72rem; color: var(--text-muted); background: var(--cream); padding: 4px 10px; border-radius: var(--r-full); }
+        .ptc-info { display: flex; gap: 14px; margin-bottom: 12px; flex-wrap: wrap; }
+        .ptc-info-item { font-size: 0.76rem; color: var(--text-light); display: flex; align-items: center; gap: 4px; }
+        .ptc-cost { font-size: 1rem; font-weight: 800; color: var(--mint-dark); }
+        .ptc-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px; }
+        .ptc-tag { font-size: 0.7rem; background: var(--blue-soft); color: var(--blue); padding: 3px 10px; border-radius: var(--r-full); font-weight: 600; }
+        .ptc-actions { display: flex; gap: 8px; }
+        .ptc-btn { flex: 1; padding: 10px; border-radius: var(--r-sm); font-size: 0.8rem; font-weight: 700; font-family: inherit; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 5px; border: none; }
+        .ptc-btn.view { background: var(--mint-soft); color: var(--mint-dark); border: 1.5px solid var(--mint-light); }
+        .ptc-btn.view:hover { background: var(--mint); color: white; }
+        .ptc-btn.edit { background: linear-gradient(135deg, var(--mint), var(--blue)); color: white; }
+        .ptc-btn.edit:hover { transform: translateY(-1px); }
+        .ptc-btn.del { background: var(--cream); color: var(--text-muted); border: 1.5px solid var(--border); }
+        .ptc-btn.del:hover { background: var(--blush-soft); color: var(--red); border-color: var(--blush-light); }
+
+        /* ── Expanded Trip View ── */
+        .ptc-expanded { display: none; border-top: 1.5px solid var(--border); padding: 20px; background: var(--cream); }
+        .ptc-expanded.open { display: block; animation: fadeSlide 0.3s ease-out; }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .exp-day { margin-bottom: 18px; }
+        .exp-day-header { font-size: 0.88rem; font-weight: 800; color: var(--mint-dark); margin-bottom: 10px; padding: 8px 14px; background: var(--mint-soft); border-radius: var(--r-sm); display: flex; align-items: center; gap: 6px; }
+        .exp-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px dashed var(--border); }
+        .exp-item:last-child { border-bottom: none; }
+        .exp-time { min-width: 50px; font-size: 0.8rem; font-weight: 700; color: var(--blue); }
+        .exp-dot { width: 12px; height: 12px; background: linear-gradient(135deg, var(--mint), var(--blue)); border-radius: 50%; margin-top: 3px; flex-shrink: 0; }
+        .exp-info { flex: 1; }
+        .exp-info h5 { font-size: 0.85rem; font-weight: 700; color: var(--text); }
+        .exp-info p { font-size: 0.72rem; color: var(--text-light); }
+        .exp-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 14px; border-top: 1.5px solid var(--border); }
+        .exp-total { font-size: 1.1rem; font-weight: 900; color: var(--mint-dark); }
+        .save-img-btn { background: linear-gradient(135deg, var(--mint), var(--blue)); color: white; border: none; padding: 9px 18px; border-radius: var(--r-full); font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: inherit; display: flex; align-items: center; gap: 5px; transition: all 0.3s; }
+        .save-img-btn:hover { transform: translateY(-1px); }
+
+        .empty-state { text-align: center; padding: 44px 20px; color: var(--text-muted); }
+        .empty-state i { font-size: 3rem; color: var(--mint-light); margin-bottom: 14px; display: block; }
+        .empty-state p { font-size: 0.88rem; line-height: 1.7; }
+
+        /* ═══ CHAT ═══ */
+        .app-header { background: var(--white); border-bottom: 1.5px solid var(--border); padding: 10px 16px; display: flex; align-items: center; gap: 10px; box-shadow: var(--shadow-sm); z-index: 100; }
+        .app-header .logo { width: 40px; height: 40px; font-size: 18px; border-radius: var(--r-sm); }
+        .app-header .title-area h1 { font-size: 0.98rem; font-weight: 800; }
+        .app-header .title-area p { font-size: 0.66rem; color: var(--text-muted); }
+        .header-actions { margin-left: auto; display: flex; gap: 6px; }
+        .header-actions button { background: var(--mint-soft); border: 1.5px solid var(--mint-light); color: var(--mint-dark); border-radius: var(--r-full); padding: 6px 12px; font-size: 0.72rem; cursor: pointer; transition: all 0.3s; font-family: inherit; font-weight: 600; }
+        .header-actions button:hover { background: var(--mint); color: white; }
+        .header-actions .back-btn { background: var(--blue-soft); border-color: var(--blue-light); color: var(--blue); }
+        .header-actions .back-btn:hover { background: var(--blue); color: white; }
+
+        .chat-container { flex: 1; overflow-y: auto; padding: 20px 14px; display: flex; flex-direction: column; gap: 14px; background: var(--cream); }
+        .chat-container::-webkit-scrollbar { width: 5px; }
+        .chat-container::-webkit-scrollbar-thumb { background: var(--mint-light); border-radius: 3px; }
+
+        .message { max-width: 90%; animation: msgIn 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+        @keyframes msgIn { from { opacity:0; transform: translateY(12px) scale(0.97); } to { opacity:1; transform: translateY(0) scale(1); } }
+        .message.bot { align-self: flex-start; }
+        .message.user { align-self: flex-end; }
+        .msg-sender { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 5px; display: flex; align-items: center; gap: 5px; font-weight: 500; }
+        .message.bot .msg-sender i { color: var(--mint); }
+        .message.user .msg-sender i { color: var(--blue); }
+        .msg-bubble { padding: 14px 18px; border-radius: var(--r-lg); line-height: 1.75; font-size: 0.88rem; }
+        .message.bot .msg-bubble { background: var(--white); border: 1.5px solid var(--border); border-top-left-radius: 6px; box-shadow: var(--shadow-sm); }
+        .message.user .msg-bubble { background: linear-gradient(135deg, var(--mint), var(--blue)); color: white; font-weight: 600; border-top-right-radius: 6px; box-shadow: 0 3px 12px rgba(91,191,173,0.2); }
+
+        .quick-replies { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+        .quick-btn { background: var(--white); border: 2px solid var(--border); color: var(--text); padding: 9px 16px; border-radius: var(--r-full); font-size: 0.82rem; cursor: pointer; transition: all 0.3s; font-family: inherit; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+        .quick-btn:hover { border-color: var(--mint-light); background: var(--mint-soft); transform: translateY(-1px); }
+        .quick-btn.selected { background: linear-gradient(135deg, var(--mint), var(--blue)); color: white; border-color: transparent; }
+
+        /* ── Budget ── */
+        .budget-options { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+        .budget-chip { background: var(--white); border: 2px solid var(--border); color: var(--text); padding: 10px 18px; border-radius: var(--r-full); font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.3s; }
+        .budget-chip:hover { border-color: var(--mint); background: var(--mint-soft); }
+        .budget-chip.selected { background: linear-gradient(135deg, var(--mint), var(--blue)); color: white; border-color: transparent; }
+        .budget-custom { margin-top: 10px; display: flex; gap: 8px; align-items: center; }
+        .budget-custom input { width: 100px; background: var(--cream); border: 2px solid var(--border); color: var(--text); padding: 9px 12px; border-radius: var(--r-sm); font-family: inherit; font-size: 0.85rem; font-weight: 600; outline: none; }
+        .budget-custom input:focus { border-color: var(--mint); }
+        .budget-custom span { font-size: 0.85rem; color: var(--text-muted); }
+
+        .budget-meter { margin: 12px 0; padding: 12px 16px; background: var(--cream); border-radius: var(--r-sm); border: 1.5px solid var(--border); }
+        .bm-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .bm-label { font-size: 0.78rem; color: var(--text-light); font-weight: 600; }
+        .bm-amount { font-size: 0.88rem; font-weight: 800; }
+        .bm-amount.ok { color: var(--mint-dark); }
+        .bm-amount.warn { color: var(--orange); }
+        .bm-amount.over { color: var(--red); }
+        .bm-track { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+        .bm-fill { height: 100%; border-radius: 4px; transition: width 0.4s, background 0.4s; }
+        .bm-fill.ok { background: linear-gradient(90deg, var(--mint-light), var(--mint)); }
+        .bm-fill.warn { background: linear-gradient(90deg, var(--yellow), var(--orange)); }
+        .bm-fill.over { background: linear-gradient(90deg, var(--orange), var(--red)); }
+        .bm-range { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-muted); margin-top: 3px; }
+
+        /* ── Category Tabs ── */
+        .cat-tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+        .cat-tabs::-webkit-scrollbar { height: 0; }
+        .cat-tab { padding: 8px 16px; border-radius: var(--r-full); font-size: 0.8rem; font-weight: 700; cursor: pointer; border: 1.5px solid var(--border); background: var(--white); color: var(--text-light); transition: all 0.3s; font-family: inherit; white-space: nowrap; }
+        .cat-tab.active { background: linear-gradient(135deg, var(--mint), var(--blue)); color: white; border-color: transparent; }
+
+        /* ── Place Cards ── */
+        .place-cards { display: flex; flex-direction: column; gap: 12px; }
+        .place-card { background: var(--white); border: 2px solid var(--border); border-radius: var(--r-lg); padding: 16px; cursor: pointer; transition: all 0.3s; position: relative; }
+        .place-card:hover { transform: translateY(-2px); border-color: var(--mint-light); box-shadow: var(--shadow-md); }
+        .place-card.selected { border-color: var(--mint); background: var(--mint-soft); }
+        .place-card.selected::after { content: '\f058'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; top: 14px; right: 16px; color: var(--mint); font-size: 1.2rem; }
+        .pc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+        .pc-name { font-size: 0.95rem; font-weight: 700; }
+        .pc-type-tag { background: var(--blue-soft); color: var(--blue); font-size: 0.66rem; padding: 3px 9px; border-radius: var(--r-full); font-weight: 600; }
+        .pc-desc { font-size: 0.8rem; color: var(--text-light); line-height: 1.5; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .pc-stats { display: flex; gap: 12px; flex-wrap: wrap; }
+        .pc-stat { display: flex; align-items: center; gap: 4px; font-size: 0.76rem; font-weight: 500; color: var(--text-light); }
+        .pc-stat.rating i { color: var(--yellow); }
+        .pc-stat.cost i { color: var(--mint); }
+        .pc-stat.reviews i { color: var(--blue); }
+        .pc-hint { font-size: 0.68rem; color: var(--text-muted); margin-top: 8px; display: flex; align-items: center; gap: 4px; }
+
+        /* ── Schedule Assignment ── */
+        .day-assign { margin-top: 14px; }
+        .da-day-section { margin-bottom: 16px; }
+        .da-day-header { font-size: 0.85rem; font-weight: 800; color: var(--mint-dark); padding: 8px 14px; background: var(--mint-soft); border-radius: var(--r-sm); margin-bottom: 8px; }
+        .da-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--white); border: 1.5px solid var(--border); border-radius: var(--r-sm); margin-bottom: 6px; }
+        .da-item .da-emoji { font-size: 1.2rem; }
+        .da-item .da-info { flex: 1; }
+        .da-item .da-name { font-size: 0.82rem; font-weight: 700; }
+        .da-item .da-type { font-size: 0.68rem; color: var(--text-muted); }
+        .da-item select, .da-item input[type="time"] { background: var(--cream); border: 1.5px solid var(--border); color: var(--text); padding: 7px 10px; border-radius: 8px; font-family: inherit; font-size: 0.82rem; font-weight: 600; outline: none; }
+        .da-item select:focus, .da-item input[type="time"]:focus { border-color: var(--mint); }
+
+        /* ── Date Range ── */
+        .date-range-row { display: flex; gap: 10px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+        .date-range-row input { background: var(--cream); border: 2px solid var(--border); color: var(--text); padding: 10px 12px; border-radius: var(--r-sm); font-family: inherit; font-size: 0.85rem; font-weight: 600; outline: none; flex: 1; min-width: 130px; }
+        .date-range-row input:focus { border-color: var(--mint); }
+        .date-range-row span { font-size: 0.88rem; color: var(--text-muted); font-weight: 600; }
+
+        .generate-btn { background: linear-gradient(135deg, var(--mint), var(--blue)); color: white; border: none; padding: 14px 28px; border-radius: var(--r-md); font-size: 0.95rem; font-weight: 800; cursor: pointer; font-family: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 14px; width: 100%; box-shadow: 0 4px 16px rgba(91,191,173,0.25); }
+        .generate-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(91,191,173,0.3); }
+        .generate-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .confirm-btn { background: linear-gradient(135deg, var(--mint), var(--blue)); color: white; border: none; padding: 10px 22px; border-radius: var(--r-full); font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.3s; margin-top: 12px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 3px 10px rgba(91,191,173,0.2); }
+        .confirm-btn:hover { transform: translateY(-2px); }
+        .confirm-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        /* ── Itinerary ── */
+        .itinerary { margin-top: 14px; background: var(--white); border: 1.5px solid var(--border); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-md); }
+        .itin-header { background: linear-gradient(135deg, var(--mint-soft), var(--blue-soft)); padding: 18px 20px; border-bottom: 1.5px solid var(--border); }
+        .itin-header h3 { font-size: 1rem; font-weight: 800; }
+        .itin-header h3 i { color: var(--mint); }
+        .itin-header p { font-size: 0.76rem; color: var(--text-muted); margin-top: 3px; }
+        .itin-day-label { font-size: 0.85rem; font-weight: 800; color: var(--mint-dark); padding: 10px 20px; background: rgba(91,191,173,0.06); border-bottom: 1px solid var(--border); }
+        .itin-body { padding: 14px 20px; }
+        .itin-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px dashed var(--border); }
+        .itin-item:last-child { border-bottom: none; }
+        .itin-time { min-width: 50px; font-size: 0.8rem; font-weight: 700; color: var(--blue); }
+        .itin-dot { width: 12px; height: 12px; background: linear-gradient(135deg, var(--mint), var(--blue)); border-radius: 50%; margin-top: 3px; flex-shrink: 0; }
+        .itin-content { flex: 1; }
+        .itin-content h4 { font-size: 0.88rem; font-weight: 700; margin-bottom: 2px; }
+        .itin-content p { font-size: 0.75rem; color: var(--text-light); }
+        .itin-cost { font-size: 0.75rem; color: var(--mint-dark); margin-top: 3px; font-weight: 600; }
+        .itin-footer { background: linear-gradient(135deg, var(--mint-soft), var(--blue-soft)); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-top: 1.5px solid var(--border); }
+        .itin-footer .total-label { font-size: 0.82rem; color: var(--text-light); }
+        .itin-footer .total-sub { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+        .itin-footer .total-amount { font-size: 1.2rem; font-weight: 900; color: var(--mint-dark); }
+
+        .num-input-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+        .num-input-row label { font-size: 0.88rem; min-width: 55px; font-weight: 600; }
+        .num-mini-btn { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--border); background: var(--cream); color: var(--mint-dark); font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 700; transition: all 0.2s; }
+        .num-mini-btn:hover { background: var(--mint-soft); border-color: var(--mint); }
+        .num-val { font-size: 1.15rem; font-weight: 800; color: var(--mint-dark); min-width: 26px; text-align: center; }
+
+        .input-bar { padding: 12px 14px; padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--white); border-top: 1.5px solid var(--border); display: flex; gap: 8px; align-items: center; box-shadow: 0 -4px 12px rgba(91,191,173,0.06); }
+        .input-bar input { flex: 1; background: var(--cream); border: 2px solid var(--border); color: var(--text); padding: 12px 16px; border-radius: var(--r-full); font-family: inherit; font-size: 0.88rem; outline: none; transition: all 0.3s; font-weight: 500; }
+        .input-bar input:focus { border-color: var(--mint); }
+        .input-bar input::placeholder { color: var(--text-muted); }
+        .send-btn { width: 44px; height: 44px; border-radius: 50%; border: none; background: linear-gradient(135deg, var(--mint), var(--blue)); color: white; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; flex-shrink: 0; box-shadow: 0 3px 10px rgba(91,191,173,0.2); }
+        .send-btn:hover { transform: scale(1.06); }
+
+        .typing-dots { display: flex; gap: 4px; padding: 5px 0; }
+        .typing-dots span { width: 7px; height: 7px; background: linear-gradient(135deg, var(--mint), var(--blue)); border-radius: 50%; animation: dot 1.2s infinite; }
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes dot { 0%,60%,100% { transform: translateY(0); opacity: 0.3; } 30% { transform: translateY(-6px); opacity: 1; } }
+
+        /* ── Modal ── */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(45,62,80,0.4); backdrop-filter: blur(6px); z-index: 2000; justify-content: center; align-items: flex-end; }
+        .modal-overlay.open { display: flex; animation: oi 0.2s; }
+        @keyframes oi { from { opacity: 0; } to { opacity: 1; } }
+        .modal-sheet { background: var(--white); border-radius: var(--r-lg) var(--r-lg) 0 0; width: 100%; max-width: 520px; max-height: 88vh; overflow-y: auto; animation: su 0.35s cubic-bezier(0.34,1.56,0.64,1); box-shadow: 0 -8px 40px rgba(45,62,80,0.15); }
+        @keyframes su { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .modal-sheet::-webkit-scrollbar { width: 0; }
+        .modal-handle { text-align: center; padding: 12px 0 4px; }
+        .modal-handle span { display: inline-block; width: 40px; height: 4px; background: var(--border); border-radius: 2px; }
+        .modal-image { width: 100%; height: 200px; background: linear-gradient(135deg, var(--mint-soft), var(--blue-soft)); display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); gap: 8px; position: relative; overflow: hidden; }
+        .modal-image i { font-size: 2.5rem; color: var(--mint-light); }
+        .modal-image img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .modal-body-content { padding: 20px 22px 100px; }
+        .modal-name { font-size: 1.2rem; font-weight: 900; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .modal-type-tag { background: var(--blue-soft); color: var(--blue); font-size: 0.7rem; padding: 3px 12px; border-radius: var(--r-full); font-weight: 600; }
+        .modal-desc { font-size: 0.85rem; color: var(--text-light); line-height: 1.8; margin: 12px 0 16px; }
+        .modal-stats { display: flex; margin-bottom: 16px; background: var(--cream); border-radius: var(--r-md); border: 1.5px solid var(--border); overflow: hidden; }
+        .modal-stat { flex: 1; padding: 12px; text-align: center; border-right: 1.5px solid var(--border); }
+        .modal-stat:last-child { border-right: none; }
+        .ms-value { font-size: 1.05rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 4px; }
+        .ms-label { font-size: 0.66rem; color: var(--text-muted); margin-top: 3px; }
+        .modal-reviews h4 { font-size: 0.82rem; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .modal-review-item { padding: 12px 14px; border-radius: var(--r-sm); margin-bottom: 8px; font-size: 0.8rem; line-height: 1.6; display: flex; align-items: flex-start; gap: 8px; }
+        .modal-review-item.good { background: #EDFAF4; color: #3D8B6A; border: 1px solid #C6F0D9; }
+        .modal-review-item.bad { background: #FFF8F8; color: #A66; border: 1px solid #F0D6D6; }
+        .modal-review-item i { margin-top: 2px; flex-shrink: 0; }
+        .modal-action { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 520px; padding: 14px 22px; padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); background: var(--white); border-top: 1.5px solid var(--border); z-index: 2001; }
+        .modal-select-btn { width: 100%; padding: 13px; border-radius: var(--r-sm); font-size: 0.92rem; font-weight: 800; font-family: inherit; cursor: pointer; transition: all 0.3s; border: none; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .modal-select-btn.add { background: linear-gradient(135deg, var(--mint), var(--blue)); color: white; }
+        .modal-select-btn.remove { background: var(--cream); color: var(--text-muted); border: 2px solid var(--border); }
+
+        @media (min-width: 601px) {
+            .modal-overlay { align-items: center; padding: 20px; }
+            .modal-sheet { border-radius: var(--r-lg); }
+            .modal-action { position: sticky; bottom: 0; border-radius: 0 0 var(--r-lg) var(--r-lg); }
+        }
+        /* ═══ WIDE MESSAGE (for complex UI content) ═══ */
+        .message.wide { max-width: 96%; }
+        @media (max-width: 600px) { .message.wide { max-width: 100%; } .message.wide .msg-bubble { padding: 12px 10px; } }
+
+        /* ═══ GLOBAL OVERFLOW PREVENTION ═══ */
+        .msg-bubble { overflow: hidden; word-break: break-word; }
+        .place-card, .da-item, .ptc-main, .ptc-expanded,
+        .budget-meter, .itinerary, .modal-body-content { overflow: hidden; word-break: break-word; }
+
+        @media (max-width: 600px) {
+            /* ── Layout basics ── */
+            .message { max-width: 96%; }
+            .msg-bubble { padding: 12px 14px; font-size: 0.85rem; }
+            .header-actions button .bt { display: none; }
+            .header-actions button { padding: 8px 12px; font-size: 0.75rem; }
+            .header-actions { gap: 5px; }
+
+            /* ── Chat Header — 加大觸控區域 ── */
+            .app-header {
+                padding: 14px 16px;
+                gap: 10px;
+                min-height: 60px;
+            }
+            .app-header .logo { width: 40px; height: 40px; font-size: 18px; }
+            .app-header .title-area h1 { font-size: 0.95rem; }
+            .app-header .title-area p { font-size: 0.68rem; }
+
+            /* ── Input Bar — 加大輸入框 + safe area ── */
+            .input-bar {
+                padding: 14px 14px;
+                padding-bottom: calc(14px + env(safe-area-inset-bottom, 8px));
+                gap: 8px;
+                min-height: 64px;
+            }
+            .input-bar input {
+                padding: 14px 18px;
+                font-size: 0.92rem;
+                min-height: 48px;
+            }
+            .send-btn {
+                width: 48px;
+                height: 48px;
+                font-size: 1rem;
+            }
+
+            /* ── Dashboard Header — 同步加大 ── */
+            .dash-header {
+                padding: 14px 16px;
+                min-height: 60px;
+            }
+            .dash-header .logo { width: 42px; height: 42px; font-size: 20px; }
+            .dash-header h1 { font-size: 1.1rem; }
+            .dash-body { padding: 20px 14px; }
+            .welcome-card { padding: 28px 20px; margin-bottom: 24px; }
+            .welcome-card .g-emoji { font-size: 2.8rem; }
+            .welcome-card h2 { font-size: 1.25rem; }
+            .welcome-card p { font-size: 0.85rem; }
+            .start-btn { padding: 14px 32px; font-size: 0.95rem; }
+
+            /* ── Past trip cards ── */
+            .ptc-main { padding: 16px; }
+            .ptc-top { flex-direction: column; gap: 6px; }
+            .ptc-location { font-size: 0.95rem; }
+            .ptc-info { gap: 10px; }
+            .ptc-actions { flex-wrap: wrap; }
+            .ptc-btn { padding: 11px 10px; font-size: 0.78rem; min-width: 0; min-height: 44px; }
+            .ptc-expanded { padding: 14px; }
+            .exp-footer { flex-direction: column; gap: 10px; align-items: flex-start; }
+            .exp-total { font-size: 1rem; }
+
+            /* ── Chat container ── */
+            .chat-container { padding: 16px 12px; gap: 12px; }
+
+            /* ── Budget ── */
+            .budget-options { gap: 6px; }
+            .budget-chip { padding: 8px 12px; font-size: 0.78rem; }
+            .budget-custom { flex-wrap: wrap; gap: 6px; }
+            .budget-custom input { width: 80px; padding: 8px 10px; font-size: 0.8rem; }
+            .budget-meter { padding: 10px 12px; }
+            .bm-header { flex-wrap: wrap; gap: 4px; }
+            .bm-amount { font-size: 0.8rem; }
+
+            /* ── Quick replies ── */
+            .quick-replies { gap: 6px; }
+            .quick-btn { padding: 8px 12px; font-size: 0.78rem; gap: 5px; }
+
+            /* ── Category tabs ── */
+            .cat-tabs { gap: 5px; }
+            .cat-tab { padding: 7px 12px; font-size: 0.75rem; }
+
+            /* ── Place cards ── */
+            .place-card { padding: 14px; }
+            .pc-name { font-size: 0.88rem; max-width: 65%; }
+            .pc-type-tag { font-size: 0.62rem; padding: 2px 7px; }
+            .pc-desc { font-size: 0.76rem; }
+            .pc-stats { gap: 8px; }
+            .pc-stat { font-size: 0.72rem; }
+            .pc-hint { font-size: 0.65rem; }
+
+            /* ── Day assignment (the main overflow culprit) ── */
+            .da-item {
+                flex-wrap: wrap;
+                gap: 8px;
+                padding: 10px;
+            }
+            .da-item .da-emoji { font-size: 1.1rem; }
+            .da-item .da-info {
+                flex: 1;
+                min-width: 0;
+            }
+            .da-item .da-name {
+                font-size: 0.78rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .da-item .da-type { font-size: 0.65rem; }
+            .da-item select {
+                font-size: 0.75rem;
+                padding: 6px 6px;
+                max-width: 120px;
+                min-width: 0;
+            }
+            .da-item input[type="time"] {
+                font-size: 0.78rem;
+                padding: 6px 8px;
+                width: 90px;
+            }
+            .da-day-header { font-size: 0.8rem; padding: 7px 10px; }
+
+            /* ── Date range ── */
+            .date-range-row { gap: 6px; }
+            .date-range-row input { padding: 9px 10px; font-size: 0.8rem; min-width: 110px; }
+            .date-range-row span { font-size: 0.8rem; }
+
+            /* ── Itinerary ── */
+            .itin-header { padding: 14px 14px; }
+            .itin-header h3 { font-size: 0.92rem; }
+            .itin-header p { font-size: 0.72rem; }
+            .itin-day-label { padding: 8px 14px; font-size: 0.8rem; }
+            .itin-body { padding: 10px 14px; }
+            .itin-item { gap: 10px; padding: 10px 0; }
+            .itin-time { min-width: 44px; font-size: 0.75rem; }
+            .itin-dot { width: 10px; height: 10px; }
+            .itin-content h4 { font-size: 0.82rem; }
+            .itin-content p { font-size: 0.72rem; }
+            .itin-cost { font-size: 0.72rem; }
+            .itin-footer { padding: 14px; flex-wrap: wrap; gap: 6px; }
+            .itin-footer .total-amount { font-size: 1.1rem; }
+
+            /* ── Buttons — 加大觸控區域（最小 44px 高度） ── */
+            .generate-btn { padding: 14px 20px; font-size: 0.92rem; min-height: 50px; }
+            .confirm-btn { padding: 12px 20px; font-size: 0.85rem; min-height: 44px; }
+
+            /* ── Num input ── */
+            .num-input-row { gap: 10px; }
+            .num-input-row label { font-size: 0.88rem; min-width: 55px; }
+            .num-mini-btn { width: 38px; height: 38px; font-size: 1rem; }
+            .num-val { font-size: 1.1rem; }
+
+            /* ── Modal ── */
+            .modal-image { height: 170px; }
+            .modal-body-content { padding: 18px 18px 110px; }
+            .modal-name { font-size: 1.1rem; flex-wrap: wrap; gap: 6px; }
+            .modal-type-tag { font-size: 0.68rem; padding: 3px 10px; }
+            .modal-desc { font-size: 0.84rem; margin: 10px 0 14px; }
+            .modal-stats { flex-direction: column; }
+            .modal-stat { border-right: none; border-bottom: 1px solid var(--border); padding: 12px; }
+            .modal-stat:last-child { border-bottom: none; }
+            .ms-value { font-size: 1rem; }
+            .modal-review-item { padding: 12px 14px; font-size: 0.8rem; }
+            .modal-action {
+                padding: 14px 18px;
+                padding-bottom: calc(14px + env(safe-area-inset-bottom, 8px));
+            }
+            .modal-select-btn { padding: 15px; font-size: 0.92rem; min-height: 50px; }
+        }
+
+        /* ── Extra small screens (< 380px) ── */
+        @media (max-width: 380px) {
+            .da-item select { max-width: 100px; font-size: 0.72rem; }
+            .da-item input[type="time"] { width: 80px; font-size: 0.72rem; }
+            .budget-chip { padding: 7px 10px; font-size: 0.72rem; }
+            .pc-name { font-size: 0.82rem; max-width: 58%; }
+            .ptc-actions { gap: 5px; }
+            .ptc-btn { font-size: 0.7rem; padding: 8px 6px; }
+            .welcome-card h2 { font-size: 1.05rem; }
+            .start-btn { padding: 11px 22px; font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="screen active" id="dashboardScreen">
+    <header class="dash-header">
+        <div class="logo"><i class="fas fa-baby-carriage"></i></div>
+        <div><h1>媽媽行程規劃神器</h1><p>聊聊天，輕鬆搞定親子出遊</p></div>
+    </header>
+    <div class="dash-body">
+        <div class="welcome-card">
+            <div class="g-emoji">👩‍👧‍👦</div>
+            <h2>嗨媽咪！準備出發了嗎？</h2>
+            <p>只要跟小幫手聊幾句<br>就能快速安排完美的親子旅行</p>
+            <button class="start-btn" onclick="navigateToChat()"><i class="fas fa-comment-dots"></i> 開始規劃新行程</button>
+        </div>
+        <div class="section-title"><h3>📋 過去的行程</h3><span class="badge" id="tripCountBadge">0 筆</span></div>
+        <div id="pastTripsContainer"></div>
+    </div>
+</div>
+
+<div class="screen" id="chatScreen">
+    <header class="app-header">
+        <div class="logo"><i class="fas fa-baby-carriage"></i></div>
+        <div class="title-area"><h1>行程規劃聊天室</h1><p>跟小幫手聊出完美行程</p></div>
+        <div class="header-actions">
+            <button class="back-btn" onclick="navigateToDashboard()"><i class="fas fa-home"></i> <span class="bt">首頁</span></button>
+            <button onclick="resetChat()"><i class="fas fa-redo"></i> <span class="bt">重來</span></button>
+            <button onclick="exportItinerary()"><i class="fas fa-download"></i> <span class="bt">匯出</span></button>
+        </div>
+    </header>
+    <div class="chat-container" id="chatContainer"></div>
+    <div class="input-bar">
+        <input type="text" id="userInput" placeholder="輸入訊息..." disabled>
+        <button class="send-btn" id="sendBtn" disabled><i class="fas fa-paper-plane"></i></button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="placeModal">
+    <div class="modal-sheet" id="modalSheet">
+        <div class="modal-handle"><span></span></div>
+        <div class="modal-image" id="modalImage"><i class="fas fa-camera"></i><span>照片即將上線</span></div>
+        <div class="modal-body-content" id="modalBodyContent"></div>
+        <div class="modal-action" id="modalAction"></div>
+    </div>
+</div>
+
+<script>
+// ═══ DATA ═══
+const subCategoriesDB = {
+    '餐廳': ['中式','西式','日式','韓式','港式','吃到飽','素食/蔬食'],
+    '親子飯店': ['溫泉飯店','海景渡假','主題飯店','度假村','市區便利'],
+    '遊樂園': ['主題樂園','水上樂園','親子樂園','樂園+購物'],
+    '動物園': ['公立動物園','野生動物園','海洋公園']
+};
+
+const placesDB = {
+    '餐廳': [
+        { name:'饗食天堂', desc:'高級吃到飽餐廳，海鮮、日料、甜點一應俱全，適合全家大小。兒童座椅充足，還有專屬兒童餐具。', rating:4.2, reviews:3840, highReview:'「CP值超高，小孩有專屬座椅跟兒童餐具」', lowReview:'「假日人潮多需排隊，建議平日」', cost:899, costUnit:'人', type:'吃到飽', subType:['吃到飽','日式'], emoji:'🍱', image:'' },
+        { name:'漢來海港', desc:'百匯自助餐廳，現切牛排、生魚片、多國料理超過200道。部分分店有兒童遊戲區。', rating:4.3, reviews:5120, highReview:'「帶小孩超方便，有兒童遊戲區放電」', lowReview:'「甜點區普通，價格偏高但菜色豐富」', cost:1099, costUnit:'人', type:'吃到飽', subType:['吃到飽'], emoji:'🦐', image:'' },
+        { name:'王品牛排', desc:'頂級牛排套餐，嚴選食材精緻擺盤，從前菜到甜點都是味覺饗宴。服務態度極佳。', rating:4.5, reviews:2650, highReview:'「服務超好，生日有驚喜蛋糕，小朋友很開心」', lowReview:'「份量偏少，價位偏高」', cost:1580, costUnit:'人', type:'套餐', subType:['西式'], emoji:'🥩', image:'' },
+        { name:'添好運', desc:'米其林一星港式點心專門店，平價品嚐星級美味。酥皮焗叉燒包是必點招牌！', rating:4.1, reviews:4200, highReview:'「酥皮焗叉燒包超好吃，小孩也愛」', lowReview:'「空間較小，推車不太方便」', cost:350, costUnit:'人', type:'港式點心', subType:['港式','中式'], emoji:'🥟', image:'' },
+        { name:'藏壽司', desc:'迴轉壽司連鎖，每盤40元起，集滿五盤抽扭蛋，小朋友超愛！也有炸物和甜點。', rating:4.0, reviews:6800, highReview:'「扭蛋機制小朋友超愛，大人也吃得開心」', lowReview:'「熱門時段等很久，建議線上取號」', cost:300, costUnit:'人', type:'迴轉壽司', subType:['日式'], emoji:'🍣', image:'' }
+    ],
+    '親子飯店': [
+        { name:'宜蘭蘭城晶英酒店', desc:'全台最強親子飯店！室內賽車場、芬朵奇堡、無邊際泳池。從早到晚玩不停。', rating:4.7, reviews:8200, highReview:'「兒童天堂，兩天一夜不夠玩」', lowReview:'「房價偏高，假日難訂房」', cost:8500, costUnit:'晚', type:'五星級', subType:['主題飯店','市區便利'], emoji:'🏰', image:'' },
+        { name:'花蓮瑞穗天合', desc:'歐風城堡莊園，金色水樂園、溫泉、賽車跑道，還有超大草原奔跑。', rating:4.6, reviews:5400, highReview:'「城堡外觀超夢幻，小孩以為到迪士尼」', lowReview:'「地點偏遠，餐廳選擇有限」', cost:12000, costUnit:'晚', type:'度假村', subType:['度假村','溫泉飯店'], emoji:'🏯', image:'' },
+        { name:'墾丁悠活渡假村', desc:'南臺灣親子首選！兒童主題房、滑水道、懶人河、生態導覽認識潮間帶。', rating:4.3, reviews:4100, highReview:'「主題房型小朋友超愛，海邊夕陽超美」', lowReview:'「設施稍舊，但服務態度好」', cost:5800, costUnit:'晚', type:'度假村', subType:['度假村','海景渡假'], emoji:'🏖️', image:'' },
+        { name:'台南和逸飯店', desc:'卡通頻道主題飯店！戶外電動車跑道、室內沙坑球池、主題房超可愛。', rating:4.4, reviews:3600, highReview:'「卡通主題房小孩一進門就尖叫」', lowReview:'「早餐人多需排隊」', cost:4800, costUnit:'晚', type:'主題飯店', subType:['主題飯店','市區便利'], emoji:'🎪', image:'' },
+        { name:'大板根森林溫泉酒店', desc:'北台灣泡湯好去處！國寶級板根森林步道、溫泉SPA、娛樂中心一應俱全。', rating:4.2, reviews:2900, highReview:'「森林步道空氣好，溫泉水質棒」', lowReview:'「房間隔音稍差」', cost:4200, costUnit:'晚', type:'溫泉飯店', subType:['溫泉飯店'], emoji:'♨️', image:'' }
+    ],
+    '遊樂園': [
+        { name:'六福村', desc:'亞洲級主題樂園！異國主題村、動物互動區近距離看長頸鹿和白老虎。', rating:4.3, reviews:12000, highReview:'「動物區超棒，近距離看長頸鹿」', lowReview:'「夏天很曬，帶防曬」', cost:1199, costUnit:'人', type:'主題樂園', subType:['主題樂園'], emoji:'🎢', image:'' },
+        { name:'劍湖山世界', desc:'雲林超大遊樂園！摩天輪、雲霄飛車、夏天必玩水上樂園消暑。', rating:4.0, reviews:7800, highReview:'「水上樂園超好玩，玩一整天」', lowReview:'「部分設施老舊，餐飲偏貴」', cost:899, costUnit:'人', type:'主題樂園', subType:['主題樂園','水上樂園'], emoji:'🎡', image:'' },
+        { name:'麗寶樂園', desc:'台中最大！探索世界+馬拉灣水上樂園，旁邊還有麗寶Outlet逛街。', rating:4.2, reviews:9500, highReview:'「玩完還能逛Outlet，超充實」', lowReview:'「停車場到園區要走一段」', cost:1099, costUnit:'人', type:'樂園+商場', subType:['主題樂園','樂園+購物'], emoji:'🎠', image:'' },
+        { name:'小人國', desc:'超適合小小孩！世界建築迷你模型、室內動感樂園、轟浪水樂園。', rating:4.1, reviews:5600, highReview:'「迷你建築小小孩超開心」', lowReview:'「面積不大，半天逛完」', cost:799, costUnit:'人', type:'親子樂園', subType:['親子樂園'], emoji:'🏘️', image:'' },
+        { name:'義大遊樂世界', desc:'全台唯一希臘主題樂園！夢之星大遊行、特技表演，配義大購物廣場。', rating:4.2, reviews:6400, highReview:'「遊行超精彩，媲美國外」', lowReview:'「票價較高，餐飲貴」', cost:1099, costUnit:'人', type:'主題樂園', subType:['主題樂園','樂園+購物'], emoji:'🏛️', image:'' }
+    ],
+    '動物園': [
+        { name:'台北市立動物園', desc:'全台最大！大貓熊圓仔家族、企鵝館、熱帶雨林區。搭貓纜俯瞰園區。', rating:4.5, reviews:15000, highReview:'「門票60元，全台最佛心親子景點」', lowReview:'「園區很大帶小孩會累」', cost:60, costUnit:'人', type:'公立動物園', subType:['公立動物園'], emoji:'🐼', image:'' },
+        { name:'壽山動物園', desc:'高雄重新整修超美！新式透明空橋步道近距離看動物，山景超療癒。', rating:4.3, reviews:4800, highReview:'「透明步道看黑熊在腳下超刺激」', lowReview:'「停車位有限」', cost:40, costUnit:'人', type:'公立動物園', subType:['公立動物園'], emoji:'🐻', image:'' },
+        { name:'頑皮世界', desc:'台南最大野生動物園！親手餵長頸鹿、水豚、袋鼠，互動體驗小朋友超愛。', rating:4.2, reviews:3200, highReview:'「親手餵長頸鹿，小孩感動到哭」', lowReview:'「動線指標不清楚」', cost:480, costUnit:'人', type:'野生動物園', subType:['野生動物園'], emoji:'🦒', image:'' },
+        { name:'新竹市立動物園', desc:'百年動物園重新規劃，小巧精緻有質感，適合帶小小孩不會太累。', rating:4.1, reviews:3900, highReview:'「精緻好逛，帶小小孩剛好」', lowReview:'「動物種類較少」', cost:50, costUnit:'人', type:'公立動物園', subType:['公立動物園'], emoji:'🦁', image:'' },
+        { name:'遠雄海洋公園', desc:'花蓮必去！海豚海獅表演、水晶城堡夢幻秀、遊樂設施一次滿足。', rating:4.4, reviews:7200, highReview:'「海豚表演超精彩，小朋友目不轉睛」', lowReview:'「門票偏貴，餐飲有限」', cost:990, costUnit:'人', type:'海洋公園', subType:['海洋公園'], emoji:'🐬', image:'' }
+    ]
+};
+
+// ═══ STATE ═══
+let S = { step:'people', adults:2, kids:1, location:'', budgetMin:0, budgetMax:0, selectedCats:[], subFilters:{}, places:[], selectedPlaces:[], activeTab:'', dateStart:'', dateEnd:'', days:[], daySchedule:{} };
+let currentModalIdx = null;
+
+const CC = document.getElementById('chatContainer');
+const UI = document.getElementById('userInput');
+const SB = document.getElementById('sendBtn');
+
+// ═══ NAV ═══
+function showScreen(id) { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function navigateToChat(ed) { showScreen('chatScreen'); resetState(); ed ? editFlow(ed) : startChat(); }
+function navigateToDashboard() { showScreen('dashboardScreen'); renderPastTrips(); }
+
+// ═══ STORAGE ═══
+const SK = 'momtrip_v2';
+function loadTrips() { try { return JSON.parse(localStorage.getItem(SK)) || []; } catch { return []; } }
+function saveTrip(d) { const l = loadTrips(); l.unshift(d); localStorage.setItem(SK, JSON.stringify(l)); }
+function delTrip(id) { localStorage.setItem(SK, JSON.stringify(loadTrips().filter(t=>t.id!==id))); renderPastTrips(); }
+
+function renderPastTrips() {
+    const list = loadTrips();
+    document.getElementById('tripCountBadge').textContent = `${list.length} 筆`;
+    const c = document.getElementById('pastTripsContainer');
+    if (!list.length) { c.innerHTML = `<div class="empty-state"><i class="fas fa-suitcase-rolling"></i><p>還沒有行程紀錄<br>點上方按鈕開始第一趟旅行吧！</p></div>`; return; }
+    c.innerHTML = '<div class="past-trips-grid">' + list.map(t => {
+        const tags = t.selectedPlaces.map(p=>`<span class="ptc-tag">${p.emoji} ${p.name}</span>`).join('');
+        return `<div class="ptc">
+            <div class="ptc-main">
+                <div class="ptc-top"><div class="ptc-location">📍 ${t.location}</div><div class="ptc-date">${t.dateStart||t.date}${t.dateEnd&&t.dateEnd!==t.dateStart?' ~ '+t.dateEnd:''}</div></div>
+                <div class="ptc-info">
+                    <div class="ptc-info-item"><i class="fas fa-users"></i> ${t.adults}大${t.kids}小</div>
+                    <div class="ptc-info-item"><i class="fas fa-map-pin"></i> ${t.selectedPlaces.length} 個地點</div>
+                    <div class="ptc-info-item ptc-cost">💰 $${t.totalCost.toLocaleString()}</div>
+                </div>
+                <div class="ptc-tags">${tags}</div>
+                <div class="ptc-actions">
+                    <button class="ptc-btn view" onclick="toggleExpand(${t.id})"><i class="fas fa-eye"></i> 查看</button>
+                    <button class="ptc-btn edit" onclick='navigateToChat(${JSON.stringify(t).replace(/'/g,"&#39;")})'>
+                        <i class="fas fa-edit"></i> 編輯</button>
+                    <button class="ptc-btn del" onclick="delTrip(${t.id})"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            </div>
+            <div class="ptc-expanded" id="exp-${t.id}">${buildExpandedView(t)}</div>
+        </div>`;
+    }).join('') + '</div>';
+}
+
+function toggleExpand(id) {
+    const el = document.getElementById('exp-' + id);
+    el.classList.toggle('open');
+}
+
+function buildExpandedView(t) {
+    let html = '';
+    if (t.schedule) {
+        const dayKeys = Object.keys(t.schedule).sort();
+        dayKeys.forEach((dk, di) => {
+            const wd = ['日','一','二','三','四','五','六'];
+            const d = new Date(dk);
+            const label = `Day ${di+1} — ${d.getMonth()+1}/${d.getDate()} (${wd[d.getDay()]})`;
+            html += `<div class="exp-day"><div class="exp-day-header">📅 ${label}</div>`;
+            t.schedule[dk].sort((a,b)=>(a.time||'').localeCompare(b.time||'')).forEach(item => {
+                html += `<div class="exp-item"><div class="exp-time">${item.time||''}</div><div class="exp-dot"></div><div class="exp-info"><h5>${item.emoji} ${item.name}</h5><p>${item.type} · 💰 $${(item.placeCost||0).toLocaleString()}</p></div></div>`;
+            });
+            html += '</div>';
+        });
+    } else {
+        t.selectedPlaces.forEach(p => {
+            html += `<div class="exp-item"><div class="exp-time">${p.scheduledTime||''}</div><div class="exp-dot"></div><div class="exp-info"><h5>${p.emoji} ${p.name}</h5><p>${p.type}</p></div></div>`;
+        });
+    }
+    html += `<div class="exp-footer"><div class="exp-total">💰 總計 $${t.totalCost.toLocaleString()}</div>
+        <button class="save-img-btn" onclick="saveAsImage(${t.id})"><i class="fas fa-image"></i> 儲存圖片</button></div>`;
+    return html;
+}
+
+async function saveAsImage(id) {
+    const el = document.getElementById('exp-' + id);
+    if (!el.classList.contains('open')) el.classList.add('open');
+    if (!window.html2canvas) {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        document.head.appendChild(s);
+        await new Promise(r => s.onload = r);
+    }
+    const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#FAF8F5', useCORS: true });
+    const a = document.createElement('a');
+    a.download = '親子行程.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+}
+
+// ═══ MODAL ═══
+function openModal(idx) {
+    currentModalIdx = idx;
+    const p = S.places[idx], sel = S.selectedPlaces.includes(idx), pct = (p.rating/5)*100;
+    document.getElementById('modalImage').innerHTML = p.image ? `<img src="${p.image}">` : `<i class="fas fa-camera"></i><span>照片即將上線</span>`;
+    document.getElementById('modalBodyContent').innerHTML = `
+        <div class="modal-name"><span>${p.emoji}</span><span>${p.name}</span></div>
+        <span class="modal-type-tag">${p.type}</span>
+        <div class="modal-desc">${p.desc}</div>
+        <div class="modal-stats">
+            <div class="modal-stat"><div class="ms-value"><i class="fas fa-star" style="color:var(--yellow)"></i> ${p.rating}</div><div class="ms-label">評分</div></div>
+            <div class="modal-stat"><div class="ms-value" style="color:var(--mint-dark)">$${p.cost.toLocaleString()}</div><div class="ms-label">每${p.costUnit}</div></div>
+            <div class="modal-stat"><div class="ms-value"><i class="fas fa-comments" style="color:var(--blue)"></i> ${p.reviews.toLocaleString()}</div><div class="ms-label">評論</div></div>
+        </div>
+        <div class="modal-reviews"><h4><i class="fas fa-quote-left" style="color:var(--mint-light)"></i> Google 評論</h4>
+            <div class="modal-review-item good"><i class="fas fa-thumbs-up"></i><span>${p.highReview}</span></div>
+            <div class="modal-review-item bad"><i class="fas fa-thumbs-down"></i><span>${p.lowReview}</span></div>
+        </div>`;
+    updateModalBtn(sel);
+    document.getElementById('placeModal').classList.add('open');
+    document.getElementById('modalSheet').scrollTop = 0;
+}
+function updateModalBtn(sel) {
+    document.getElementById('modalAction').innerHTML = sel
+        ? `<button class="modal-select-btn remove" onclick="modalToggle()"><i class="fas fa-times-circle"></i> 取消選擇</button>`
+        : `<button class="modal-select-btn add" onclick="modalToggle()"><i class="fas fa-plus-circle"></i> 加入行程</button>`;
+}
+function modalToggle() { if(currentModalIdx===null)return; togglePlace(currentModalIdx); updateModalBtn(S.selectedPlaces.includes(currentModalIdx)); }
+function closeModal() { document.getElementById('placeModal').classList.remove('open'); currentModalIdx=null; }
+document.getElementById('placeModal').addEventListener('click',e=>{if(e.target.id==='placeModal')closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+// ═══ CHAT ENGINE ═══
+function scroll() { setTimeout(()=>{CC.scrollTop=CC.scrollHeight;},60); }
+function addMsg(c,t='bot',h=false) {
+    const m=document.createElement('div'); m.className=`message ${t}`;
+    const ic=t==='bot'?'fa-heart':'fa-face-smile', nm=t==='bot'?'小幫手':'我', al=t==='user'?' style="justify-content:flex-end"':'';
+    m.innerHTML=`<div class="msg-sender"${al}><i class="fas ${ic}"></i> ${nm}</div><div class="msg-bubble">${h?c:esc(c)}</div>`;
+    CC.appendChild(m); scroll(); return m;
+}
+function bot(h){return addMsg(h,'bot',true);}
+function showTyp(){const m=document.createElement('div');m.className='message bot';m.id='typ';m.innerHTML=`<div class="msg-sender"><i class="fas fa-heart"></i> 小幫手</div><div class="msg-bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>`;CC.appendChild(m);scroll();}
+function hideTyp(){const e=document.getElementById('typ');if(e)e.remove();}
+function esc(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
+function wait(ms){return new Promise(r=>setTimeout(r,ms));}
+function botEl(html,wide){const m=document.createElement('div');m.className=`message bot${wide?' wide':''}`;m.innerHTML=`<div class="msg-bubble">${html}</div>`;CC.appendChild(m);scroll();return m;}
+
+// ═══ FLOW ═══
+function resetState() {
+    S={step:'people',adults:2,kids:1,location:'',budgetMin:0,budgetMax:0,selectedCats:[],subFilters:{},places:[],selectedPlaces:[],activeTab:'',dateStart:'',dateEnd:'',days:[],daySchedule:{}};
+    CC.innerHTML=''; UI.disabled=true; UI.value=''; UI.placeholder='輸入訊息...'; SB.disabled=true;
+}
+function resetChat(){resetState();startChat();}
+
+async function startChat() {
+    await wait(400);
+    bot(`哈囉媽咪～歡迎來到<b>行程規劃小天地</b>！🌈<br><br>我是你的貼心小幫手 ✨<br>先告訴我，這次有<b>幾位大人、幾位小寶貝</b>呢？`);
+    await wait(200);
+    botEl(`<div class="num-input-row"><label>🧑 大人</label><button class="num-mini-btn" onclick="adj('adults',-1)">−</button><span class="num-val" id="aV">${S.adults}</span><button class="num-mini-btn" onclick="adj('adults',1)">+</button></div>
+        <div class="num-input-row"><label>👶 小孩</label><button class="num-mini-btn" onclick="adj('kids',-1)">−</button><span class="num-val" id="kV">${S.kids}</span><button class="num-mini-btn" onclick="adj('kids',1)">+</button></div>
+        <button class="confirm-btn" onclick="confirmPeople()">確認人數 ✓</button>`);
+}
+
+function adj(k,d){S[k]=Math.max(k==='adults'?1:0,S[k]+d);document.getElementById(k==='adults'?'aV':'kV').textContent=S[k];}
+
+async function confirmPeople(){
+    addMsg(`${S.adults}大${S.kids}小，共${S.adults+S.kids}人！`,'user');
+    document.querySelectorAll('.num-mini-btn,.confirm-btn').forEach(b=>b.disabled=true);
+    showTyp();await wait(600);hideTyp();
+    bot(`${S.adults+S.kids}人出遊，好熱鬧～🎈<br><br>想去<b>哪裡</b>呢？打個地名就好！`);
+    UI.disabled=false;UI.placeholder='輸入地點，例如：台北、宜蘭 🗺️';UI.focus();SB.disabled=false;
+    S.step='location';
+}
+
+async function stepLocation(text){
+    S.location=text;addMsg(text,'user');UI.disabled=true;SB.disabled=true;UI.value='';
+    showTyp();await wait(600);hideTyp();
+    bot(`<b>${S.location}</b> 好棒！🙌<br><br>接下來，這趟旅行<b>預算大約多少</b>呢？<br>選一個範圍或自己輸入都可以～💰`);
+    await wait(200);
+    botEl(`<div class="budget-options">
+        <button class="budget-chip" onclick="pickBudget(this,0,3000)">$3,000 以下</button>
+        <button class="budget-chip" onclick="pickBudget(this,3000,8000)">$3,000~$8,000</button>
+        <button class="budget-chip" onclick="pickBudget(this,8000,15000)">$8,000~$15,000</button>
+        <button class="budget-chip" onclick="pickBudget(this,15000,30000)">$15,000~$30,000</button>
+        <button class="budget-chip" onclick="pickBudget(this,30000,999999)">$30,000+</button>
+    </div>
+    <div class="budget-custom" id="budgetCustom" style="display:none;">
+        <span>$</span><input type="number" id="bMin" placeholder="最低"><span>～ $</span><input type="number" id="bMax" placeholder="最高">
+        <button class="confirm-btn" onclick="confirmBudget()" style="margin:0;padding:8px 16px;">確認</button>
+    </div>
+    <button class="budget-chip" style="margin-top:6px;font-size:0.78rem;color:var(--text-muted);border-style:dashed;" onclick="showCustomBudget()">✏️ 自訂金額</button>`);
+    S.step='budget';
+}
+
+function showCustomBudget(){document.getElementById('budgetCustom').style.display='flex';}
+function pickBudget(btn,min,max){
+    document.querySelectorAll('.budget-chip').forEach(b=>b.classList.remove('selected'));
+    btn.classList.add('selected');
+    S.budgetMin=min;S.budgetMax=max;
+    addMsg(`預算：$${min.toLocaleString()} ~ $${max>=999999?'不限':max.toLocaleString()}`,'user');
+    document.querySelectorAll('.budget-chip,.budget-custom').forEach(el=>{if(el.tagName==='BUTTON')el.disabled=true;});
+    afterBudget();
+}
+function confirmBudget(){
+    S.budgetMin=parseInt(document.getElementById('bMin').value)||0;
+    S.budgetMax=parseInt(document.getElementById('bMax').value)||999999;
+    addMsg(`預算：$${S.budgetMin.toLocaleString()} ~ $${S.budgetMax.toLocaleString()}`,'user');
+    afterBudget();
+}
+
+async function afterBudget(){
+    showTyp();await wait(600);hideTyp();
+    bot(`好的，預算記住了！📝<br><br>想找<b>哪種類型</b>的地方呢？可以選多個喔！`);
+    await wait(200);
+    botEl(`<div class="quick-replies">
+        <button class="quick-btn" onclick="toggleCat(this,'餐廳')">🍽️ 餐廳</button>
+        <button class="quick-btn" onclick="toggleCat(this,'親子飯店')">🏨 親子飯店</button>
+        <button class="quick-btn" onclick="toggleCat(this,'遊樂園')">🎢 遊樂園</button>
+        <button class="quick-btn" onclick="toggleCat(this,'動物園')">🐾 動物園</button>
+    </div><button class="confirm-btn" id="catBtn" style="display:none" onclick="confirmCats()">🔍 繼續</button>`);
+    S.step='categories';
+}
+
+function toggleCat(btn,cat){
+    btn.classList.toggle('selected');
+    S.selectedCats=S.selectedCats.includes(cat)?S.selectedCats.filter(c=>c!==cat):[...S.selectedCats,cat];
+    document.getElementById('catBtn').style.display=S.selectedCats.length?'inline-flex':'none';scroll();
+}
+
+async function confirmCats(){
+    addMsg(`想找：${S.selectedCats.join('、')}`,'user');
+    document.querySelectorAll('.quick-btn,#catBtn').forEach(b=>b.disabled=true);
+    // Start sub-category refinement
+    S.subFilters={};
+    let subIdx=0;
+    for(const cat of S.selectedCats){
+        const subs=subCategoriesDB[cat];
+        if(!subs)continue;
+        const sid=subIdx++;
+        showTyp();await wait(500);hideTyp();
+        const catEmojis={'餐廳':'🍽️','親子飯店':'🏨','遊樂園':'🎢','動物園':'🐾'};
+        bot(`${catEmojis[cat]||''} <b>${cat}</b>想找什麼類型呢？`);
+        await wait(200);
+        await new Promise(resolve=>{
+            const html=`<div class="quick-replies" id="subReplies${sid}">${subs.map(s=>`<button class="quick-btn" onclick="toggleSub(this,'${cat}','${s}',${sid})">${s}</button>`).join('')}
+                <button class="quick-btn" onclick="pickAllSub('${cat}',${sid})" style="border-style:dashed;color:var(--text-muted)">全部都看</button></div>
+                <button class="confirm-btn" id="subBtn${sid}" style="display:none" onclick="window._subResolve()">✓ 確認</button>`;
+            botEl(html);
+            window._subResolve=()=>{
+                if(!S.subFilters[cat])S.subFilters[cat]=[];
+                addMsg(`${cat}：${S.subFilters[cat].length?S.subFilters[cat].join('、'):'全部'}`,'user');
+                document.querySelectorAll(`#subReplies${sid} .quick-btn,#subBtn${sid}`).forEach(b=>b.disabled=true);
+                resolve();
+            };
+        });
+    }
+    // Load filtered places
+    loadFilteredPlaces();
+    showTyp();await wait(800);hideTyp();
+    S.activeTab=S.selectedCats[0];
+    bot(`找到 <b>${S.places.length} 個</b>地方！🎉<br>點卡片看詳細介紹，喜歡就選起來～💕<br><small>預算會即時顯示喔</small>`);
+    await wait(200);
+    renderPlaceBrowser();
+    S.step='places';
+}
+
+function toggleSub(btn,cat,sub,sid){
+    btn.classList.toggle('selected');
+    if(!S.subFilters[cat])S.subFilters[cat]=[];
+    S.subFilters[cat]=S.subFilters[cat].includes(sub)?S.subFilters[cat].filter(s=>s!==sub):[...S.subFilters[cat],sub];
+    document.getElementById('subBtn'+sid).style.display='inline-flex';scroll();
+}
+function pickAllSub(cat,sid){S.subFilters[cat]=[];window._subResolve();}
+
+function loadFilteredPlaces(){
+    S.places=[];
+    S.selectedCats.forEach(cat=>{
+        const all=placesDB[cat]||[];
+        const filters=S.subFilters[cat]||[];
+        if(!filters.length){S.places.push(...all.map(p=>({...p,_cat:cat})));}
+        else{S.places.push(...all.filter(p=>p.subType.some(st=>filters.includes(st))).map(p=>({...p,_cat:cat})));}
+    });
+}
+
+function renderPlaceBrowser(){
+    const totalPpl=S.adults+S.kids;
+    let currentSpend=S.selectedPlaces.reduce((sum,i)=>{const p=S.places[i];return sum+(p.costUnit==='晚'?p.cost:p.cost*totalPpl);},0);
+    const pct=S.budgetMax>0&&S.budgetMax<999999?Math.min(100,currentSpend/S.budgetMax*100):0;
+    const status=currentSpend>S.budgetMax?'over':currentSpend>S.budgetMax*0.8?'warn':'ok';
+
+    let tabs=S.selectedCats.map(c=>`<button class="cat-tab ${c===S.activeTab?'active':''}" onclick="switchTab('${c}')">${c}</button>`).join('');
+
+    let cards='<div class="place-cards" id="placeCardsArea">';
+    S.places.forEach((p,i)=>{
+        if(p._cat!==S.activeTab)return;
+        const sel=S.selectedPlaces.includes(i);
+        cards+=`<div class="place-card ${sel?'selected':''}" id="pc${i}" onclick="openModal(${i})">
+            <div class="pc-header"><div class="pc-name">${p.emoji} ${p.name}</div><div class="pc-type-tag">${p.type}</div></div>
+            <div class="pc-desc">${p.desc}</div>
+            <div class="pc-stats"><div class="pc-stat rating"><i class="fas fa-star"></i> ${p.rating}</div><div class="pc-stat cost"><i class="fas fa-coins"></i> $${p.cost.toLocaleString()}/${p.costUnit}</div><div class="pc-stat reviews"><i class="fas fa-comments"></i> ${p.reviews.toLocaleString()}</div></div>
+            <div class="pc-hint"><i class="fas fa-hand-pointer"></i> 點我看詳細</div>
+        </div>`;
+    });
+    cards+='</div>';
+
+    const budgetBar=S.budgetMax>0&&S.budgetMax<999999?`<div class="budget-meter" id="budgetMeter">
+        <div class="bm-header"><div class="bm-label">💰 預算使用</div><div class="bm-amount ${status}" id="bmAmt">$${currentSpend.toLocaleString()} / $${S.budgetMax.toLocaleString()}</div></div>
+        <div class="bm-track"><div class="bm-fill ${status}" id="bmFill" style="width:${pct}%"></div></div>
+        <div class="bm-range"><span>$0</span><span>$${S.budgetMax.toLocaleString()}</span></div>
+    </div>`:'';
+
+    const cnt=S.selectedPlaces.length;
+    const el=botEl(`<div class="cat-tabs" id="catTabs">${tabs}</div>${budgetBar}${cards}
+        <button class="confirm-btn" id="plcBtn" style="${cnt?'':'display:none'}" onclick="confirmPlaces()">💕 就這些了！（<span id="selCnt">${cnt}</span>個）</button>`,true);
+    el.id='placeBrowserMsg';
+}
+
+function switchTab(cat){
+    S.activeTab=cat;
+    // Re-render tabs and cards in place
+    const tabsEl=document.getElementById('catTabs');
+    if(tabsEl)tabsEl.innerHTML=S.selectedCats.map(c=>`<button class="cat-tab ${c===S.activeTab?'active':''}" onclick="switchTab('${c}')">${c}</button>`).join('');
+    const cardsEl=document.getElementById('placeCardsArea');
+    if(!cardsEl)return;
+    let html='';
+    S.places.forEach((p,i)=>{
+        if(p._cat!==S.activeTab)return;
+        const sel=S.selectedPlaces.includes(i);
+        html+=`<div class="place-card ${sel?'selected':''}" id="pc${i}" onclick="openModal(${i})">
+            <div class="pc-header"><div class="pc-name">${p.emoji} ${p.name}</div><div class="pc-type-tag">${p.type}</div></div>
+            <div class="pc-desc">${p.desc}</div>
+            <div class="pc-stats"><div class="pc-stat rating"><i class="fas fa-star"></i> ${p.rating}</div><div class="pc-stat cost"><i class="fas fa-coins"></i> $${p.cost.toLocaleString()}/${p.costUnit}</div><div class="pc-stat reviews"><i class="fas fa-comments"></i> ${p.reviews.toLocaleString()}</div></div>
+            <div class="pc-hint"><i class="fas fa-hand-pointer"></i> 點我看詳細</div>
+        </div>`;
+    });
+    cardsEl.innerHTML=html;
+    scroll();
+}
+
+function togglePlace(idx){
+    const card=document.getElementById('pc'+idx);
+    if(S.selectedPlaces.includes(idx)){S.selectedPlaces=S.selectedPlaces.filter(i=>i!==idx);if(card)card.classList.remove('selected');}
+    else{S.selectedPlaces.push(idx);if(card)card.classList.add('selected');}
+    const btn=document.getElementById('plcBtn');
+    if(btn){btn.style.display=S.selectedPlaces.length?'inline-flex':'none';document.getElementById('selCnt').textContent=S.selectedPlaces.length;}
+    updateBudgetMeter();
+}
+
+function updateBudgetMeter(){
+    const totalPpl=S.adults+S.kids;
+    let spend=S.selectedPlaces.reduce((s,i)=>{const p=S.places[i];return s+(p.costUnit==='晚'?p.cost:p.cost*totalPpl);},0);
+    const amtEl=document.getElementById('bmAmt'), fillEl=document.getElementById('bmFill');
+    if(!amtEl||!fillEl)return;
+    const pct=S.budgetMax>0?Math.min(100,spend/S.budgetMax*100):0;
+    const st=spend>S.budgetMax?'over':spend>S.budgetMax*0.8?'warn':'ok';
+    amtEl.textContent=`$${spend.toLocaleString()} / $${S.budgetMax.toLocaleString()}`;
+    amtEl.className='bm-amount '+st;
+    fillEl.style.width=pct+'%';
+    fillEl.className='bm-fill '+st;
+}
+
+async function confirmPlaces(){
+    closeModal();
+    addMsg(`選了 ${S.selectedPlaces.length} 個地點！`,'user');
+    document.querySelectorAll('.place-card,.cat-tab').forEach(el=>el.style.pointerEvents='none');
+    const b=document.getElementById('plcBtn');if(b)b.disabled=true;
+    showTyp();await wait(600);hideTyp();
+    bot(`超棒的選擇 👏<br><br>接下來選<b>出發和回程日期</b>，<br>我們來安排每天的行程！📅`);
+    await wait(200);
+    const tmr=new Date();tmr.setDate(tmr.getDate()+1);
+    const tmr2=new Date(tmr);tmr2.setDate(tmr2.getDate()+1);
+    botEl(`<div class="date-range-row">
+        <input type="date" id="dStart" value="${tmr.toISOString().split('T')[0]}">
+        <span>→</span>
+        <input type="date" id="dEnd" value="${tmr2.toISOString().split('T')[0]}">
+    </div>
+    <button class="confirm-btn" onclick="confirmDates()">📅 確認日期</button>`,true);
+    S.step='dates';
+}
+
+async function confirmDates(){
+    S.dateStart=document.getElementById('dStart').value;
+    S.dateEnd=document.getElementById('dEnd').value;
+    if(S.dateEnd<S.dateStart)S.dateEnd=S.dateStart;
+    // Build days array
+    S.days=[];
+    let cur=new Date(S.dateStart);
+    const end=new Date(S.dateEnd);
+    while(cur<=end){S.days.push(cur.toISOString().split('T')[0]);cur.setDate(cur.getDate()+1);}
+    const wd=['日','一','二','三','四','五','六'];
+    const label=S.days.length===1?formatDate(S.days[0]):`${formatDate(S.days[0])} ~ ${formatDate(S.days[S.days.length-1])}（${S.days.length}天）`;
+    addMsg(label,'user');
+    document.querySelectorAll('.date-range-row input,.confirm-btn').forEach(b=>{if(!b.disabled)b.disabled=true;});
+
+    showTyp();await wait(600);hideTyp();
+    bot(`${S.days.length}天的旅行，好期待！🎉<br><br>幫每個地點選<b>哪天去、幾點去</b>吧～`);
+    await wait(200);
+
+    // Init day schedule
+    S.daySchedule={};S.days.forEach(d=>S.daySchedule[d]=[]);
+    // Default assign: spread evenly
+    const sel=S.selectedPlaces;
+    sel.forEach((idx,i)=>{
+        const dayIdx=Math.min(i%S.days.length,S.days.length-1);
+        const day=S.days[dayIdx];
+        const existing=S.daySchedule[day].length;
+        S.daySchedule[day].push({placeIdx:idx, time:`${(9+existing*2).toString().padStart(2,'0')}:00`});
+    });
+
+    renderDayAssignment();
+    S.step='assign';
+}
+
+function formatDate(ds){const d=new Date(ds);const wd=['日','一','二','三','四','五','六'];return `${d.getMonth()+1}/${d.getDate()}(${wd[d.getDay()]})`;}
+
+function renderDayAssignment(){
+    let html='<div class="day-assign">';
+    S.days.forEach((day,di)=>{
+        html+=`<div class="da-day-section"><div class="da-day-header">📅 Day ${di+1} — ${formatDate(day)}</div>`;
+        const items=S.daySchedule[day]||[];
+        items.forEach((item,ii)=>{
+            const p=S.places[item.placeIdx];
+            const dayOpts=S.days.map((d,j)=>`<option value="${d}" ${d===day?'selected':''}>D${j+1} ${formatDate(d)}</option>`).join('');
+            html+=`<div class="da-item">
+                <div class="da-emoji">${p.emoji}</div>
+                <div class="da-info"><div class="da-name">${p.name}</div><div class="da-type">${p.type}</div></div>
+                <select onchange="movePlace(${item.placeIdx},'${day}',this.value)">${dayOpts}</select>
+                <input type="time" value="${item.time}" onchange="updateTime(${item.placeIdx},'${day}',this.value)">
+            </div>`;
+        });
+        if(!items.length)html+=`<div style="padding:10px;font-size:0.78rem;color:var(--text-muted);text-align:center;">尚未安排地點</div>`;
+        html+=`</div>`;
+    });
+    html+=`</div><button class="generate-btn" onclick="generateItinerary()">✨ 產生行程表 ✨</button>`;
+    botEl(html,true);
+}
+
+function movePlace(placeIdx,fromDay,toDay){
+    if(fromDay===toDay)return;
+    const item=S.daySchedule[fromDay].find(i=>i.placeIdx===placeIdx);
+    if(!item)return;
+    S.daySchedule[fromDay]=S.daySchedule[fromDay].filter(i=>i.placeIdx!==placeIdx);
+    S.daySchedule[toDay].push(item);
+    // Re-render
+    const parent=document.querySelector('.day-assign').parentElement;
+    parent.innerHTML='';
+    let html='<div class="day-assign">';
+    S.days.forEach((day,di)=>{
+        html+=`<div class="da-day-section"><div class="da-day-header">📅 Day ${di+1} — ${formatDate(day)}</div>`;
+        const items=S.daySchedule[day]||[];
+        items.forEach(it=>{
+            const p=S.places[it.placeIdx];
+            const opts=S.days.map((d,j)=>`<option value="${d}" ${d===day?'selected':''}>D${j+1} ${formatDate(d)}</option>`).join('');
+            html+=`<div class="da-item"><div class="da-emoji">${p.emoji}</div><div class="da-info"><div class="da-name">${p.name}</div><div class="da-type">${p.type}</div></div>
+                <select onchange="movePlace(${it.placeIdx},'${day}',this.value)">${opts}</select>
+                <input type="time" value="${it.time}" onchange="updateTime(${it.placeIdx},'${day}',this.value)"></div>`;
+        });
+        if(!items.length)html+=`<div style="padding:10px;font-size:0.78rem;color:var(--text-muted);text-align:center;">尚未安排地點</div>`;
+        html+=`</div>`;
+    });
+    html+=`</div><button class="generate-btn" onclick="generateItinerary()">✨ 產生行程表 ✨</button>`;
+    parent.innerHTML=html;
+    scroll();
+}
+
+function updateTime(placeIdx,day,newTime){
+    const item=(S.daySchedule[day]||[]).find(i=>i.placeIdx===placeIdx);
+    if(item)item.time=newTime;
+}
+
+async function generateItinerary(){
+    addMsg('時間都安排好了，產生行程！','user');
+    document.querySelector('.generate-btn').disabled=true;
+    showTyp();await wait(800);hideTyp();
+    bot('正在規劃最棒的行程... 🌟');
+    showTyp();await wait(800);hideTyp();
+
+    const totalPpl=S.adults+S.kids;
+    let totalCost=0;
+    const schedule={};
+    let itinHtml='';
+
+    S.days.forEach((day,di)=>{
+        const items=(S.daySchedule[day]||[]).sort((a,b)=>a.time.localeCompare(b.time));
+        schedule[day]=[];
+        itinHtml+=`<div class="itin-day-label">📅 Day ${di+1} — ${formatDate(day)}</div><div class="itin-body">`;
+
+        if(!items.length){
+            itinHtml+=`<div style="padding:14px;font-size:0.82rem;color:var(--text-muted);text-align:center;">自由活動日 🌿</div>`;
+        }
+        items.forEach(it=>{
+            const p=S.places[it.placeIdx];
+            const pc=p.costUnit==='晚'?p.cost:p.cost*totalPpl;
+            totalCost+=pc;
+            let act='開心遊玩';
+            if(['吃到飽','套餐','港式點心','迴轉壽司'].some(t=>p.type.includes(t)))act='享用美食';
+            else if(['飯店','度假村','溫泉'].some(t=>p.type.includes(t)))act='入住&設施';
+            else if(['樂園','商場'].some(t=>p.type.includes(t)))act='暢玩設施';
+            else if(['動物','海洋'].some(t=>p.type.includes(t)))act='探索互動';
+
+            schedule[day].push({name:p.name,emoji:p.emoji,type:p.type,time:it.time,placeCost:pc,costUnit:p.costUnit});
+
+            itinHtml+=`<div class="itin-item"><div class="itin-time">${it.time}</div><div class="itin-dot"></div>
+                <div class="itin-content"><h4>${p.emoji} ${p.name}</h4><p>${act}</p>
+                <div class="itin-cost">💰 $${pc.toLocaleString()} ${p.costUnit==='晚'?'(住宿)':`($${p.cost}×${totalPpl}人)`}</div></div></div>`;
+        });
+        const dayTransport=items.length>1?(items.length-1)*200:0;
+        if(dayTransport){totalCost+=dayTransport;itinHtml+=`<div class="itin-item"><div class="itin-time"></div><div class="itin-dot"></div><div class="itin-content"><h4>🚗 交通</h4><div class="itin-cost">💰 $${dayTransport.toLocaleString()}</div></div></div>`;}
+        itinHtml+=`</div>`;
+    });
+
+    const dateLabel=S.days.length===1?formatDate(S.days[0]):`${formatDate(S.days[0])} ~ ${formatDate(S.days[S.days.length-1])}`;
+
+    bot(`<div class="itinerary" id="itineraryCard">
+        <div class="itin-header"><h3><i class="fas fa-route"></i> ${S.location} 親子行程表</h3><p>${dateLabel} · ${S.adults}大${S.kids}小 · ${S.days.length}天</p></div>
+        ${itinHtml}
+        <div class="itin-footer"><div><div class="total-label">預估總花費</div><div class="total-sub">含門票、餐飲、住宿、交通</div></div><div class="total-amount">$${totalCost.toLocaleString()}</div></div>
+    </div>`);
+
+    await wait(400);
+    const overBudget=S.budgetMax>0&&S.budgetMax<999999&&totalCost>S.budgetMax;
+    bot(`行程規劃好囉！🎊<br><br><b style="color:var(--mint-dark)">${S.location} ${S.days.length}天親子行程</b><br>預估 <b style="color:var(--mint-dark)">$${totalCost.toLocaleString()}</b>${overBudget?` <span style="color:var(--red);font-size:0.82rem;">（超出預算 ⚠️）</span>`:''}<br><br>📌 媽咪小提醒：<br>• 熱門餐廳飯店記得提前預約<br>• 幫寶貝準備防曬、水壺、點心<br>• 行程已自動存到首頁囉！<br><br>祝你們玩得開開心心！🥰`);
+
+    saveTrip({
+        id:Date.now(),location:S.location,adults:S.adults,kids:S.kids,
+        budgetMin:S.budgetMin,budgetMax:S.budgetMax,totalCost,
+        categories:S.selectedCats,
+        dateStart:S.dateStart,dateEnd:S.dateEnd,
+        selectedPlaces:S.selectedPlaces.map(i=>S.places[i]),
+        schedule
+    });
+    S.step='done';
+}
+
+// ═══ EDIT FLOW ═══
+async function editFlow(ed){
+    S.adults=ed.adults;S.kids=ed.kids;S.location=ed.location;S.budgetMin=ed.budgetMin||0;S.budgetMax=ed.budgetMax||999999;
+    await wait(300);
+    bot(`歡迎回來修改行程！🔄<br>載入上次的設定囉～`);
+    await wait(200);addMsg(`${S.adults}大${S.kids}小 · ${S.location}`,'user');
+    const catSet=new Set();
+    (ed.selectedPlaces||[]).forEach(p=>{Object.keys(placesDB).forEach(c=>{if(placesDB[c].some(dp=>dp.name===p.name))catSet.add(c);});});
+    S.selectedCats=[...catSet];S.subFilters=ed.subCategories||{};
+    loadFilteredPlaces();
+    const prevNames=(ed.selectedPlaces||[]).map(p=>p.name);
+    S.places.forEach((p,i)=>{if(prevNames.includes(p.name))S.selectedPlaces.push(i);});
+    S.activeTab=S.selectedCats[0]||'';
+    showTyp();await wait(500);hideTyp();
+    bot(`上次選了 <b>${S.selectedCats.join('、')}</b>，找到 ${S.places.length} 個地方<br>可以重新選擇喔！💕`);
+    await wait(200);renderPlaceBrowser();S.step='places';
+}
+
+// ═══ INPUT ═══
+SB.addEventListener('click',handleSend);
+UI.addEventListener('keydown',e=>{if(e.key==='Enter')handleSend();});
+function handleSend(){const t=UI.value.trim();if(!t)return;if(S.step==='location')stepLocation(t);}
+
+// ═══ EXPORT ═══
+function exportItinerary(){
+    if(!document.getElementById('itineraryCard')){alert('請先完成行程規劃！');return;}
+    const sel=S.selectedPlaces.map(i=>S.places[i]);const tp=S.adults+S.kids;let tc=0;
+    let t=`🌈 ${S.location} 親子行程表\n📅 ${S.dateStart} ~ ${S.dateEnd} · ${S.adults}大${S.kids}小\n━━━━━━━━━━━━━━\n\n`;
+    S.days.forEach((day,di)=>{
+        t+=`📅 Day ${di+1} — ${formatDate(day)}\n`;
+        (S.daySchedule[day]||[]).sort((a,b)=>a.time.localeCompare(b.time)).forEach(it=>{
+            const p=S.places[it.placeIdx];const c=p.costUnit==='晚'?p.cost:p.cost*tp;tc+=c;
+            t+=`  ${it.time} ${p.emoji} ${p.name} — $${c.toLocaleString()}\n`;
+        });t+='\n';
+    });
+    t+=`━━━━━━━━━━━━━━\n💰 總計 $${tc.toLocaleString()}\n`;
+    navigator.clipboard.writeText(t).then(()=>alert('已複製！📋')).catch(()=>{
+        const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t]));a.download='行程表.txt';a.click();
+    });
+}
+
+// ═══ INIT ═══
+renderPastTrips();
+</script>
+</body>
+</html>
