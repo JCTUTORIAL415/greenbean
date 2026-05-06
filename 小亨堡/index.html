@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>小亨堡 · 寶寶照護 QA 諮詢</title>
+    <meta name="description" content="跟小亨堡聊聊天，3 秒找到寶寶照護的標準答案。277 題 QA + 25 條急救 SOP。">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<div class="screen active" id="chatScreen">
+    <header class="app-header">
+        <div class="brand">
+            <div class="brand-avatar"><img src="img/xiaohengbao.png" alt="小亨堡"></div>
+            <div class="brand-text">
+                <h1>小亨堡 · 寶寶 QA</h1>
+                <p><span class="online-dot"></span>線上中 · 秒回你 💬</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="hbtn sos" onclick="showSOS()" aria-label="緊急電話">
+                <i class="fas fa-phone-volume"></i><span>SOS</span>
+            </button>
+            <button class="hbtn" onclick="resetChat()" aria-label="重新開始">
+                <i class="fas fa-arrows-rotate"></i><span>重來</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="chat-container" id="chatContainer"></div>
+
+    <div class="input-bar">
+        <input type="text" id="userInput" placeholder="描述寶寶狀況...（例如：發燒 38.5、吐奶、紅疹）" autocomplete="off">
+        <button class="send-btn" id="sendBtn" aria-label="送出"><i class="fas fa-paper-plane"></i></button>
+    </div>
+</div>
+
+<!-- SOS Overlay：緊急電話 / 兒童急診 -->
+<div class="sos-overlay" id="sosOverlay">
+    <div class="sos-sheet">
+        <div class="modal-handle"><span></span></div>
+        <div class="sos-header">
+            <h3><i class="fas fa-triangle-exclamation"></i> 緊急狀況？</h3>
+            <button class="close-btn" onclick="closeSOS()" aria-label="關閉"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="sos-content" id="sosContent"></div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><i class="fas fa-circle-check"></i><span id="toastMsg"></span></div>
+
+<script src="js/app.js" defer></script>
+</body>
+</html>
