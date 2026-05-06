@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>使用教學 - 小亨堡QA</title>
+    <meta name="description" content="3 分鐘學會用小亨堡QA，未來省下無數個焦慮的夜。">
+
+    <meta name="application-name" content="小亨堡QA">
+    <meta name="apple-mobile-web-app-title" content="小亨堡QA">
+    <meta name="theme-color" content="#5BBFAD">
+
+    <link rel="icon" href="favicon.ico?v=3">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=3">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=3">
+    <link rel="manifest" href="manifest.json?v=3">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <meta property="og:site_name" content="小亨堡QA">
+    <meta property="og:title" content="使用教學 - 小亨堡QA">
+    <meta property="og:description" content="3 分鐘學會用，未來省下無數焦慮夜。">
+    <meta property="og:type" content="article">
+    <meta property="og:locale" content="zh_TW">
+    <meta property="og:image" content="img/icon-512.png?v=3">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+    <style>
+    :root {
+        --mint: #5BBFAD; --mint-dark: #3EA898; --mint-light: #A8E6CF; --mint-soft: #E8F8F5;
+        --blue: #6BAFCF; --blue-dark: #4A8DB0; --blue-light: #B0D9ED; --blue-soft: #EBF5FB;
+        --blush: #F4A9A8; --blush-light: #FCDADA; --blush-soft: #FFF5F5;
+        --cream: #FAF8F5; --cream-dark: #F2EDE7;
+        --text: #2D3E50; --text-light: #6B8299; --text-muted: #9DB2C4;
+        --border: #E4EDF2;
+        --green: #5BBFAD; --green-bg: #E8F8F5; --green-dark: #2E8B6F;
+        --yellow: #F2B544; --yellow-bg: #FFF7E0; --yellow-dark: #B07F1A;
+        --red: #E5707B; --red-deep: #D04A56; --red-bg: #FFECEE; --red-dark: #A8333D;
+        --shadow-sm: 0 2px 8px rgba(91,191,173,0.08);
+        --shadow-md: 0 4px 16px rgba(91,191,173,0.10);
+        --r-sm: 12px; --r-md: 18px; --r-lg: 24px; --r-full: 999px;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+    html { scroll-behavior: smooth; }
+    body {
+        font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: var(--cream); color: var(--text);
+        -webkit-font-smoothing: antialiased; line-height: 1.7;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+    ol, ul { list-style: none; }
+
+    .page {
+        max-width: 720px;
+        margin: 0 auto;
+        background: var(--cream);
+        position: relative;
+    }
+
+    /* Top bar */
+    .top-bar {
+        position: sticky;
+        top: 0;
+        background: rgba(255,255,255,0.92);
+        backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+        padding: 10px 14px;
+        padding-top: calc(10px + env(safe-area-inset-top, 0px));
+        display: flex; align-items: center; gap: 10px;
+        z-index: 100;
+    }
+    .top-bar .ava {
+        width: 36px; height: 36px;
+        border-radius: 50%; overflow: hidden;
+        border: 2px solid white;
+        box-shadow: 0 2px 6px rgba(91,191,173,0.18);
+        background: linear-gradient(135deg, var(--mint-soft), var(--blue-soft));
+        flex-shrink: 0;
+    }
+    .top-bar .ava img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+    .top-bar .name { flex: 1; font-size: 0.98rem; font-weight: 900; }
+    .top-bar .start-btn {
+        background: linear-gradient(135deg, var(--mint), var(--blue));
+        color: white; padding: 8px 14px;
+        border-radius: var(--r-full);
+        font-size: 0.78rem; font-weight: 800;
+        box-shadow: 0 3px 10px rgba(91,191,173,0.3);
+        transition: all 0.25s;
+        display: inline-flex; align-items: center; gap: 5px;
+    }
+    .top-bar .start-btn:hover { transform: translateY(-1px); }
+
+    /* Hero */
+    .hero {
+        text-align: center;
+        padding: 50px 22px 44px;
+        background: linear-gradient(135deg, var(--mint-soft) 0%, var(--blue-soft) 50%, var(--blush-soft) 100%);
+        position: relative; overflow: hidden;
+    }
+    .hero::before, .hero::after {
+        content: ''; position: absolute; border-radius: 50%; opacity: 0.4;
+    }
+    .hero::before {
+        width: 240px; height: 240px;
+        background: radial-gradient(circle, rgba(255,255,255,0.6), transparent 70%);
+        top: -80px; left: -80px;
+    }
+    .hero::after {
+        width: 280px; height: 280px;
+        background: radial-gradient(circle, rgba(255,255,255,0.5), transparent 70%);
+        bottom: -100px; right: -100px;
+    }
+    .hero-content { position: relative; }
+    .hero-emoji {
+        width: 96px; height: 96px;
+        margin: 0 auto 18px;
+        border-radius: 50%; overflow: hidden;
+        background: linear-gradient(135deg, var(--mint-soft), var(--blue-soft));
+        border: 4px solid white;
+        box-shadow: 0 8px 24px rgba(45,62,80,0.12);
+    }
+    .hero-emoji img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+    .hero h1 {
+        font-size: 1.85rem; font-weight: 900;
+        margin-bottom: 10px;
+        background: linear-gradient(135deg, var(--mint-dark), var(--blue-dark));
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+        line-height: 1.3;
+    }
+    .hero .subtitle {
+        font-size: 0.95rem; color: var(--text);
+        font-weight: 500;
+        margin-bottom: 22px; line-height: 1.7;
+    }
+    .hero .meta {
+        display: inline-flex; gap: 8px; flex-wrap: wrap;
+        justify-content: center; margin-bottom: 26px;
+    }
+    .meta-chip {
+        background: white;
+        border-radius: var(--r-full);
+        padding: 5px 14px;
+        font-size: 0.74rem; font-weight: 700;
+        box-shadow: var(--shadow-sm);
+        display: inline-flex; align-items: center; gap: 5px;
+    }
+    .hero-cta {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: white;
+        color: var(--mint-dark);
+        padding: 13px 30px;
+        border-radius: var(--r-full);
+        font-size: 0.95rem; font-weight: 800;
+        box-shadow: 0 6px 20px rgba(45,62,80,0.12);
+        transition: all 0.25s;
+    }
+    .hero-cta:hover { transform: translateY(-2px); }
+
+    /* Section */
+    .section { padding: 36px 20px 8px; }
+    .section .num {
+        display: inline-block;
+        font-size: 0.72rem; font-weight: 800;
+        color: var(--mint-dark);
+        background: var(--mint-soft);
+        padding: 4px 12px;
+        border-radius: var(--r-full);
+        margin-bottom: 10px;
+        letter-spacing: 0.04em;
+    }
+    .section h2 {
+        font-size: 1.4rem; font-weight: 900;
+        margin-bottom: 8px; line-height: 1.4;
+    }
+    .section .lead {
+        font-size: 0.92rem; color: var(--text-light);
+        margin-bottom: 22px; line-height: 1.75;
+    }
+    .section p {
+        font-size: 0.92rem; line-height: 1.85;
+        color: var(--text); margin-bottom: 14px;
+    }
+    .section strong { font-weight: 800; }
+
+    /* Light cards (3 colors) */
+    .lights { display: flex; flex-direction: column; gap: 12px; }
+    .light-card {
+        background: white;
+        border-radius: var(--r-md);
+        padding: 16px 18px;
+        display: flex; gap: 14px; align-items: flex-start;
+        box-shadow: var(--shadow-sm);
+        border: 2px solid;
+    }
+    .light-card.green  { border-color: var(--green);  background: linear-gradient(135deg, white, var(--green-bg)); }
+    .light-card.yellow { border-color: var(--yellow); background: linear-gradient(135deg, white, var(--yellow-bg)); }
+    .light-card.red    { border-color: var(--red);    background: linear-gradient(135deg, white, var(--red-bg)); }
+    .lc-circle { font-size: 2.1rem; line-height: 1; flex-shrink: 0; }
+    .lc-content h4 { font-size: 1rem; font-weight: 900; margin-bottom: 4px; }
+    .light-card.green  .lc-content h4 { color: var(--green-dark); }
+    .light-card.yellow .lc-content h4 { color: var(--yellow-dark); }
+    .light-card.red    .lc-content h4 { color: var(--red-dark); }
+    .lc-content p { font-size: 0.86rem; color: var(--text); margin: 0; line-height: 1.7; }
+
+    /* Step Cards */
+    .steps { display: flex; flex-direction: column; gap: 12px; }
+    .step {
+        background: white;
+        border: 1.5px solid var(--border);
+        border-radius: var(--r-md);
+        padding: 16px 18px;
+        display: flex; gap: 14px; align-items: flex-start;
+        box-shadow: var(--shadow-sm);
+    }
+    .step-num {
+        width: 34px; height: 34px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--mint), var(--blue));
+        color: white;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.95rem; font-weight: 900;
+        flex-shrink: 0;
+        box-shadow: 0 3px 8px rgba(91,191,173,0.3);
+    }
+    .step-content h4 {
+        font-size: 0.98rem; font-weight: 800;
+        margin-bottom: 3px; color: var(--text);
+    }
+    .step-content p { font-size: 0.86rem; color: var(--text-light); line-height: 1.7; margin: 0; }
+
+    /* Chat Demo */
+    .chat-demo {
+        background: white;
+        border: 1.5px solid var(--border);
+        border-radius: var(--r-md);
+        padding: 14px 12px;
+        margin: 18px 0 8px;
+        box-shadow: var(--shadow-sm);
+    }
+    .chat-msg {
+        display: flex; gap: 8px;
+        margin-bottom: 10px;
+        align-items: flex-end;
+    }
+    .chat-msg:last-child { margin-bottom: 0; }
+    .chat-msg.user { flex-direction: row-reverse; }
+    .chat-ava {
+        width: 32px; height: 32px;
+        border-radius: 50%;
+        overflow: hidden;
+        flex-shrink: 0;
+        background: linear-gradient(135deg, var(--mint-soft), var(--blue-soft));
+        border: 2px solid white;
+        box-shadow: 0 2px 6px rgba(91,191,173,0.2);
+    }
+    .chat-ava img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+    .chat-ava.user-ava {
+        background: linear-gradient(135deg, var(--blush-light), var(--blush));
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1rem;
+    }
+    .chat-bubble {
+        max-width: 78%;
+        padding: 9px 14px;
+        font-size: 0.85rem;
+        line-height: 1.65;
+        border-radius: 18px;
+    }
+    .chat-msg.bot .chat-bubble {
+        background: var(--cream);
+        border: 1.5px solid var(--border);
+        color: var(--text);
+        border-bottom-left-radius: 5px;
+    }
+    .chat-msg.user .chat-bubble {
+        background: linear-gradient(135deg, var(--mint), var(--blue));
+        color: white; font-weight: 600;
+        border-bottom-right-radius: 5px;
+    }
+    .chat-bubble strong { font-weight: 800; }
+
+    .demo-qa {
+        margin-top: 8px;
+        background: white;
+        border: 1.5px solid var(--border);
+        border-left: 5px solid var(--yellow);
+        border-radius: 8px;
+        padding: 8px 10px;
+    }
+    .demo-qa .tags { display: flex; gap: 4px; margin-bottom: 4px; flex-wrap: wrap; }
+    .demo-tag {
+        font-size: 0.62rem; font-weight: 700;
+        padding: 2px 8px;
+        border-radius: var(--r-full);
+    }
+    .demo-tag.lv { background: var(--yellow-bg); color: var(--yellow-dark); }
+    .demo-tag.cat { background: var(--blue-soft); color: var(--blue-dark); }
+    .demo-qa .qa-q { font-weight: 800; font-size: 0.82rem; margin-bottom: 2px; color: var(--text); }
+    .demo-qa .qa-short { color: var(--text-light); line-height: 1.5; font-size: 0.74rem; }
+
+    .demo-sos {
+        background: linear-gradient(135deg, #FFF5F6, #FFD8DC);
+        border: 2px solid var(--blush);
+        border-radius: var(--r-md);
+        padding: 12px 14px;
+        margin-top: 8px;
+    }
+    .demo-sos h5 {
+        font-size: 0.88rem; font-weight: 900;
+        color: var(--red-dark);
+        margin-bottom: 6px;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .demo-sos .em {
+        width: 28px; height: 28px;
+        background: linear-gradient(135deg, var(--red), var(--red-deep));
+        color: white;
+        border-radius: 50%;
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 0.85rem;
+    }
+    .demo-sos p {
+        font-size: 0.78rem;
+        color: var(--red-dark);
+        line-height: 1.65;
+        margin: 0 0 8px;
+    }
+    .demo-call {
+        background: linear-gradient(135deg, var(--red), var(--red-deep));
+        color: white;
+        padding: 7px 14px;
+        border-radius: var(--r-sm);
+        font-size: 0.78rem; font-weight: 800;
+        display: inline-flex; align-items: center; gap: 5px;
+    }
+
+    .tip {
+        background: linear-gradient(135deg, var(--mint-soft), var(--blue-soft));
+        border-left: 4px solid var(--mint);
+        border-radius: var(--r-sm);
+        padding: 12px 16px;
+        margin: 14px 0;
+        font-size: 0.86rem;
+        line-height: 1.7;
+    }
+    .tip strong { color: var(--mint-dark); font-weight: 800; }
+
+    .warn {
+        background: linear-gradient(135deg, #FFF5F6, #FFECEE);
+        border-left: 4px solid var(--red);
+        border-radius: var(--r-sm);
+        padding: 12px 16px;
+        margin: 14px 0;
+        font-size: 0.86rem;
+        line-height: 1.7;
+        color: var(--red-dark);
+    }
+    .warn strong { font-weight: 800; }
+
+    /* Tag pills */
+    .pill-row {
+        display: flex; gap: 6px; flex-wrap: wrap;
+        margin: 8px 0 4px;
+    }
+    .pill {
+        background: white;
+        border: 1.5px solid var(--border);
+        padding: 5px 12px;
+        border-radius: var(--r-full);
+        font-size: 0.78rem; font-weight: 600;
+        color: var(--text);
+    }
+
+    /* Principles */
+    .principles {
+        background: white;
+        border-radius: var(--r-md);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+        margin-top: 8px;
+    }
+    .principles li {
+        display: flex; gap: 14px;
+        padding: 14px 16px;
+        border-bottom: 1px dashed var(--border);
+    }
+    .principles li:last-child { border-bottom: none; }
+    .p-num {
+        width: 30px; height: 30px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--mint), var(--blue));
+        color: white;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.88rem; font-weight: 900;
+        flex-shrink: 0;
+        box-shadow: 0 2px 6px rgba(91,191,173,0.3);
+    }
+    .p-text strong { display: block; font-size: 0.9rem; margin-bottom: 2px; font-weight: 800; }
+    .p-text em { font-style: normal; color: var(--text-muted); font-size: 0.78rem; }
+
+    /* Final CTA */
+    .final {
+        margin: 40px 16px 50px;
+        padding: 36px 22px;
+        background: linear-gradient(135deg, var(--mint), var(--blue));
+        border-radius: var(--r-lg);
+        color: white;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(91,191,173,0.25);
+    }
+    .final::before {
+        content: '';
+        position: absolute; inset: 0;
+        background: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.18) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.12) 0%, transparent 50%);
+    }
+    .final > * { position: relative; }
+    .final h3 { font-size: 1.4rem; font-weight: 900; margin-bottom: 8px; }
+    .final p { font-size: 0.92rem; opacity: 0.92; margin-bottom: 22px; line-height: 1.7; }
+    .btn-row {
+        display: flex; gap: 10px; flex-wrap: wrap;
+        justify-content: center;
+    }
+    .final-btn {
+        background: white; color: var(--mint-dark);
+        padding: 12px 26px;
+        border-radius: var(--r-full);
+        font-size: 0.92rem; font-weight: 800;
+        display: inline-flex; align-items: center; gap: 6px;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+        transition: all 0.25s;
+    }
+    .final-btn:hover { transform: translateY(-2px); }
+    .final-btn.ghost {
+        background: transparent; color: white;
+        border: 2px solid rgba(255,255,255,0.5);
+        box-shadow: none;
+    }
+    .final-btn.ghost:hover { background: rgba(255,255,255,0.1); }
+
+    .footer-note {
+        text-align: center;
+        padding: 0 20px 40px;
+        padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+        font-size: 0.74rem;
+        color: var(--text-muted);
+        line-height: 1.7;
+    }
+
+    /* FAB */
+    .fab {
+        position: fixed;
+        right: 16px;
+        bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+        width: 46px; height: 46px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--mint), var(--blue));
+        color: white;
+        font-size: 0.95rem;
+        box-shadow: 0 4px 14px rgba(91,191,173,0.4);
+        border: none; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.25s;
+        z-index: 200;
+        opacity: 0;
+        pointer-events: none;
+    }
+    .fab.show { opacity: 1; pointer-events: auto; }
+    .fab:hover { transform: scale(1.05) translateY(-2px); }
+
+    /* ===== 加到主畫面 ===== */
+    .benefit-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin: 16px 0 22px;
+    }
+    .benefit {
+        background: white;
+        border: 1.5px solid var(--border);
+        border-radius: var(--r-md);
+        padding: 14px 12px 12px;
+        text-align: center;
+        box-shadow: var(--shadow-sm);
+    }
+    .b-emoji { font-size: 1.85rem; line-height: 1; margin-bottom: 6px; }
+    .benefit h4 { font-size: 0.88rem; font-weight: 800; margin-bottom: 3px; color: var(--text); }
+    .benefit p { font-size: 0.72rem; color: var(--text-light); margin: 0; line-height: 1.5; }
+
+    .install-block {
+        background: white;
+        border-radius: var(--r-md);
+        margin-bottom: 14px;
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1.5px solid var(--border);
+    }
+    .install-block.ios .install-head     { background: linear-gradient(135deg, var(--blue-soft), white); }
+    .install-block.android .install-head { background: linear-gradient(135deg, var(--mint-soft), white); }
+    .install-head {
+        padding: 14px 16px 12px;
+        border-bottom: 1px solid var(--border);
+    }
+    .install-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: white;
+        padding: 5px 14px;
+        border-radius: var(--r-full);
+        font-size: 0.78rem;
+        font-weight: 800;
+        margin-bottom: 8px;
+    }
+    .install-block.ios .install-badge     { background: linear-gradient(135deg, var(--blue-dark), var(--blue)); }
+    .install-block.android .install-badge { background: linear-gradient(135deg, var(--mint-dark), var(--mint)); }
+    .install-head .req {
+        font-size: 0.84rem;
+        color: var(--text);
+        margin: 0;
+    }
+    .install-head .req strong { font-weight: 800; }
+    .install-head .req-warn {
+        font-size: 0.72rem;
+        color: var(--red-dark);
+        margin-top: 4px;
+    }
+    .install-steps {
+        padding: 6px 0 10px;
+    }
+    .install-step {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 9px 16px;
+    }
+    .is-num {
+        width: 26px; height: 26px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--mint), var(--blue));
+        color: white;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.76rem; font-weight: 800;
+        flex-shrink: 0;
+        box-shadow: 0 2px 5px rgba(91,191,173,0.3);
+    }
+    .is-content {
+        flex: 1;
+        font-size: 0.86rem;
+        line-height: 1.55;
+    }
+    .is-content strong { display: block; font-weight: 800; color: var(--text); margin-bottom: 1px; }
+    .is-content .is-hint { color: var(--text-light); font-size: 0.76rem; }
+    .is-content .is-hint .key {
+        background: var(--cream);
+        padding: 1px 7px;
+        border-radius: 6px;
+        font-weight: 700;
+        color: var(--text);
+    }
+
+    @media (max-width: 480px) {
+        .hero { padding: 40px 18px 32px; }
+        .hero-emoji { width: 80px; height: 80px; }
+        .hero h1 { font-size: 1.55rem; }
+        .hero .subtitle { font-size: 0.88rem; }
+        .hero-cta { padding: 11px 26px; font-size: 0.9rem; }
+        .section { padding: 28px 16px 6px; }
+        .section h2 { font-size: 1.2rem; }
+        .section p { font-size: 0.88rem; }
+        .light-card { padding: 14px; gap: 12px; }
+        .lc-circle { font-size: 1.85rem; }
+        .step { padding: 14px; }
+        .chat-bubble { font-size: 0.82rem; }
+        .final { padding: 30px 18px; margin: 32px 14px 44px; }
+        .final h3 { font-size: 1.2rem; }
+    }
+    </style>
+</head>
+<body>
+
+<div class="page">
+
+    <header class="top-bar">
+        <div class="ava"><img src="img/xiaohengbao.png" alt="小亨堡"></div>
+        <div class="name">使用教學</div>
+        <a href="index.html" class="start-btn">開始用 <i class="fas fa-arrow-right"></i></a>
+    </header>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-emoji"><img src="img/xiaohengbao.png" alt="小亨堡"></div>
+            <h1>3 分鐘上手<br>小亨堡QA</h1>
+            <p class="subtitle">學會怎麼用，<br>未來省下無數個焦慮的夜 🌙</p>
+            <div class="meta">
+                <span class="meta-chip">⏱ 3 分鐘讀完</span>
+                <span class="meta-chip">📖 9 個重點</span>
+                <span class="meta-chip">🆓 永遠免費</span>
+            </div>
+            <br>
+            <a href="#sec1" class="hero-cta">
+                開始閱讀 <i class="fas fa-arrow-down"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- 1. 介紹 -->
+    <section class="section" id="sec1">
+        <span class="num">01 · 介紹</span>
+        <h2>小亨堡QA 是什麼？</h2>
+        <p>小亨堡QA 是<strong>媽咪的居家照護助手</strong>，整理了寶寶常見問題與急救步驟，幫你在第一時間判斷狀況，不再被半夜的小小不對勁逼瘋。</p>
+        <div class="tip">
+            <strong>核心精神：</strong>「<strong>看活力 ＞ 看溫度</strong>」<br>
+            寶寶會玩、會笑、有食慾、尿量正常 = 大多沒事；嗜睡、不哭不鬧、皮膚異常 = 才是該擔心的紅旗。
+        </div>
+    </section>
+
+    <!-- 2. 三色 -->
+    <section class="section" id="sec2">
+        <span class="num">02 · 紅綠燈系統</span>
+        <h2>三種顏色，三種處理方式</h2>
+        <p class="lead">每一題 QA 都標好了顏色，遇到狀況看顏色就知道大致方向。</p>
+        <div class="lights">
+            <div class="light-card green">
+                <div class="lc-circle">🟢</div>
+                <div class="lc-content">
+                    <h4>綠燈・日常普遍</h4>
+                    <p>溢奶、長牙、紅疹、便秘⋯多數會自行緩解。<strong>居家觀察</strong>：注意活力、食慾、尿量。</p>
+                </div>
+            </div>
+            <div class="light-card yellow">
+                <div class="lc-circle">🟡</div>
+                <div class="lc-content">
+                    <h4>黃燈・突發狀況</h4>
+                    <p>發燒、上吐下瀉、跌倒撞到⋯先做居家處理＋觀察 24-48h。<strong>有紅旗症狀</strong>就安排看診。</p>
+                </div>
+            </div>
+            <div class="light-card red">
+                <div class="lc-circle">🔴</div>
+                <div class="lc-content">
+                    <h4>紅燈・嚴重急症</h4>
+                    <p>抽搐、嘴唇紫、誤食、撞頭意識不清⋯<strong>立刻急診</strong>或撥 119，不能等門診。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. 怎麼用 -->
+    <section class="section" id="sec3">
+        <span class="num">03 · 怎麼用</span>
+        <h2>三種找答案的方式</h2>
+        <p class="lead">小亨堡看得懂自然語言，怎麼問都行。</p>
+        <div class="steps">
+            <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <h4>直接打字描述</h4>
+                    <p>不用記分類，把寶寶現在的狀況打進去就好——例如「發燒 38.5」、「吐奶很多次」、「屁股紅一片」。</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <h4>選分類 → 選月齡</h4>
+                    <p>不確定關鍵字時，從「發燒 / 餵食 / 呼吸 / 皮膚⋯」分類進去，再選寶寶月齡，會列出該月齡常見的題目。</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                    <h4>點熱搜關鍵字</h4>
+                    <p>首頁有 6 個熱搜：發燒 / 吐奶 / 腸絞痛 / 紅疹 / 噎到 / 便秘，一鍵直達。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-demo">
+            <div class="chat-msg user">
+                <div class="chat-ava user-ava">👩</div>
+                <div class="chat-bubble">寶寶從昨晚開始發燒 38.5</div>
+            </div>
+            <div class="chat-msg bot">
+                <div class="chat-ava"><img src="img/xiaohengbao.png" alt="小亨堡"></div>
+                <div class="chat-bubble">
+                    我幫你找到 <strong>4</strong> 題相關，列出最符合的 ✨
+                    <div class="demo-qa">
+                        <div class="tags">
+                            <span class="demo-tag lv">🟡 黃燈</span>
+                            <span class="demo-tag cat">發燒</span>
+                        </div>
+                        <div class="qa-q">發燒 38-39°C 怎麼處理？</div>
+                        <div class="qa-short">發燒是免疫反應，重點看活力與精神，不是看溫度數字⋯</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. 紅旗偵測 -->
+    <section class="section" id="sec4">
+        <span class="num">04 · 智慧守門員</span>
+        <h2>紅旗偵測：自動跳警告</h2>
+        <p class="lead">媽咪打字時，<strong>關鍵字觸發即時 SOS</strong>，不會讓你花時間找答案。</p>
+
+        <div class="chat-demo">
+            <div class="chat-msg user">
+                <div class="chat-ava user-ava">👩</div>
+                <div class="chat-bubble">寶寶嘴唇有點發紫</div>
+            </div>
+            <div class="chat-msg bot">
+                <div class="chat-ava"><img src="img/xiaohengbao.png" alt="小亨堡"></div>
+                <div class="chat-bubble">
+                    ⚠️ 我偵測到你提到「<strong>嘴唇紫</strong>」是<strong>紅燈急症徵兆</strong>！
+                    <div class="demo-sos">
+                        <h5><span class="em"><i class="fas fa-triangle-exclamation"></i></span> 紅燈急症徵兆</h5>
+                        <p>關鍵字「嘴唇紫」<br>可能缺氧或循環異常</p>
+                        <a href="tel:119" class="demo-call"><i class="fas fa-phone-volume"></i> 撥 119</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p>會觸發紅旗的關鍵字：</p>
+        <div class="pill-row">
+            <span class="pill">嘴唇紫</span>
+            <span class="pill">抽搐</span>
+            <span class="pill">噎到</span>
+            <span class="pill">誤食</span>
+            <span class="pill">吐血</span>
+            <span class="pill">撞到頭</span>
+            <span class="pill">8h 沒尿</span>
+            <span class="pill">呼吸困難</span>
+            <span class="pill">叫不醒</span>
+        </div>
+        <p>只要打字描述狀況有這些字，小亨堡會直接顯示紅色 SOS 卡＋119 按鈕＋對應的急救 SOP。</p>
+    </section>
+
+    <!-- 5. SOP -->
+    <section class="section" id="sec5">
+        <span class="num">05 · 急救 SOP</span>
+        <h2>急救步驟：哽塞、CPR、燙傷⋯</h2>
+        <p class="lead">緊急時你不會記得書怎麼說，但能打開手機照著一條一條做。</p>
+        <div class="pill-row">
+            <span class="pill">🍼 嬰兒哽塞救命</span>
+            <span class="pill">👶 哈姆立克</span>
+            <span class="pill">💗 嬰幼兒 CPR</span>
+            <span class="pill">🌡 發燒處置</span>
+            <span class="pill">🔥 燙傷處理</span>
+            <span class="pill">🤝 抽搐 / 熱性痙攣</span>
+            <span class="pill">🤕 頭部撞傷</span>
+            <span class="pill">💊 毒物吞入</span>
+            <span class="pill">🌿 嚴重過敏</span>
+        </div>
+        <div class="warn">
+            <strong>提醒：</strong>急救情境第一步永遠是「<strong>判斷意識 → 叫 119 → 立即操作</strong>」。操作中可開擴音，讓救護人員邊指導邊評估。<br><strong>不要倒提雙腳、不要手指挖喉嚨。</strong>
+        </div>
+    </section>
+
+    <!-- 6. 問診清單 -->
+    <section class="section" id="sec6">
+        <span class="num">06 · 問診清單</span>
+        <h2>15 秒產生「求救卡」</h2>
+        <p class="lead">媽媽心慌時很難條理表達。問診清單把該補的資訊問完，自動產出整齊的求救文字。</p>
+        <p>八題互動式問答（可跳過）：</p>
+        <div class="pill-row">
+            <span class="pill">月齡</span>
+            <span class="pill">性別+體重</span>
+            <span class="pill">主要症狀</span>
+            <span class="pill">開始時間</span>
+            <span class="pill">體溫</span>
+            <span class="pill">精神</span>
+            <span class="pill">喝奶吃飯</span>
+            <span class="pill">已做的處置</span>
+        </div>
+        <div class="tip">
+            填完按一鍵複製，就能貼到社群 / LINE / 給醫師看，<strong>不用再重複講 N 次</strong>。
+        </div>
+    </section>
+
+    <!-- 7. 緊急電話 -->
+    <section class="section" id="sec7">
+        <span class="num">07 · 緊急電話</span>
+        <h2>一鍵撥號：119、毒物、5 大兒童急診</h2>
+        <p class="lead">右上角的 SOS 紅鈴鐺，或聊天室紅色急症卡，都能直接撥電話，不用切到通訊錄找。</p>
+        <p><strong>緊急通報</strong>：</p>
+        <div class="pill-row">
+            <span class="pill">119 救護車</span>
+            <span class="pill">110 警察</span>
+            <span class="pill">113 保護專線</span>
+            <span class="pill">毒物諮詢 24h</span>
+        </div>
+        <p style="margin-top:14px;"><strong>兒童急診</strong>：</p>
+        <div class="pill-row">
+            <span class="pill">台大兒童</span>
+            <span class="pill">林口長庚</span>
+            <span class="pill">馬偕兒童</span>
+            <span class="pill">台中榮總</span>
+            <span class="pill">高雄長庚</span>
+        </div>
+    </section>
+
+    <!-- 8. 5 大原則 -->
+    <section class="section" id="sec8">
+        <span class="num">08 · 必記原則</span>
+        <h2>5 大救命原則</h2>
+        <p class="lead">就算什麼都忘了，記住這五條也能救命。</p>
+        <ol class="principles">
+            <li><span class="p-num">1</span><div class="p-text"><strong>看活力 ＞ 看溫度</strong><em>會玩會笑會討抱就先觀察</em></div></li>
+            <li><span class="p-num">2</span><div class="p-text"><strong>&lt;3M 任何發燒立即急診</strong><em>不是門診，是急診</em></div></li>
+            <li><span class="p-num">3</span><div class="p-text"><strong>不出聲的哽塞最危險</strong><em>嘴唇紫、抓喉嚨、無聲</em></div></li>
+            <li><span class="p-num">4</span><div class="p-text"><strong>太乖太安靜比哭鬧可怕</strong><em>叫不醒、嗜睡是紅旗</em></div></li>
+            <li><span class="p-num">5</span><div class="p-text"><strong>灰白便 60 天黃金期</strong><em>膽道閉鎖把握早期手術</em></div></li>
+        </ol>
+    </section>
+
+    <!-- 9. 免責 -->
+    <section class="section" id="sec9">
+        <span class="num">09 · 重要聲明</span>
+        <h2>但⋯這只是參考，不是診斷</h2>
+        <div class="warn">
+            <strong>本服務僅為居家照護的參考建議</strong>，不構成醫療診斷或處方。整理的內容能幫你<strong>第一時間判斷方向</strong>，但個體差異很大，遇到任何不確定的狀況，請<strong>立即諮詢兒科醫師或撥打 119</strong>。<br><br>小亨堡能做的是減少你慌亂的時間，<strong>不是取代醫生</strong>。
+        </div>
+    </section>
+
+    <!-- 10. 加到主畫面 -->
+    <section class="section" id="sec10">
+        <span class="num">10 · 加到主畫面</span>
+        <h2>把小亨堡QA 變成手機 App</h2>
+        <p class="lead">不用安裝、不佔空間，加到主畫面後跟一般 App 一樣，<strong>一秒打開</strong>。</p>
+
+        <div class="benefit-grid">
+            <div class="benefit">
+                <div class="b-emoji">⚡</div>
+                <h4>一秒打開</h4>
+                <p>不用記網址、不用打開瀏覽器</p>
+            </div>
+            <div class="benefit">
+                <div class="b-emoji">📱</div>
+                <h4>像 App 一樣</h4>
+                <p>全螢幕、有 icon、有名字</p>
+            </div>
+            <div class="benefit">
+                <div class="b-emoji">💾</div>
+                <h4>不佔空間</h4>
+                <p>0 MB、不用 App Store</p>
+            </div>
+            <div class="benefit">
+                <div class="b-emoji">🆓</div>
+                <h4>永遠免費</h4>
+                <p>沒廣告、沒訂閱</p>
+            </div>
+        </div>
+
+        <!-- iOS -->
+        <div class="install-block ios">
+            <div class="install-head">
+                <div class="install-badge">🍎 iPhone / iPad</div>
+                <p class="req">必須用 <strong>Safari</strong> 打開本頁</p>
+                <p class="req-warn">⚠️ Chrome / FB / LINE 內建瀏覽器都沒有「加入主畫面」選項</p>
+            </div>
+            <div class="install-steps">
+                <div class="install-step">
+                    <div class="is-num">1</div>
+                    <div class="is-content">
+                        <strong>點底部「分享」按鈕</strong>
+                        <span class="is-hint">中央偏左、方框 + 向上箭頭 <span class="key">⬆</span></span>
+                    </div>
+                </div>
+                <div class="install-step">
+                    <div class="is-num">2</div>
+                    <div class="is-content">
+                        <strong>選單往下滑</strong>
+                        <span class="is-hint">找到「<span class="key">加入主畫面 ➕</span>」</span>
+                    </div>
+                </div>
+                <div class="install-step">
+                    <div class="is-num">3</div>
+                    <div class="is-content">
+                        <strong>確認名稱「小亨堡QA」</strong>
+                        <span class="is-hint">右上角點「加入」</span>
+                    </div>
+                </div>
+                <div class="install-step">
+                    <div class="is-num">4</div>
+                    <div class="is-content">
+                        <strong>主畫面就有圖示了 🎉</strong>
+                        <span class="is-hint">跟一般 App 一樣可以拖、可以放資料夾</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Android -->
+        <div class="install-block android">
+            <div class="install-head">
+                <div class="install-badge">🤖 Android</div>
+                <p class="req">建議用 <strong>Chrome</strong> 打開本頁</p>
+                <p class="req-warn">三星 Internet、Edge 也支援，操作位置略有不同</p>
+            </div>
+            <div class="install-steps">
+                <div class="install-step">
+                    <div class="is-num">1</div>
+                    <div class="is-content">
+                        <strong>點右上 <span style="color:var(--text)">⋮</span> 選單</strong>
+                        <span class="is-hint">網址列右邊三個點</span>
+                    </div>
+                </div>
+                <div class="install-step">
+                    <div class="is-num">2</div>
+                    <div class="is-content">
+                        <strong>選「加入主畫面」</strong>
+                        <span class="is-hint">有些版本顯示為「<span class="key">安裝應用程式</span>」或「Install app」</span>
+                    </div>
+                </div>
+                <div class="install-step">
+                    <div class="is-num">3</div>
+                    <div class="is-content">
+                        <strong>確認名稱「小亨堡QA」</strong>
+                        <span class="is-hint">點「新增」或「Add」</span>
+                    </div>
+                </div>
+                <div class="install-step">
+                    <div class="is-num">4</div>
+                    <div class="is-content">
+                        <strong>主畫面有圖示了 🎉</strong>
+                        <span class="is-hint">長按可以移動位置或加進資料夾</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tip">
+            <strong>看不到「加入主畫面」？</strong>檢查：① 是否用對瀏覽器（iOS Safari / Android Chrome）② 網頁完全載入後再點選單 ③ 重新整理頁面再試一次。
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <div class="final">
+        <h3>準備好了嗎？</h3>
+        <p>把小亨堡QA <strong>加到主畫面</strong>，未來遇到狀況一秒打開。</p>
+        <div class="btn-row">
+            <a href="index.html" class="final-btn">
+                <i class="fas fa-arrow-right"></i> 開始用小亨堡QA
+            </a>
+            <a href="#sec10" class="final-btn ghost">
+                <i class="fas fa-mobile-screen"></i> 怎麼加到主畫面
+            </a>
+        </div>
+    </div>
+
+    <div class="footer-note">
+        版本 v2 ・ 2026 年 5 月<br>
+        內容整理自小亨堡副食品社群 + 100Q 標準化資料庫 + 兒科常識
+    </div>
+
+</div>
+
+<button class="fab" id="fab" onclick="window.scrollTo({top:0, behavior:'smooth'})" aria-label="回到頂部">
+    <i class="fas fa-chevron-up"></i>
+</button>
+
+<script>
+const fab = document.getElementById('fab');
+window.addEventListener('scroll', () => {
+    fab.classList.toggle('show', window.scrollY > 600);
+});
+
+</script>
+
+</body>
+</html>
