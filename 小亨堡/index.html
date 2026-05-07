@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>小亨堡QA</title>
+    <meta name="description" content="寶寶照護 QA 諮詢，幫媽咪初步判斷狀況。">
+
+    <meta name="application-name" content="小亨堡QA">
+    <meta name="apple-mobile-web-app-title" content="小亨堡QA">
+    <meta name="theme-color" content="#5DA67A">
+
+    <link rel="icon" href="favicon.ico?v=4">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=4">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png?v=4">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=4">
+    <link rel="apple-touch-icon-precomposed" sizes="180x180" href="apple-touch-icon-precomposed.png?v=4">
+    <link rel="shortcut icon" href="favicon.ico?v=4">
+    <link rel="mask-icon" href="apple-touch-icon.png?v=4" color="#5DA67A">
+
+    <link rel="manifest" href="manifest.json?v=4">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <meta property="og:site_name" content="小亨堡QA">
+    <meta property="og:title" content="小亨堡QA">
+    <meta property="og:description" content="寶寶照護 QA 諮詢，幫媽咪初步判斷狀況。">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="zh_TW">
+    <meta property="og:image" content="img/icon-512.png?v=4">
+    <meta property="og:image:width" content="512">
+    <meta property="og:image:height" content="512">
+    <meta property="og:image:alt" content="小亨堡QA">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="小亨堡QA">
+    <meta name="twitter:description" content="寶寶照護 QA 諮詢，幫媽咪初步判斷狀況。">
+    <meta name="twitter:image" content="img/icon-512.png?v=4">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<!-- ═══ Welcome Onboarding Overlay（首訪顯示，畫面 1） ═══ -->
+<div class="welcome-overlay" id="welcomeOverlay">
+    <div class="welcome-content">
+        <div class="welcome-illust">
+            <div class="hero-circle"><img src="img/xiaohengbao.png" alt="小亨堡"></div>
+            <span class="deco heart">❤️</span>
+            <span class="deco q">❓</span>
+            <span class="deco kit">🩺</span>
+            <span class="deco first">💊</span>
+        </div>
+        <h1>小亨堡 QA</h1>
+        <p class="subtitle">媽咪的居家照護助手</p>
+        <p class="desc">整理寶寶常見問題與急救步驟，<br>幫你在第一時間判斷狀況，<br>不再被半夜的小不對勁逼瘋。</p>
+        <div class="welcome-tip">
+            <div class="tip-icon">🌱</div>
+            <div class="tip-body">
+                <strong>核心精神：看活力 ＞ 看溫度</strong>
+                會玩、會笑、有食慾、尿量正常 = 大多沒事；嗜睡、不哭不鬧、皮膚異常 = 才是該擔心的紅旗
+            </div>
+        </div>
+    </div>
+    <div class="welcome-cta-area">
+        <button class="welcome-cta" onclick="closeWelcome()">開始使用</button>
+        <div class="welcome-dots">
+            <span class="active"></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+</div>
+
+<div class="page">
+
+    <!-- ═══ Home View（畫面 2） ═══ -->
+    <div class="screen active" id="homeScreen">
+        <header class="app-header">
+            <div class="brand">
+                <div class="brand-avatar"><img src="img/xiaohengbao.png" alt="小亨堡"></div>
+                <div class="brand-text">
+                    <h1>小亨堡 QA</h1>
+                </div>
+            </div>
+            <button class="icon-btn" onclick="toast('通知中心即將推出')" aria-label="通知">
+                <i class="far fa-bell"></i>
+                <span class="dot"></span>
+            </button>
+        </header>
+
+        <div class="main-scroll">
+            <div class="home-greet">
+                <div class="home-greet-text">
+                    <h2>嗨，媽咪！</h2>
+                    <p>有任何狀況，<br>問小亨堡就對了</p>
+                </div>
+                <div class="home-greet-mascot"><img src="img/xiaohengbao.png" alt="小亨堡"></div>
+            </div>
+
+            <div class="search-box">
+                <div class="search-input-row">
+                    <input type="text" id="homeSearch" placeholder="請描述寶寶的狀況..." autocomplete="off">
+                    <button class="mic-btn" id="homeMicBtn" aria-label="語音"><i class="fas fa-microphone"></i></button>
+                    <button class="send-btn" id="homeSendBtn" aria-label="送出"><i class="fas fa-paper-plane"></i></button>
+                </div>
+                <div class="search-hint">例如：發燒 38.5、吐奶很多次、屁股紅一片</div>
+            </div>
+
+            <div class="section-h">
+                <h3>三種顏色，三種處理方式</h3>
+                <a href="guide.html" class="more">了解更多 →</a>
+            </div>
+            <div class="lights-stack">
+                <div class="light-card green" data-lv="green">
+                    <div class="light-circle">🙂</div>
+                    <div class="light-info">
+                        <h4>綠燈・日常普遍</h4>
+                        <p>多數會自行緩解，居家觀察<br>注意活力、食慾、尿量</p>
+                    </div>
+                    <div class="light-arrow"><i class="fas fa-chevron-right"></i></div>
+                </div>
+                <div class="light-card yellow" data-lv="yellow">
+                    <div class="light-circle">😟</div>
+                    <div class="light-info">
+                        <h4>黃燈・突發狀況</h4>
+                        <p>先做居家處理＋觀察 24-48h<br>有紅旗症狀就安排看診</p>
+                    </div>
+                    <div class="light-arrow"><i class="fas fa-chevron-right"></i></div>
+                </div>
+                <div class="light-card red" data-lv="red">
+                    <div class="light-circle">😣</div>
+                    <div class="light-info">
+                        <h4>紅燈・嚴重急症</h4>
+                        <p>立刻急診或撥 119<br>不能等門診</p>
+                    </div>
+                    <div class="light-arrow"><i class="fas fa-chevron-right"></i></div>
+                </div>
+            </div>
+
+            <div class="section-h">
+                <h3>熱搜關鍵字</h3>
+            </div>
+            <div class="hot-section">
+                <div class="hot-grid">
+                    <button class="hot-chip" data-kw="發燒"><span class="hot-emoji">🌡</span>發燒</button>
+                    <button class="hot-chip" data-kw="吐奶"><span class="hot-emoji">🍼</span>吐奶</button>
+                    <button class="hot-chip" data-kw="腸絞痛"><span class="hot-emoji">😖</span>腸絞痛</button>
+                    <button class="hot-chip" data-kw="紅疹"><span class="hot-emoji">🌸</span>紅疹</button>
+                    <button class="hot-chip" data-kw="噎到"><span class="hot-emoji">⚠️</span>噎到</button>
+                    <button class="hot-chip" data-kw="便秘"><span class="hot-emoji">💩</span>便秘</button>
+                </div>
+            </div>
+
+            <div class="section-h">
+                <h3>分類大項</h3>
+                <span class="more">點分類看完整題目 →</span>
+            </div>
+            <div class="cat-section">
+                <div class="cat-grid">
+                    <button class="cat-chip" data-cat="餵食/腸胃"><span class="cat-ic">🍼</span><span class="cat-label">餵食/腸胃</span></button>
+                    <button class="cat-chip" data-cat="哺餵"><span class="cat-ic">🤱</span><span class="cat-label">哺餵</span></button>
+                    <button class="cat-chip" data-cat="副食品"><span class="cat-ic">🥣</span><span class="cat-label">副食品</span></button>
+                    <button class="cat-chip" data-cat="排便"><span class="cat-ic">💩</span><span class="cat-label">排便</span></button>
+                    <button class="cat-chip" data-cat="發燒"><span class="cat-ic">🌡</span><span class="cat-label">發燒</span></button>
+                    <button class="cat-chip" data-cat="呼吸道"><span class="cat-ic">🤧</span><span class="cat-label">呼吸道</span></button>
+                    <button class="cat-chip" data-cat="皮膚"><span class="cat-ic">🌸</span><span class="cat-label">皮膚</span></button>
+                    <button class="cat-chip" data-cat="睡眠"><span class="cat-ic">😴</span><span class="cat-label">睡眠</span></button>
+                    <button class="cat-chip" data-cat="發展"><span class="cat-ic">👶</span><span class="cat-label">發展</span></button>
+                    <button class="cat-chip" data-cat="生活"><span class="cat-ic">🏡</span><span class="cat-label">生活</span></button>
+                    <button class="cat-chip" data-cat="哭鬧/情緒"><span class="cat-ic">😭</span><span class="cat-label">哭鬧/情緒</span></button>
+                    <button class="cat-chip" data-cat="急症"><span class="cat-ic">🚨</span><span class="cat-label">急症</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ Result View（畫面 3：問答結果） ═══ -->
+    <div class="screen" id="resultScreen">
+        <header class="app-header with-bg">
+            <button class="back-btn" onclick="backToHome()" aria-label="返回"><i class="fas fa-chevron-left"></i></button>
+            <div class="title-center">問答結果</div>
+            <div class="result-actions">
+                <button class="icon-btn" onclick="toast('分享即將推出')" aria-label="分享"><i class="fas fa-share-nodes"></i></button>
+            </div>
+        </header>
+        <div class="chat-container" id="chatContainer"></div>
+        <div class="result-input-bar">
+            <button class="mic-btn" id="resultMicBtn" aria-label="語音輸入"><i class="fas fa-microphone"></i></button>
+            <input type="text" id="resultInput" placeholder="繼續描述狀況..." autocomplete="off">
+            <button class="send-btn" id="resultSendBtn" aria-label="送出"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- ═══ SOS View（畫面 4：紅燈急症） ═══ -->
+    <div class="screen" id="sosScreen">
+        <header class="app-header with-bg">
+            <button class="back-btn" onclick="backToHome()" aria-label="返回"><i class="fas fa-chevron-left"></i></button>
+            <div class="title-center">紅燈急症</div>
+            <div class="result-actions">
+                <button class="icon-btn sos" aria-label="SOS">SOS</button>
+            </div>
+        </header>
+        <div class="main-scroll" id="sosBody"></div>
+    </div>
+
+    <!-- ═══ Bottom 5-tab Nav ═══ -->
+    <nav class="bottom-nav">
+        <div class="nav-grid">
+            <a class="nav-item active" data-tab="home">
+                <span class="nav-ic"><i class="fas fa-house"></i></span>
+                <span class="nav-label">首頁</span>
+            </a>
+            <a class="nav-item" data-tab="checklist">
+                <span class="nav-ic"><i class="fas fa-clipboard-list"></i></span>
+                <span class="nav-label">問診清單</span>
+            </a>
+            <a class="nav-item center" data-tab="sop">
+                <span class="nav-ic"><i class="fas fa-kit-medical"></i></span>
+                <span class="nav-label">急救 SOP</span>
+            </a>
+            <a class="nav-item" data-tab="emergency">
+                <span class="nav-ic"><i class="fas fa-phone"></i></span>
+                <span class="nav-label">緊急電話</span>
+            </a>
+            <a class="nav-item" href="guide.html" data-tab="guide">
+                <span class="nav-ic"><i class="fas fa-circle-question"></i></span>
+                <span class="nav-label">使用說明</span>
+            </a>
+        </div>
+    </nav>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/app.js" defer></script>
+</body>
+</html>

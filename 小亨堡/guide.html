@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>使用說明 - 小亨堡QA</title>
+    <meta name="description" content="3 分鐘學會用小亨堡QA，未來省下無數個焦慮的夜。">
+
+    <meta name="application-name" content="小亨堡QA">
+    <meta name="apple-mobile-web-app-title" content="小亨堡QA">
+    <meta name="theme-color" content="#5DA67A">
+
+    <link rel="icon" href="favicon.ico?v=4">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=4">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png?v=4">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=4">
+    <link rel="manifest" href="manifest.json?v=4">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+    <meta property="og:site_name" content="小亨堡QA">
+    <meta property="og:title" content="使用說明 - 小亨堡QA">
+    <meta property="og:description" content="3 分鐘學會用，以後不再被半夜的小不對勁逼瘋。">
+    <meta property="og:type" content="article">
+    <meta property="og:locale" content="zh_TW">
+    <meta property="og:image" content="img/icon-512.png?v=4">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+
+    <style>
+        /* guide.html：覆寫 app.css 的 hidden overflow，允許整頁滾動 */
+        body { overflow: auto; height: auto; }
+        html, body { height: auto; }
+        .page {
+            height: auto;
+            min-height: 100vh; min-height: 100dvh;
+            max-width: 600px;
+            display: block;
+            overflow: visible;
+            padding-bottom: 40px;
+        }
+
+        /* ── Header ── */
+        .guide-header {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(255,255,255,0.94);
+            backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 14px;
+            padding-top: calc(12px + env(safe-area-inset-top, 0px));
+            border-bottom: 1px solid var(--border-light);
+        }
+        .guide-back {
+            width: 38px; height: 38px;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 50%;
+            background: var(--cream-warm);
+            color: var(--green-darker);
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+        .guide-back:hover, .guide-back:active {
+            background: var(--green-soft);
+            transform: translateX(-2px);
+        }
+        .guide-title { flex: 1; font-size: 1rem; font-weight: 800; color: var(--text); }
+        .guide-mascot {
+            width: 36px; height: 36px; border-radius: 50%;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            background: var(--white);
+            border: 2px solid var(--white);
+        }
+        .guide-mascot img { width: 100%; height: 100%; object-fit: cover; }
+
+        .guide-body { padding: 18px 16px 20px; }
+
+        /* ── Hero（封面） ── */
+        .g-hero {
+            position: relative;
+            background: linear-gradient(135deg, var(--green-soft) 0%, var(--cream-warm) 100%);
+            border-radius: var(--r-lg);
+            padding: 30px 20px 26px;
+            text-align: center;
+            margin-bottom: 18px;
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--border-light);
+            overflow: hidden;
+        }
+        .g-hero::before, .g-hero::after {
+            content: ''; position: absolute; border-radius: 50%;
+            background: linear-gradient(135deg, rgba(122,184,122,0.18), rgba(111,184,154,0.10));
+            pointer-events: none;
+        }
+        .g-hero::before { width: 120px; height: 120px; top: -40px; right: -30px; }
+        .g-hero::after  { width: 90px;  height: 90px;  bottom: -30px; left: -20px; }
+        .g-hero-mascot {
+            width: 96px; height: 96px; border-radius: 50%;
+            margin: 0 auto 14px;
+            overflow: hidden;
+            background: var(--white);
+            box-shadow: var(--shadow-md);
+            border: 4px solid var(--white);
+            position: relative; z-index: 1;
+        }
+        .g-hero-mascot img { width: 100%; height: 100%; object-fit: cover; }
+        .g-hero h1 {
+            font-size: 1.5rem; color: var(--text);
+            font-weight: 900; margin-bottom: 6px;
+            position: relative; z-index: 1;
+        }
+        .g-hero .sub {
+            font-size: 0.86rem; color: var(--green-darker);
+            font-weight: 800; margin-bottom: 12px;
+            position: relative; z-index: 1;
+        }
+        .g-hero .tagline {
+            font-size: 0.84rem; color: var(--text-light);
+            line-height: 1.75; position: relative; z-index: 1;
+        }
+        .g-hero .tagline strong { color: var(--green-darker); font-weight: 800; }
+
+        /* ── 醫療警語（封面顯眼） ── */
+        .alert-medical {
+            background: linear-gradient(135deg, #FFF6E5, #FFE9C7);
+            border: 1.5px solid #F0C56A;
+            border-left: 5px solid #D89020;
+            border-radius: var(--r-md);
+            padding: 16px 18px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 14px rgba(216,144,32,0.10);
+        }
+        .alert-medical-h {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.95rem; font-weight: 900;
+            color: #8C5A0E; margin-bottom: 8px;
+        }
+        .alert-medical-h i { font-size: 1.05rem; color: #D89020; }
+        .alert-medical p {
+            font-size: 0.82rem; color: #5C3F0F;
+            line-height: 1.78;
+            margin-bottom: 6px;
+        }
+        .alert-medical p:last-child { margin-bottom: 0; }
+        .alert-medical strong { color: #B8770D; font-weight: 900; }
+        .alert-medical .em-line {
+            background: rgba(255,255,255,0.55);
+            padding: 7px 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #B8770D;
+            font-weight: 700;
+            display: flex; align-items: center; gap: 6px;
+        }
+
+        /* ── Section header ── */
+        .g-h {
+            font-size: 1.02rem; font-weight: 900; color: var(--text);
+            margin: 28px 0 12px;
+            display: flex; align-items: center; gap: 9px;
+        }
+        .g-h::before {
+            content: ''; width: 4px; height: 18px;
+            background: linear-gradient(180deg, var(--green), var(--green-deep));
+            border-radius: 2px;
+        }
+        .g-h .count {
+            font-size: 0.7rem; color: var(--green-darker);
+            background: var(--green-soft);
+            padding: 2px 8px; border-radius: var(--r-full);
+            font-weight: 700;
+        }
+        .g-sub {
+            font-size: 0.78rem; color: var(--text-light);
+            margin-top: -8px; margin-bottom: 12px;
+            padding-left: 13px; line-height: 1.65;
+        }
+
+        /* ── 動機卡 ── */
+        .motive-card {
+            background: var(--white);
+            border-radius: var(--r-md);
+            padding: 16px 18px;
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--border-light);
+            font-size: 0.84rem;
+            color: var(--text);
+            line-height: 1.78;
+        }
+        .motive-card .quote-mark {
+            font-size: 2rem; color: var(--green-soft);
+            line-height: 0.6; display: inline-block; margin-right: 4px;
+            vertical-align: -0.25em;
+            font-family: serif;
+        }
+        .motive-card strong { color: var(--green-darker); font-weight: 900; }
+
+        /* ── 三種燈號 ── */
+        .lv-row {
+            display: flex; gap: 12px; align-items: flex-start;
+            background: var(--white); padding: 14px 16px;
+            border-radius: var(--r-md);
+            box-shadow: var(--shadow-card);
+            margin-bottom: 10px;
+            border: 1px solid var(--border-light);
+            border-left: 5px solid var(--lv-green);
+        }
+        .lv-row.yellow { border-left-color: var(--lv-yellow); }
+        .lv-row.red    { border-left-color: var(--lv-red); }
+        .lv-emoji { font-size: 1.7rem; flex-shrink: 0; line-height: 1; padding-top: 2px; }
+        .lv-row h4 { font-size: 0.94rem; color: var(--text); margin-bottom: 4px; font-weight: 900; }
+        .lv-row p  { font-size: 0.8rem; color: var(--text-light); line-height: 1.65; }
+        .lv-row .examples {
+            margin-top: 6px;
+            display: flex; gap: 5px; flex-wrap: wrap;
+        }
+        .lv-row .ex-tag {
+            font-size: 0.7rem; padding: 2px 8px;
+            border-radius: var(--r-full); font-weight: 700;
+        }
+        .lv-row .ex-tag.green  { background: var(--lv-green-bg);  color: var(--lv-green-deep); }
+        .lv-row .ex-tag.yellow { background: var(--lv-yellow-bg); color: var(--lv-yellow-deep); }
+        .lv-row .ex-tag.red    { background: var(--lv-red-bg);    color: var(--lv-red-deep); }
+
+        /* ── 核心精神 ── */
+        .principle-grid {
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+            margin-bottom: 12px;
+        }
+        .principle-card {
+            background: var(--white);
+            border: 1px solid var(--border-light);
+            border-radius: var(--r-sm);
+            padding: 12px 10px;
+            text-align: center;
+            box-shadow: var(--shadow-card);
+        }
+        .principle-card .ic { font-size: 1.4rem; margin-bottom: 4px; }
+        .principle-card h5 { font-size: 0.78rem; font-weight: 900; color: var(--green-darker); margin-bottom: 3px; }
+        .principle-card p  { font-size: 0.7rem; color: var(--text-light); line-height: 1.5; }
+        .quote-box {
+            background: linear-gradient(135deg, var(--green-soft), var(--cream-warm));
+            border: 1px solid var(--border-light);
+            border-radius: var(--r-md);
+            padding: 16px 18px;
+            box-shadow: var(--shadow-card);
+            font-size: 0.9rem;
+            color: var(--text);
+            line-height: 1.8;
+            text-align: center;
+        }
+        .quote-box .big {
+            display: block; font-size: 1.05rem; font-weight: 900;
+            color: var(--green-darker); margin-bottom: 6px;
+        }
+
+        /* ── 步驟卡 ── */
+        .step-row {
+            display: flex; gap: 12px;
+            background: var(--white);
+            border: 1px solid var(--border-light);
+            border-radius: var(--r-md);
+            padding: 13px 14px;
+            margin-bottom: 10px;
+            box-shadow: var(--shadow-card);
+        }
+        .step-num {
+            width: 30px; height: 30px; flex-shrink: 0;
+            background: linear-gradient(135deg, var(--green), var(--green-deep));
+            color: var(--white); font-weight: 900;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem;
+            box-shadow: 0 3px 10px rgba(45,90,62,0.18);
+        }
+        .step-text h4 { font-size: 0.92rem; color: var(--text); margin-bottom: 4px; font-weight: 900; }
+        .step-text p { font-size: 0.8rem; color: var(--text-light); line-height: 1.7; }
+        .step-text code {
+            background: var(--cream-warm);
+            padding: 1px 7px;
+            border-radius: 5px;
+            font-size: 0.78rem;
+            color: var(--green-darker);
+            font-family: inherit;
+            font-weight: 700;
+        }
+        .step-text strong { color: var(--green-darker); font-weight: 900; }
+
+        /* ── 月齡概念 ── */
+        .age-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+        }
+        .age-cell {
+            background: var(--white);
+            border: 1px solid var(--border-light);
+            border-radius: var(--r-sm);
+            padding: 8px 6px;
+            text-align: center;
+            box-shadow: var(--shadow-card);
+        }
+        .age-cell .label { font-size: 0.78rem; font-weight: 900; color: var(--green-darker); }
+        .age-cell .desc  { font-size: 0.66rem; color: var(--text-light); margin-top: 2px; line-height: 1.4; }
+
+        /* ── 5 tab 介紹 ── */
+        .tab-card {
+            display: flex; align-items: flex-start; gap: 12px;
+            background: var(--white);
+            border: 1px solid var(--border-light);
+            border-radius: var(--r-md);
+            padding: 12px 14px;
+            margin-bottom: 8px;
+            box-shadow: var(--shadow-card);
+        }
+        .tab-ic {
+            width: 38px; height: 38px;
+            border-radius: 10px;
+            background: var(--green-soft);
+            color: var(--green-darker);
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 1rem; flex-shrink: 0;
+        }
+        .tab-card h4 { font-size: 0.92rem; color: var(--text); font-weight: 900; margin-bottom: 3px; }
+        .tab-card p  { font-size: 0.78rem; color: var(--text-light); line-height: 1.65; }
+
+        /* ── 紅旗 ── */
+        .warn-box {
+            background: linear-gradient(135deg, var(--lv-red-bg), #FFE0E4);
+            border: 1.5px solid #F5C8CE;
+            border-left: 5px solid var(--lv-red);
+            border-radius: var(--r-md);
+            padding: 16px 18px;
+            box-shadow: 0 4px 14px rgba(220,76,92,0.12);
+        }
+        .warn-box h3 {
+            color: var(--lv-red-deep);
+            font-size: 0.98rem; font-weight: 900;
+            margin-bottom: 10px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .warn-box .grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px;
+            font-size: 0.82rem; color: var(--text); line-height: 1.55;
+        }
+        .warn-box .grid div::before { content: '⚠️ '; margin-right: 2px; }
+        .warn-box .call-now {
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            background: var(--lv-red); color: white;
+            font-weight: 900; font-size: 0.88rem;
+            padding: 10px;
+            border-radius: var(--r-full);
+            margin-top: 12px;
+            box-shadow: 0 4px 14px rgba(220,76,92,0.30);
+        }
+
+        /* ── FAQ ── */
+        .faq-item {
+            background: var(--white);
+            border: 1px solid var(--border-light);
+            border-radius: var(--r-md);
+            margin-bottom: 8px;
+            box-shadow: var(--shadow-card);
+            overflow: hidden;
+        }
+        .faq-q {
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 14px;
+            cursor: pointer;
+            font-size: 0.88rem; font-weight: 800; color: var(--text);
+        }
+        .faq-q .q-ic {
+            width: 24px; height: 24px; border-radius: 50%;
+            background: var(--green-soft); color: var(--green-darker);
+            display: inline-flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 0.78rem;
+            flex-shrink: 0;
+        }
+        .faq-q .chev { margin-left: auto; color: var(--text-muted); transition: transform 0.25s; }
+        .faq-item[open] .faq-q .chev { transform: rotate(180deg); }
+        .faq-a {
+            padding: 0 14px 14px 48px;
+            font-size: 0.82rem; color: var(--text-light); line-height: 1.78;
+        }
+        .faq-a strong { color: var(--green-darker); font-weight: 800; }
+
+        /* ── 適用 / 不適用 ── */
+        .scope-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+        }
+        .scope-card {
+            background: var(--white);
+            border: 1px solid var(--border-light);
+            border-radius: var(--r-md);
+            padding: 14px;
+            box-shadow: var(--shadow-card);
+        }
+        .scope-card.fit    { border-top: 4px solid var(--lv-green); }
+        .scope-card.unfit  { border-top: 4px solid var(--lv-red); }
+        .scope-card h4 {
+            font-size: 0.88rem; font-weight: 900;
+            margin-bottom: 8px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .scope-card.fit h4   { color: var(--lv-green-deep); }
+        .scope-card.unfit h4 { color: var(--lv-red-deep); }
+        .scope-card ul {
+            font-size: 0.78rem; color: var(--text-light); line-height: 1.85;
+        }
+        .scope-card.fit ul li::before   { content: '✅ '; }
+        .scope-card.unfit ul li::before { content: '❌ '; }
+
+        /* ── 來源 ── */
+        .source-card {
+            background: var(--white);
+            border: 1px solid var(--border-light);
+            border-radius: var(--r-md);
+            padding: 14px 16px;
+            box-shadow: var(--shadow-card);
+            font-size: 0.8rem; color: var(--text-light); line-height: 1.78;
+        }
+        .source-card strong { color: var(--text); font-weight: 800; }
+        .source-card .source-list { margin-top: 6px; padding-left: 4px; }
+        .source-card .source-list li::before { content: '📖 '; margin-right: 2px; }
+
+        /* ── 二次警語 ── */
+        .disclaimer {
+            background: var(--cream-warm);
+            border-radius: var(--r-md);
+            padding: 14px 16px;
+            font-size: 0.76rem;
+            color: var(--text-light);
+            line-height: 1.75;
+            margin-top: 22px;
+            border: 1px solid var(--border-light);
+            border-left: 4px solid var(--text-muted);
+        }
+        .disclaimer strong { color: var(--text); font-weight: 800; }
+
+        /* ── 開始使用 CTA ── */
+        .start-cta {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%;
+            background: linear-gradient(135deg, var(--green), var(--green-deep));
+            color: var(--white); font-size: 1rem; font-weight: 900;
+            padding: 16px;
+            border-radius: var(--r-full);
+            margin-top: 22px;
+            text-align: center;
+            box-shadow: 0 8px 22px rgba(45,90,62,0.24);
+            transition: all 0.2s;
+        }
+        .start-cta:hover, .start-cta:active {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 28px rgba(45,90,62,0.30);
+        }
+
+        .meta-line {
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 14px;
+            line-height: 1.7;
+        }
+        .meta-line a { color: var(--green-darker); text-decoration: underline; }
+
+        /* ── 圖片講解：mock 手機畫面 ── */
+        .mock-row {
+            display: grid; grid-template-columns: 130px 1fr; gap: 14px;
+            align-items: flex-start;
+            background: var(--white);
+            border: 1px solid var(--border-light);
+            border-radius: var(--r-md);
+            padding: 14px;
+            margin-bottom: 10px;
+            box-shadow: var(--shadow-card);
+        }
+        .mock-screen {
+            width: 130px; height: 230px;
+            margin: 0 auto;
+            border-radius: 22px;
+            background: var(--cream);
+            border: 6px solid #2D3E33;
+            overflow: hidden;
+            position: relative;
+            display: flex; flex-direction: column;
+            box-shadow: 0 6px 18px rgba(45,90,62,0.18);
+        }
+        .mock-screen::before {
+            content: ''; position: absolute;
+            top: 5px; left: 50%; transform: translateX(-50%);
+            width: 32px; height: 3px; border-radius: 2px;
+            background: #2D3E33;
+            z-index: 5;
+        }
+        .mock-header {
+            background: var(--white);
+            padding: 14px 8px 6px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex; align-items: center; gap: 4px;
+            font-size: 0.55rem; font-weight: 900;
+            color: var(--text);
+            flex-shrink: 0;
+        }
+        .mock-header .h-back {
+            width: 14px; height: 14px;
+            background: var(--cream-warm);
+            border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center;
+            color: var(--green-darker);
+            font-size: 0.5rem;
+        }
+        .mock-header .h-title { flex: 1; text-align: center; }
+        .mock-header .h-ava {
+            width: 14px; height: 14px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--green-soft), var(--cream-warm));
+            border: 1px solid white;
+        }
+        .mock-body {
+            flex: 1; padding: 6px 6px 4px;
+            display: flex; flex-direction: column; gap: 4px;
+            overflow: hidden;
+        }
+        .mock-search {
+            background: var(--white);
+            border-radius: 10px;
+            padding: 4px 8px;
+            font-size: 0.5rem;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            display: flex; align-items: center; gap: 3px;
+        }
+        .mock-search .ic { color: var(--green-darker); }
+        .mock-card {
+            background: var(--white);
+            border: 1px solid var(--border-light);
+            border-left: 3px solid var(--lv-green);
+            border-radius: 6px;
+            padding: 4px 6px;
+            font-size: 0.5rem;
+            color: var(--text);
+            line-height: 1.3;
+        }
+        .mock-card.yellow { border-left-color: var(--lv-yellow); }
+        .mock-card.red    { border-left-color: var(--lv-red); }
+        .mock-card .lvtag {
+            display: inline-block; font-size: 0.42rem;
+            padding: 0 4px; border-radius: 99px;
+            font-weight: 800;
+            background: var(--lv-green-bg); color: var(--lv-green-deep);
+            margin-right: 2px;
+        }
+        .mock-card.yellow .lvtag { background: var(--lv-yellow-bg); color: var(--lv-yellow-deep); }
+        .mock-card.red .lvtag    { background: var(--lv-red-bg); color: var(--lv-red-deep); }
+        .mock-chip {
+            display: inline-block;
+            background: var(--white);
+            color: var(--text);
+            font-size: 0.48rem;
+            padding: 1px 6px;
+            border-radius: 99px;
+            margin: 1px 1px 0 0;
+            border: 1px solid var(--border);
+        }
+        .mock-chip.active { background: var(--green); color: white; border-color: transparent; }
+        .mock-chips-row { display: flex; flex-wrap: wrap; }
+        .mock-section-h {
+            font-size: 0.5rem; color: var(--text-light);
+            font-weight: 700;
+            margin-top: 2px;
+        }
+        .mock-bubble {
+            background: var(--white);
+            border-radius: 8px;
+            padding: 4px 6px;
+            font-size: 0.5rem;
+            color: var(--text);
+            line-height: 1.4;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+            border: 1px solid var(--border-light);
+        }
+        .mock-bubble.user {
+            background: var(--green-deep); color: white;
+            margin-left: 22px;
+            border-color: transparent;
+        }
+        .mock-detail-head {
+            background: linear-gradient(135deg, var(--lv-yellow-bg), #FFEAB8);
+            padding: 4px 6px;
+            border-radius: 6px 6px 0 0;
+            font-size: 0.5rem; font-weight: 800; color: var(--lv-yellow-deep);
+        }
+        .mock-detail-sec {
+            background: var(--white);
+            border-bottom: 1px dashed var(--border);
+            padding: 3px 6px;
+            font-size: 0.46rem; color: var(--text-light); line-height: 1.3;
+        }
+        .mock-detail-sec strong { color: var(--text); font-weight: 900; }
+        .mock-nav {
+            background: var(--white);
+            border-top: 1px solid var(--border-light);
+            display: flex; justify-content: space-around;
+            padding: 4px 2px;
+            font-size: 0.42rem; color: var(--text-muted);
+            flex-shrink: 0;
+        }
+        .mock-nav .item { text-align: center; line-height: 1.2; }
+        .mock-nav .item.active { color: var(--green-deep); font-weight: 900; }
+        .mock-cursor {
+            position: absolute; width: 16px; height: 16px;
+            border: 2px solid var(--lv-red);
+            border-radius: 50%;
+            background: rgba(229,112,123,0.25);
+            pointer-events: none;
+            animation: mock-pulse 1.6s infinite;
+            z-index: 4;
+        }
+        @keyframes mock-pulse {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50%      { transform: scale(1.35); opacity: 1; }
+        }
+        .mock-explain h4 {
+            font-size: 0.92rem; color: var(--text);
+            font-weight: 900; margin-bottom: 4px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .mock-explain h4 .num {
+            width: 22px; height: 22px;
+            background: linear-gradient(135deg, var(--green), var(--green-deep));
+            color: white; border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 0.72rem; flex-shrink: 0;
+        }
+        .mock-explain p { font-size: 0.78rem; color: var(--text-light); line-height: 1.7; }
+        .mock-explain code {
+            background: var(--cream-warm); padding: 1px 6px;
+            border-radius: 5px; color: var(--green-darker);
+            font-size: 0.74rem; font-weight: 700;
+        }
+
+        /* ── 加入主畫面 ── */
+        .platform-tabs {
+            display: grid; grid-template-columns: 1fr 1fr;
+            background: var(--cream-warm);
+            border-radius: var(--r-full);
+            padding: 4px;
+            margin-bottom: 14px;
+            gap: 4px;
+        }
+        .platform-tab {
+            padding: 8px;
+            text-align: center;
+            font-size: 0.82rem; font-weight: 800;
+            border-radius: var(--r-full);
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .platform-tab.active {
+            background: var(--white);
+            color: var(--green-darker);
+            box-shadow: var(--shadow-sm);
+        }
+        .install-step {
+            display: flex; gap: 12px; align-items: flex-start;
+            background: var(--white);
+            border: 1px solid var(--border-light);
+            border-radius: var(--r-md);
+            padding: 12px 14px;
+            margin-bottom: 8px;
+            box-shadow: var(--shadow-card);
+        }
+        .install-num {
+            width: 28px; height: 28px; flex-shrink: 0;
+            border-radius: 50%;
+            background: var(--green-soft);
+            color: var(--green-darker);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem; font-weight: 900;
+        }
+        .install-step h4 {
+            font-size: 0.88rem; color: var(--text);
+            font-weight: 900; margin-bottom: 4px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .install-step h4 .key {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 22px; height: 22px;
+            background: var(--cream-warm);
+            border-radius: 6px;
+            color: var(--green-darker);
+            font-size: 0.78rem;
+            border: 1px solid var(--border);
+        }
+        .install-step p {
+            font-size: 0.78rem; color: var(--text-light); line-height: 1.7;
+        }
+        .install-step p strong { color: var(--green-darker); font-weight: 800; }
+        .install-step .hint {
+            margin-top: 4px;
+            font-size: 0.72rem; color: var(--text-muted);
+        }
+        .install-platform { display: none; }
+        .install-platform.active { display: block; }
+        .install-result {
+            display: flex; align-items: center; gap: 12px;
+            background: linear-gradient(135deg, var(--green-soft), var(--cream-warm));
+            border: 1px solid var(--border-light);
+            border-radius: var(--r-md);
+            padding: 14px;
+            margin-top: 8px;
+            box-shadow: var(--shadow-card);
+        }
+        .install-result .icon-preview {
+            width: 56px; height: 56px;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(45,90,62,0.20);
+            background: white;
+            flex-shrink: 0;
+        }
+        .install-result .icon-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .install-result h4 {
+            font-size: 0.9rem; color: var(--text); font-weight: 900; margin-bottom: 3px;
+        }
+        .install-result p {
+            font-size: 0.76rem; color: var(--text-light); line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+<div class="page">
+
+    <header class="guide-header">
+        <a href="index.html" class="guide-back" aria-label="返回首頁"><i class="fas fa-chevron-left"></i></a>
+        <div class="guide-title">使用說明</div>
+        <div class="guide-mascot"><img src="img/xiaohengbao.png" alt="小亨堡"></div>
+    </header>
+
+    <div class="guide-body">
+
+        <!-- ═══ Hero ═══ -->
+        <div class="g-hero">
+            <div class="g-hero-mascot"><img src="img/xiaohengbao.png" alt="小亨堡"></div>
+            <h1>小亨堡 QA</h1>
+            <div class="sub">媽咪的居家照護助手</div>
+            <p class="tagline">3 分鐘學會用，<br><strong>未來省下無數個焦慮的夜</strong>。</p>
+        </div>
+
+        <!-- ═══ 醫療警語（封面顯眼處） ═══ -->
+        <div class="alert-medical" role="alert">
+            <div class="alert-medical-h">
+                <i class="fas fa-circle-exclamation"></i>
+                重要聲明・請先閱讀
+            </div>
+            <p>本平台僅提供寶寶居家照護的<strong>參考建議</strong>，內容由社群媽媽與管理員整理彙編，<strong>不構成醫療行為、診斷或處方</strong>。</p>
+            <p>專業診療請洽<strong>合格兒科醫師</strong>；緊急狀況請立即就醫或撥打 <strong>119</strong>。</p>
+            <div class="em-line">
+                <i class="fas fa-stethoscope"></i>
+                寶寶的活力、精神與整體狀況，永遠是醫師判斷的第一手依據
+            </div>
+        </div>
+
+        <!-- ═══ 為什麼做這個 ═══ -->
+        <div class="g-h">為什麼做小亨堡</div>
+        <div class="motive-card">
+            <span class="quote-mark">“</span>
+            半夜寶寶突然<strong>發高燒</strong>、<strong>吐奶吐到吐血</strong>、<strong>屁股紅一片</strong>……<br>
+            爸媽第一時間總是先 Google，可是查到的資訊雜亂、嚇人，<br>
+            又怕自己誤判錯過送醫時機。<br><br>
+            <strong>小亨堡</strong>把社群裡常被問的問題、管理員整理過的回覆，<br>
+            濃縮成 <strong>三色燈號</strong>＋<strong>四段建議</strong>的格式，<br>
+            幫你在最焦慮的當下，<strong>快速分流</strong>「現在到底要不要衝急診」。
+        </div>
+
+        <!-- ═══ 三種燈號 ═══ -->
+        <div class="g-h">三種燈號 ・ 三種處理方式</div>
+        <div class="g-sub">從顏色就能 5 秒判斷處理優先級。</div>
+        <div class="lv-row">
+            <div class="lv-emoji">🙂</div>
+            <div>
+                <h4>綠燈・日常普遍</h4>
+                <p>多數會自行緩解，<strong>居家觀察就好</strong>。注意活力、食慾、尿量。</p>
+                <div class="examples">
+                    <span class="ex-tag green">溢奶</span>
+                    <span class="ex-tag green">脹氣</span>
+                    <span class="ex-tag green">尿布疹</span>
+                    <span class="ex-tag green">脂漏</span>
+                    <span class="ex-tag green">乳痂</span>
+                </div>
+            </div>
+        </div>
+        <div class="lv-row yellow">
+            <div class="lv-emoji">😟</div>
+            <div>
+                <h4>黃燈・突發狀況</h4>
+                <p>先做居家處理 + <strong>觀察 24-48 小時</strong>。出現紅旗就安排看診。</p>
+                <div class="examples">
+                    <span class="ex-tag yellow">發燒 38-39</span>
+                    <span class="ex-tag yellow">輕微腹瀉</span>
+                    <span class="ex-tag yellow">紅疹</span>
+                    <span class="ex-tag yellow">咳嗽</span>
+                    <span class="ex-tag yellow">便秘</span>
+                </div>
+            </div>
+        </div>
+        <div class="lv-row red">
+            <div class="lv-emoji">😣</div>
+            <div>
+                <h4>紅燈・嚴重急症</h4>
+                <p><strong>立刻急診或撥 119</strong>，不能等門診。系統會自動偵測紅旗關鍵字並提醒。</p>
+                <div class="examples">
+                    <span class="ex-tag red">嘴唇紫</span>
+                    <span class="ex-tag red">抽搐</span>
+                    <span class="ex-tag red">噎到</span>
+                    <span class="ex-tag red">叫不醒</span>
+                    <span class="ex-tag red">8h 沒尿</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ 核心精神 ═══ -->
+        <div class="g-h">核心精神 ・ 看活力 ＞ 看溫度</div>
+        <div class="g-sub">三個原則，比體溫計上的數字更值得信任。</div>
+        <div class="principle-grid">
+            <div class="principle-card">
+                <div class="ic">🎯</div>
+                <h5>看活力</h5>
+                <p>會玩會笑＝大多沒事；<br>嗜睡無力＝紅旗</p>
+            </div>
+            <div class="principle-card">
+                <div class="ic">⏱</div>
+                <h5>看時間</h5>
+                <p>持續 1 小時還是<br>持續 24 小時差很多</p>
+            </div>
+            <div class="principle-card">
+                <div class="ic">📈</div>
+                <h5>看趨勢</h5>
+                <p>逐漸改善 vs 越來越差，<br>方向比數字重要</p>
+            </div>
+        </div>
+        <div class="quote-box">
+            <span class="big">會玩、會笑、有食慾、尿量正常 = 大多沒事</span>
+            嗜睡、不哭不鬧、皮膚異常 = 才是該擔心的紅旗
+        </div>
+
+        <!-- ═══ 怎麼用 ═══ -->
+        <div class="g-h">怎麼用 <span class="count">5 個步驟</span></div>
+        <div class="step-row">
+            <div class="step-num">1</div>
+            <div class="step-text">
+                <h4>直接描述狀況</h4>
+                <p>在首頁輸入框打看到的症狀，例：<code>發燒 38.5</code>、<code>吐奶很多次</code>、<code>屁股紅一片</code>。系統會用<strong>關鍵字模糊比對</strong>找出最相關的 QA。</p>
+            </div>
+        </div>
+        <div class="step-row">
+            <div class="step-num">2</div>
+            <div class="step-text">
+                <h4>或點燈號逛常見題</h4>
+                <p>不知怎麼形容？直接點綠/黃/紅燈卡片，逛符合該等級的常見 QA。也可以從<strong>熱搜關鍵字</strong>（發燒、吐奶、腸絞痛、紅疹、噎到、便秘）一鍵切入。</p>
+            </div>
+        </div>
+        <div class="step-row">
+            <div class="step-num">3</div>
+            <div class="step-text">
+                <h4>選月齡縮小範圍</h4>
+                <p>列出題目後會跳出「<strong>📅 選月齡縮小範圍</strong>」按鈕，點寶寶月齡，只看<strong>適用月齡</strong>的題目。新生兒跟 2 歲幼兒能適用的處理方式差很多，月齡篩選能幫你避開錯誤建議。</p>
+            </div>
+        </div>
+        <div class="step-row">
+            <div class="step-num">4</div>
+            <div class="step-text">
+                <h4>挑題目看完整建議</h4>
+                <p>點任一題會展開完整 QA，含 <strong>4 段內容</strong>：</p>
+                <p style="padding-left: 8px; margin-top: 4px;">
+                    ① <strong>標準簡答</strong>　② <strong>居家做法</strong>（步驟）<br>
+                    ③ <strong>紅旗・何時就醫</strong>　④ <strong>管理員建議回覆</strong>
+                </p>
+            </div>
+        </div>
+        <div class="step-row">
+            <div class="step-num">5</div>
+            <div class="step-text">
+                <h4>分享或填問診清單</h4>
+                <p>看完可以一鍵<strong>複製回覆模板</strong>或<strong>完整 QA</strong>，貼到社群／LINE 群求教；不會描述？點下方「<strong>問診清單</strong>」分頁，回答 8 題後產出可貼出去的「<strong>寶寶狀況求救卡</strong>」。</p>
+            </div>
+        </div>
+
+        <!-- ═══ 圖片講解 ═══ -->
+        <div class="g-h">📸 操作畫面圖解</div>
+        <div class="g-sub">用 mock 畫面快速理解每個步驟長什麼樣。</div>
+
+        <!-- 圖解 1：首頁 -->
+        <div class="mock-row">
+            <div class="mock-screen">
+                <div class="mock-header">
+                    <div class="h-ava"></div>
+                    <div class="h-title">小亨堡 QA</div>
+                    <div style="width:14px"></div>
+                </div>
+                <div class="mock-body" style="background: var(--cream); padding: 6px 6px;">
+                    <div style="font-size:0.55rem;font-weight:900;color:var(--text);margin-bottom:2px;">嗨，媽咪！</div>
+                    <div class="mock-search">
+                        <span class="ic">🔍</span>
+                        <span>請描述寶寶狀況...</span>
+                    </div>
+                    <div class="mock-section-h">三種燈號</div>
+                    <div class="mock-card">🙂 <span class="lvtag">綠</span>日常普遍</div>
+                    <div class="mock-card yellow">😟 <span class="lvtag">黃</span>突發狀況</div>
+                    <div class="mock-card red">😣 <span class="lvtag">紅</span>嚴重急症</div>
+                    <div class="mock-section-h">熱搜</div>
+                    <div class="mock-chips-row">
+                        <span class="mock-chip">🌡 發燒</span>
+                        <span class="mock-chip">🍼 吐奶</span>
+                        <span class="mock-chip">🌸 紅疹</span>
+                    </div>
+                </div>
+                <div class="mock-nav">
+                    <span class="item active">🏠<br>首頁</span>
+                    <span class="item">📋<br>清單</span>
+                    <span class="item">🩹<br>SOP</span>
+                    <span class="item">📞<br>電話</span>
+                    <span class="item">❓<br>說明</span>
+                </div>
+                <div class="mock-cursor" style="top: 78px; left: 60px;"></div>
+            </div>
+            <div class="mock-explain">
+                <h4><span class="num">A</span> 首頁長這樣</h4>
+                <p>頂部是<strong>搜尋輸入框</strong>，中間三個<strong>燈號卡片</strong>，下方<strong>熱搜關鍵字</strong>。底部 5 個 tab 切換功能。</p>
+            </div>
+        </div>
+
+        <!-- 圖解 2：搜尋結果 -->
+        <div class="mock-row">
+            <div class="mock-screen">
+                <div class="mock-header">
+                    <div class="h-back">‹</div>
+                    <div class="h-title">問答結果</div>
+                    <div style="width:14px"></div>
+                </div>
+                <div class="mock-body">
+                    <div class="mock-bubble user">發燒 38.5</div>
+                    <div class="mock-bubble">為「發燒」找到 12 題 ✨</div>
+                    <div class="mock-card yellow"><span class="lvtag">黃</span>退燒水該不該喝？</div>
+                    <div class="mock-card yellow"><span class="lvtag">黃</span>幾度才需要看醫生？</div>
+                    <div class="mock-section-h">📅 月齡縮小</div>
+                    <div class="mock-chips-row">
+                        <span class="mock-chip">&lt;3M</span>
+                        <span class="mock-chip active">3-6M</span>
+                        <span class="mock-chip">6-9M</span>
+                    </div>
+                </div>
+                <div class="mock-cursor" style="top: 130px; left: 84px;"></div>
+            </div>
+            <div class="mock-explain">
+                <h4><span class="num">B</span> 搜尋＋月齡縮小</h4>
+                <p>打字後會列出 mini 字卡，下方有「<strong>📅 選月齡縮小範圍</strong>」chips。點月齡只看適用題目，<code>3-6M</code> 高亮表示目前選中。</p>
+            </div>
+        </div>
+
+        <!-- 圖解 3：詳細 QA -->
+        <div class="mock-row">
+            <div class="mock-screen">
+                <div class="mock-header">
+                    <div class="h-back">‹</div>
+                    <div class="h-title">問答結果</div>
+                    <div style="width:14px"></div>
+                </div>
+                <div class="mock-body" style="padding-bottom: 0;">
+                    <div class="mock-detail-head">🟡 黃燈・餵食/腸胃<br>退燒水該不該喝？ 🌡</div>
+                    <div class="mock-detail-sec"><strong>標準簡答</strong><br>不建議自行給藥...</div>
+                    <div class="mock-detail-sec"><strong>居家做法</strong><br>① 多補水 ② 物理降溫</div>
+                    <div class="mock-detail-sec" style="background: var(--lv-red-bg); color: var(--lv-red-deep);"><strong>紅旗症狀</strong><br>嗜睡叫不醒 → 急診</div>
+                    <div class="mock-detail-sec"><strong>建議回覆</strong><br>請補充：月齡、體重...</div>
+                </div>
+                <div class="mock-cursor" style="top: 80px; left: 50px;"></div>
+            </div>
+            <div class="mock-explain">
+                <h4><span class="num">C</span> 點題目看完整 QA</h4>
+                <p>每題展開後有 <strong>4 段內容</strong>：標準簡答、居家做法、紅旗症狀（紅底警示）、管理員建議回覆。底部還有複製按鈕分享群組。</p>
+            </div>
+        </div>
+
+        <!-- 圖解 4：問診清單 -->
+        <div class="mock-row">
+            <div class="mock-screen">
+                <div class="mock-header">
+                    <div class="h-back">‹</div>
+                    <div class="h-title">問診清單</div>
+                    <div style="width:14px"></div>
+                </div>
+                <div class="mock-body">
+                    <div class="mock-bubble">第 2 題 / 8：<br><strong>主要症狀</strong></div>
+                    <div class="mock-chips-row">
+                        <span class="mock-chip">發燒</span>
+                        <span class="mock-chip">吐奶</span>
+                        <span class="mock-chip">腹瀉</span>
+                        <span class="mock-chip">紅疹</span>
+                        <span class="mock-chip">⏭ 略過</span>
+                    </div>
+                    <div class="mock-section-h" style="margin-top: 4px; color: var(--green-darker);">也可以自己輸入喔 ✍️</div>
+                </div>
+                <div class="mock-cursor" style="top: 130px; left: 76px;"></div>
+            </div>
+            <div class="mock-explain">
+                <h4><span class="num">D</span> 問診清單 8 題</h4>
+                <p>點「問診清單」tab 進入，<strong>每題都有預設選項</strong>可快速點選；想寫得更具體可以從下方輸入框<strong>自己輸入</strong>。8 題後產出可貼出去的「<strong>寶寶狀況求救卡</strong>」。</p>
+            </div>
+        </div>
+
+        <!-- ═══ 加入主畫面 ═══ -->
+        <div class="g-h">📱 新增到行動裝置桌面</div>
+        <div class="g-sub">把小亨堡放到桌面，半夜遇到狀況一秒打開不用等載入。</div>
+
+        <div class="platform-tabs" id="platformTabs">
+            <div class="platform-tab active" data-plat="ios"><i class="fab fa-apple"></i> iPhone / iPad</div>
+            <div class="platform-tab" data-plat="android"><i class="fab fa-android"></i> Android</div>
+        </div>
+
+        <!-- iOS Safari 流程 -->
+        <div class="install-platform active" data-plat="ios">
+            <div class="install-step">
+                <div class="install-num">1</div>
+                <div>
+                    <h4>用 <strong>Safari</strong> 開啟本網站</h4>
+                    <p>請務必使用 <strong>Safari</strong>（其他瀏覽器如 Chrome、Line 內建瀏覽器無法新增到主畫面）。</p>
+                </div>
+            </div>
+            <div class="install-step">
+                <div class="install-num">2</div>
+                <div>
+                    <h4>點底部中央 <span class="key"><i class="fas fa-arrow-up-from-bracket"></i></span> <strong>分享</strong> 按鈕</h4>
+                    <p>就是那個方框 + 向上箭頭的圖示，會跳出分享面板。</p>
+                </div>
+            </div>
+            <div class="install-step">
+                <div class="install-num">3</div>
+                <div>
+                    <h4>滑找「<span class="key">＋</span> <strong>加入主畫面</strong>」</h4>
+                    <p>面板下方往下滑可以找到，點它會進入命名畫面。</p>
+                </div>
+            </div>
+            <div class="install-step">
+                <div class="install-num">4</div>
+                <div>
+                    <h4>點右上「<strong>加入</strong>」</h4>
+                    <p>名稱可保留「小亨堡 QA」或自訂，點「加入」就完成。</p>
+                    <div class="hint">💡 桌面會出現 🍔 小亨堡 icon，點開全螢幕無瀏覽器列。</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Android Chrome 流程 -->
+        <div class="install-platform" data-plat="android">
+            <div class="install-step">
+                <div class="install-num">1</div>
+                <div>
+                    <h4>用 <strong>Chrome</strong> 開啟本網站</h4>
+                    <p>建議用 Chrome 或 Edge；Line 內建瀏覽器需先用「在外部開啟」改用 Chrome。</p>
+                </div>
+            </div>
+            <div class="install-step">
+                <div class="install-num">2</div>
+                <div>
+                    <h4>點右上 <span class="key">⋮</span> <strong>選單</strong></h4>
+                    <p>三個直排的點，會跳出選單。</p>
+                </div>
+            </div>
+            <div class="install-step">
+                <div class="install-num">3</div>
+                <div>
+                    <h4>點「<strong>安裝應用程式</strong>」或「<strong>新增到主畫面</strong>」</h4>
+                    <p>不同 Android 版本文字略有差異，皆為相同功能。</p>
+                </div>
+            </div>
+            <div class="install-step">
+                <div class="install-num">4</div>
+                <div>
+                    <h4>確認名稱後點「<strong>安裝</strong>」</h4>
+                    <p>桌面會出現 icon，全螢幕模式無瀏覽器列。</p>
+                    <div class="hint">💡 部分機型在網址列會直接顯示「安裝」提示，可一鍵完成。</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="install-result">
+            <div class="icon-preview"><img src="img/icon-192.png" alt="小亨堡 icon"></div>
+            <div>
+                <h4>完成後桌面會長這樣</h4>
+                <p>點 icon 直接全螢幕進入，<strong>無瀏覽器列、可離線快取</strong>，操作更像原生 App。</p>
+            </div>
+        </div>
+
+        <!-- ═══ 月齡分類 ═══ -->
+        <div class="g-h">月齡分類 <span class="count">7 段</span></div>
+        <div class="g-sub">系統用 7 段月齡縮小範圍，讓你只看適合寶寶的內容。</div>
+        <div class="age-grid">
+            <div class="age-cell"><div class="label">&lt;3M</div><div class="desc">新生兒</div></div>
+            <div class="age-cell"><div class="label">3-6M</div><div class="desc">早期嬰兒</div></div>
+            <div class="age-cell"><div class="label">6-9M</div><div class="desc">副食期</div></div>
+            <div class="age-cell"><div class="label">9-12M</div><div class="desc">爬走期</div></div>
+            <div class="age-cell"><div class="label">1-1.5Y</div><div class="desc">學步</div></div>
+            <div class="age-cell"><div class="label">1.5-2Y</div><div class="desc">大寶</div></div>
+            <div class="age-cell"><div class="label">2Y+</div><div class="desc">幼兒</div></div>
+            <div class="age-cell"><div class="label">🌐</div><div class="desc">全部月齡</div></div>
+        </div>
+
+        <!-- ═══ 5 tab ═══ -->
+        <div class="g-h">底部 5 個按鈕</div>
+        <div class="tab-card">
+            <div class="tab-ic"><i class="fas fa-house"></i></div>
+            <div>
+                <h4>首頁</h4>
+                <p>燈號卡片＋熱搜關鍵字＋搜尋輸入。任何時候點這個都會回到主畫面。</p>
+            </div>
+        </div>
+        <div class="tab-card">
+            <div class="tab-ic"><i class="fas fa-clipboard-list"></i></div>
+            <div>
+                <h4>問診清單</h4>
+                <p>8 題快速問答（月齡 / 體重 / 症狀 / 開始時間 / 體溫 / 活力 / 進食 / 已做處置），按完一鍵產出「寶寶狀況求救卡」貼給社群媽媽或診所，省下重複描述的時間。</p>
+            </div>
+        </div>
+        <div class="tab-card">
+            <div class="tab-ic"><i class="fas fa-kit-medical"></i></div>
+            <div>
+                <h4>急救 SOP</h4>
+                <p>哽塞、燙傷、抽搐、撞到頭、誤食等緊急狀況的<strong>逐步操作</strong>。建議邊撥 119、邊照 SOP 執行。</p>
+            </div>
+        </div>
+        <div class="tab-card">
+            <div class="tab-ic"><i class="fas fa-phone"></i></div>
+            <div>
+                <h4>緊急電話</h4>
+                <p>119 / 毒物中心 / 五大兒童醫院急診一鍵撥號。</p>
+            </div>
+        </div>
+        <div class="tab-card">
+            <div class="tab-ic"><i class="fas fa-circle-question"></i></div>
+            <div>
+                <h4>使用說明</h4>
+                <p>就是你現在看的這頁。看不懂可以隨時點回來複習。</p>
+            </div>
+        </div>
+
+        <!-- ═══ 紅旗症狀 ═══ -->
+        <div class="g-h">⚠️ 紅旗症狀 <span class="count">立即 119</span></div>
+        <div class="warn-box">
+            <h3><i class="fas fa-triangle-exclamation"></i> 出現以下狀況不要等門診</h3>
+            <div class="grid">
+                <div>嘴唇／指甲發紫</div>
+                <div>臉色蒼白、發紺</div>
+                <div>抽搐、癲癇</div>
+                <div>叫不醒、無反應</div>
+                <div>噎到、哽塞</div>
+                <div>誤食藥物／異物</div>
+                <div>呼吸困難、胸口凹陷</div>
+                <div>吐血、解血便</div>
+                <div>撞到頭後嘔吐</div>
+                <div>連續 8 小時沒尿</div>
+                <div>新生兒 &lt;3M 發燒</div>
+                <div>燒&gt;40 退不下來</div>
+            </div>
+            <a class="call-now" href="tel:119">
+                <i class="fas fa-phone-volume"></i> 立即撥打 119
+            </a>
+        </div>
+
+        <!-- ═══ FAQ ═══ -->
+        <div class="g-h">常見 Q&A</div>
+        <details class="faq-item">
+            <summary class="faq-q">
+                <span class="q-ic">Q</span>
+                小亨堡會幫我「診斷」嗎？
+                <i class="fas fa-chevron-down chev"></i>
+            </summary>
+            <div class="faq-a">
+                <strong>不會。</strong>小亨堡只整理常見問題與居家處理建議，<strong>不做任何診斷或處方</strong>。看完內容若還是不確定，請務必諮詢兒科醫師。
+            </div>
+        </details>
+        <details class="faq-item">
+            <summary class="faq-q">
+                <span class="q-ic">Q</span>
+                為什麼有些題目會跨多個月齡？
+                <i class="fas fa-chevron-down chev"></i>
+            </summary>
+            <div class="faq-a">
+                同一個症狀（例如<strong>吐奶</strong>），在不同月齡的判斷標準與處理方式可能不同。當題目標示 <code>0-12M</code> 等跨段，代表在這整段月齡內<strong>都適用</strong>該建議；點月齡篩選時，系統會把跨段都納入。
+            </div>
+        </details>
+        <details class="faq-item">
+            <summary class="faq-q">
+                <span class="q-ic">Q</span>
+                資料多久更新一次？
+                <i class="fas fa-chevron-down chev"></i>
+            </summary>
+            <div class="faq-a">
+                由社群<strong>不定期</strong>更新。看到內容過時或有疑慮，歡迎在社群留言，管理員會審閱後修訂。
+            </div>
+        </details>
+        <details class="faq-item">
+            <summary class="faq-q">
+                <span class="q-ic">Q</span>
+                為什麼搜不到我的關鍵字？
+                <i class="fas fa-chevron-down chev"></i>
+            </summary>
+            <div class="faq-a">
+                試試<strong>更口語的詞</strong>（例如「拉肚子」改成「腹瀉」、「咳一直停不下來」改成「咳嗽」），或先點燈號逛清單。也可以從每題下方的「💭 還想看…」關鍵字 chips 切到相關題目。
+            </div>
+        </details>
+        <details class="faq-item">
+            <summary class="faq-q">
+                <span class="q-ic">Q</span>
+                可以離線使用嗎？
+                <i class="fas fa-chevron-down chev"></i>
+            </summary>
+            <div class="faq-a">
+                把網頁<strong>加到主畫面</strong>後，下次開啟可以直接讀取已快取的 QA 資料。但首次載入仍需網路。
+            </div>
+        </details>
+
+        <!-- ═══ 適用 / 不適用 ═══ -->
+        <div class="g-h">這個工具的範圍</div>
+        <div class="g-sub">先了解什麼時候用、什麼時候千萬別用。</div>
+        <div class="scope-grid">
+            <div class="scope-card fit">
+                <h4><i class="fas fa-check-circle"></i> 適合用</h4>
+                <ul>
+                    <li>常見症狀的居家觀察</li>
+                    <li>送醫前先初判燈號</li>
+                    <li>準備跟醫師描述病況</li>
+                    <li>整理可貼社群求救的訊息</li>
+                </ul>
+            </div>
+            <div class="scope-card unfit">
+                <h4><i class="fas fa-times-circle"></i> 不要用</h4>
+                <ul>
+                    <li>取代醫師的診斷</li>
+                    <li>判斷是否需要用藥</li>
+                    <li>處理已明確的紅旗症狀</li>
+                    <li>慢性病或特殊體質的長期照護</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- ═══ 資料來源 ═══ -->
+        <div class="g-h">資料來源 ・ 致謝</div>
+        <div class="source-card">
+            <strong>內容彙整自：</strong>
+            <ul class="source-list">
+                <li>兒科社團媽媽們的真實提問與管理員回覆</li>
+                <li>衛生福利部國民健康署兒童健康手冊</li>
+                <li>台灣兒科醫學會公開衛教資料</li>
+                <li>美國兒科學會（AAP）家長指南</li>
+            </ul>
+            <p style="margin-top: 8px;">所有內容經<strong>社群管理員審閱</strong>後上架，但仍可能存在疏漏。發現問題請回報社群。</p>
+        </div>
+
+        <!-- ═══ 二次警語（底部） ═══ -->
+        <div class="disclaimer">
+            <strong>⚠️ 再次提醒：</strong>本服務僅為居家照護之參考建議，<strong>不構成醫療診斷或處方</strong>。專業診療請洽兒科醫師；緊急狀況請立即就醫或撥打 119。對於依本服務內容自行處置所產生之任何後果，本平台不負任何法律責任。
+        </div>
+
+        <a href="index.html" class="start-cta">
+            <i class="fas fa-arrow-right"></i> 開始使用
+        </a>
+
+        <div class="meta-line">
+            小亨堡 QA・媽咪的居家照護助手<br>
+            <a href="terms.html">使用條款</a> ・ <a href="privacy.html">隱私政策</a>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    document.querySelectorAll('#platformTabs .platform-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const plat = tab.dataset.plat;
+            document.querySelectorAll('#platformTabs .platform-tab').forEach(t => t.classList.toggle('active', t === tab));
+            document.querySelectorAll('.install-platform').forEach(p => p.classList.toggle('active', p.dataset.plat === plat));
+        });
+    });
+    // 自動偵測作業系統
+    (function() {
+        const ua = navigator.userAgent;
+        if (/Android/i.test(ua)) {
+            document.querySelector('#platformTabs .platform-tab[data-plat="android"]').click();
+        }
+    })();
+</script>
+
+</body>
+</html>
